@@ -2,3 +2,8 @@
 .cmd
 .idea
 .vscode
+venv/
+.env
+*.ppk
+*.exe
+main
