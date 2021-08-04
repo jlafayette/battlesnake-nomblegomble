@@ -46,3 +46,77 @@ func TestNeckAvoidance(t *testing.T) {
 		}
 	}
 }
+
+func contains(moves []string, move string) bool {
+	for _, m := range moves {
+		if move == m {
+			return true
+		}
+	}
+	return false
+}
+
+func TestWallAvoidance(t *testing.T) {
+	tests := []struct {
+		input    Battlesnake
+		intoNeck string
+		intoWall []string
+	}{
+		{
+			input: Battlesnake{
+				// Lower left corner
+				Head: Coord{X: 0, Y: 0},
+				Body: []Coord{{X: 0, Y: 0}, {X: 1, Y: 0}, {X: 2, Y: 0}},
+			},
+			intoNeck: "right",
+			intoWall: []string{"left", "down"},
+		},
+		{
+			input: Battlesnake{
+				// top right corner
+				Head: Coord{X: 11, Y: 11},
+				Body: []Coord{{X: 11, Y: 11}, {X: 10, Y: 11}, {X: 9, Y: 11}},
+			},
+			intoNeck: "left",
+			intoWall: []string{"up", "right"},
+		},
+		{
+			input: Battlesnake{
+				// bottom right corner (facing down)
+				Head: Coord{X: 11, Y: 0},
+				Body: []Coord{{X: 11, Y: 0}, {X: 11, Y: 10}, {X: 11, Y: 9}},
+			},
+			intoNeck: "up",
+			intoWall: []string{"down", "right"},
+		},
+		{
+			input: Battlesnake{
+				// top left corner (facing up)
+				Head: Coord{X: 0, Y: 11},
+				Body: []Coord{{X: 0, Y: 11}, {X: 0, Y: 10}, {X: 0, Y: 9}},
+			},
+			intoNeck: "down",
+			intoWall: []string{"left", "up"},
+		},
+	}
+
+	for _, tc := range tests {
+		state := GameState{
+			Board: Board{
+				Width:  12,
+				Height: 12,
+				Snakes: []Battlesnake{tc.input},
+			},
+			You: tc.input,
+		}
+
+		nextMove := move(state)
+
+		if nextMove.Move == tc.intoNeck {
+			t.Errorf("snake moved onto its own neck, %s", nextMove.Move)
+		}
+		if contains(tc.intoWall, nextMove.Move) {
+			t.Errorf("snake moved into a wall, %s", nextMove.Move)
+		}
+	}
+}
