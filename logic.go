@@ -7,7 +7,6 @@ package main
 
 import (
 	"log"
-	"math/rand"
 )
 
 // This function is called when you register your Battlesnake on play.battlesnake.com
@@ -93,7 +92,8 @@ func move(state GameState) BattlesnakeMoveResponse {
 		nextMove = "down"
 		log.Printf("%s MOVE %d: No safe moves detected! Moving %s\n", state.Game.ID, state.Turn, nextMove)
 	} else {
-		nextMove = safeMoves[rand.Intn(len(safeMoves))]
+		// nextMove = safeMoves[rand.Intn(len(safeMoves))]
+		nextMove = safeMoves[0]
 		log.Printf("%s MOVE %d: %s\n", state.Game.ID, state.Turn, nextMove)
 	}
 	return BattlesnakeMoveResponse{
