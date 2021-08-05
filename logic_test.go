@@ -152,3 +152,41 @@ func TestSelfAvoidance(t *testing.T) {
 		}
 	}
 }
+
+func TestHead2Head(t *testing.T) {
+	tests := []struct {
+		me       Battlesnake
+		other    Battlesnake
+		expected string
+	}{
+		{
+			me: Battlesnake{
+				ID:   "snake-508e96ac-94ad-11ea-bb37",
+				Head: Coord{X: 0, Y: 0},
+				Body: []Coord{{X: 0, Y: 0}, {X: 0, Y: 1}, {X: 0, Y: 2}},
+			},
+			other: Battlesnake{
+				ID:   "snake-b67f4906-94ae-11ea-bb37",
+				Head: Coord{X: 2, Y: 0},
+				Body: []Coord{{X: 2, Y: 0}, {X: 2, Y: 1}, {X: 2, Y: 2}},
+			},
+			expected: "right",
+		},
+	}
+	for _, tc := range tests {
+		state := GameState{
+			Board: Board{
+				Width:  12,
+				Height: 12,
+				Snakes: []Battlesnake{tc.me, tc.other},
+			},
+			You: tc.me,
+		}
+
+		nextMove := move(state)
+
+		if nextMove.Move != tc.expected {
+			t.Errorf("Prefer head2head over the wall or self, expected right, got %s", nextMove.Move)
+		}
+	}
+}
