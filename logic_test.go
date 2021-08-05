@@ -120,3 +120,35 @@ func TestWallAvoidance(t *testing.T) {
 		}
 	}
 }
+
+func TestSelfAvoidance(t *testing.T) {
+	tests := []struct {
+		input    Battlesnake
+		intoSelf []string
+	}{
+		{
+			input: Battlesnake{
+				Head: Coord{X: 5, Y: 5},
+				Body: []Coord{{X: 5, Y: 5}, {X: 5, Y: 4}, {X: 6, Y: 4}, {X: 6, Y: 5}, {X: 6, Y: 6}, {X: 5, Y: 6}, {X: 4, Y: 6}},
+			},
+			intoSelf: []string{"up", "right", "down"},
+		},
+	}
+
+	for _, tc := range tests {
+		state := GameState{
+			Board: Board{
+				Width:  12,
+				Height: 12,
+				Snakes: []Battlesnake{tc.input},
+			},
+			You: tc.input,
+		}
+
+		nextMove := move(state)
+
+		if contains(tc.intoSelf, nextMove.Move) {
+			t.Errorf("snake moved into self, %s", nextMove.Move)
+		}
+	}
+}

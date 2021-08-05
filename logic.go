@@ -38,6 +38,21 @@ func end(state GameState) {
 	log.Printf("%s END\n\n", state.Game.ID)
 }
 
+func newHead(head Coord, move string) Coord {
+	switch move {
+	case "up":
+		return Coord{head.X, head.Y + 1}
+	case "down":
+		return Coord{head.X, head.Y - 1}
+	case "left":
+		return Coord{head.X - 1, head.Y}
+	case "right":
+		return Coord{head.X + 1, head.Y}
+	}
+	panic("invalid move")
+	// return Coord{head.X, head.Y} // invalid move - shouldn't happen
+}
+
 // This function is called on every turn of a game. Use the provided GameState to decide
 // where to move -- valid moves are "up", "down", "left", or "right".
 // We've provided some code and comments to get you started.
@@ -49,7 +64,7 @@ func move(state GameState) BattlesnakeMoveResponse {
 		"right": true,
 	}
 
-	// Step 0: Don't let your Battlesnake move back in on it's own neck
+	// Don't let your Battlesnake move back in on it's own neck
 	myHead := state.You.Body[0] // Coordinates of your head
 	myNeck := state.You.Body[1] // Coordinates of body piece directly behind your head (your "neck")
 	if myNeck.X < myHead.X {
@@ -62,8 +77,7 @@ func move(state GameState) BattlesnakeMoveResponse {
 		possibleMoves["up"] = false
 	}
 
-	// TODO: Step 1 - Don't hit walls.
-	// Use information in GameState to prevent your Battlesnake from moving beyond the boundaries of the board.
+	// Don't hit walls.
 	boardWidth := state.Board.Width
 	boardHeight := state.Board.Height
 	if myHead.X == 0 {
@@ -77,9 +91,18 @@ func move(state GameState) BattlesnakeMoveResponse {
 		possibleMoves["up"] = false
 	}
 
-	// TODO: Step 2 - Don't hit yourself.
+	// Don't hit yourself.
 	// Use information in GameState to prevent your Battlesnake from colliding with itself.
-	// mybody := state.You.Body
+	mybody := state.You.Body
+	for _, move := range []string{"up", "down", "left", "right"} {
+		for _, coord := range mybody {
+			nextHeadPos := newHead(myHead, move)
+			if nextHeadPos.X == coord.X && nextHeadPos.Y == coord.Y {
+				log.Printf("setting %s to false", move)
+				possibleMoves[move] = false
+			}
+		}
+	}
 
 	// TODO: Step 3 - Don't collide with others.
 	// Use information in GameState to prevent your Battlesnake from colliding with others.
