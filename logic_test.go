@@ -125,6 +125,7 @@ func TestSelfAvoidance(t *testing.T) {
 	tests := []struct {
 		input    Battlesnake
 		intoSelf []string
+		intoWall []string
 	}{
 		{
 			input: Battlesnake{
@@ -132,6 +133,25 @@ func TestSelfAvoidance(t *testing.T) {
 				Body: []Coord{{X: 5, Y: 5}, {X: 5, Y: 4}, {X: 6, Y: 4}, {X: 6, Y: 5}, {X: 6, Y: 6}, {X: 5, Y: 6}, {X: 4, Y: 6}},
 			},
 			intoSelf: []string{"up", "right", "down"},
+		},
+		// tail is ok if not at full health
+		{
+			input: Battlesnake{
+				Head:   Coord{X: 11, Y: 0},
+				Body:   []Coord{{X: 11, Y: 0}, {X: 10, Y: 0}, {X: 10, Y: 1}, {X: 11, Y: 1}},
+				Health: 99,
+			},
+			intoSelf: []string{"left"},
+			intoWall: []string{"down", "right"},
+		},
+		{
+			input: Battlesnake{
+				Head:   Coord{X: 0, Y: 11},
+				Body:   []Coord{{X: 0, Y: 11}, {X: 1, Y: 11}, {X: 1, Y: 10}, {X: 0, Y: 10}},
+				Health: 99,
+			},
+			intoSelf: []string{"right"},
+			intoWall: []string{"up", "left"},
 		},
 	}
 
@@ -149,6 +169,9 @@ func TestSelfAvoidance(t *testing.T) {
 
 		if contains(tc.intoSelf, nextMove.Move) {
 			t.Errorf("snake moved into self, %s", nextMove.Move)
+		}
+		if contains(tc.intoWall, nextMove.Move) {
+			t.Errorf("snake moved into wall, %s", nextMove.Move)
 		}
 	}
 }

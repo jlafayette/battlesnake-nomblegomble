@@ -79,7 +79,7 @@ func (m *Moves) best() string {
 	var bestScore float64
 	bestScore = 0.0
 	for move, score := range m.Weighted {
-		if score >= bestScore {
+		if score > bestScore {
 			nextMove = move
 			bestScore = score
 		}
@@ -97,6 +97,26 @@ func (m *Moves) safe() []string {
 	return safeMoves
 }
 
+func (m *Moves) avoidWall(move string) {
+	log.Printf("wall avoidance: setting %s to 0.0", move)
+	m.Weighted[move] = 0.0
+}
+
+func (m *Moves) avoidSelf(move string) {
+	log.Printf("self avoidance: setting %s to 0.0", move)
+	m.Weighted[move] = 0.0
+}
+
+func (m *Moves) avoidOther(move string) {
+	log.Printf("other snake avoidance: setting %s to 0.0", move)
+	m.Weighted[move] = 0.0
+}
+
+func (m *Moves) avoidHead2Head(move string) {
+	m.Weighted[move] -= 0.1
+	log.Printf("head2head avoidance: setting %s to %f", move, m.Weighted[move])
+}
+
 // This function is called on every turn of a game. Use the provided GameState to decide
 // where to move -- valid moves are "up", "down", "left", or "right".
 // We've provided some code and comments to get you started.
@@ -108,38 +128,44 @@ func move(state GameState) BattlesnakeMoveResponse {
 	myHead := state.You.Body[0] // Coordinates of your head
 	myNeck := state.You.Body[1] // Coordinates of body piece directly behind your head (your "neck")
 	if myNeck.X < myHead.X {
-		possibleMoves.Weighted["left"] = 0.0
+		possibleMoves.avoidSelf("left")
 	} else if myNeck.X > myHead.X {
-		possibleMoves.Weighted["right"] = 0.0
+		possibleMoves.avoidSelf("right")
 	} else if myNeck.Y < myHead.Y {
-		possibleMoves.Weighted["down"] = 0.0
+		possibleMoves.avoidSelf("down")
 	} else if myNeck.Y > myHead.Y {
-		possibleMoves.Weighted["up"] = 0.0
+		possibleMoves.avoidSelf("up")
 	}
 
 	// Don't hit walls.
 	boardWidth := state.Board.Width
 	boardHeight := state.Board.Height
 	if myHead.X == 0 {
-		possibleMoves.Weighted["left"] = 0.0
+		possibleMoves.avoidWall("left")
 	} else if myHead.X == boardWidth-1 {
-		possibleMoves.Weighted["right"] = 0.0
+		possibleMoves.avoidWall("right")
 	}
 	if myHead.Y == 0 {
-		possibleMoves.Weighted["down"] = 0.0
+		possibleMoves.avoidWall("down")
 	} else if myHead.Y == boardHeight-1 {
-		possibleMoves.Weighted["up"] = 0.0
+		possibleMoves.avoidWall("up")
 	}
 
 	// Don't hit yourself.
-	// Use information in GameState to prevent your Battlesnake from colliding with itself.
 	mybody := state.You.Body
 	for _, move := range possibleMoves.All {
-		for _, coord := range mybody {
-			nextHeadPos := newHead(myHead, move)
+		nextHeadPos := newHead(myHead, move)
+		for i, coord := range mybody {
+
+			// it's ok to tail chase, but not just after eating
+			isTail := len(mybody) == i+1
+			if isTail && state.You.Health < 100 {
+				continue
+			}
+
 			if samePos(nextHeadPos, coord) {
-				log.Printf("self avoidance: setting %s to false", move)
-				possibleMoves.Weighted[move] = 0.0
+				possibleMoves.avoidSelf(move)
+				break
 			}
 		}
 	}
@@ -151,11 +177,10 @@ func move(state GameState) BattlesnakeMoveResponse {
 			if state.You.ID == other.ID {
 				continue
 			}
-			log.Printf("comparing...")
 			for _, coord := range other.Body {
 				if samePos(nextHeadPos, coord) {
-					log.Printf("other snake avoidance: setting %s to false", move)
-					possibleMoves.Weighted[move] = 0.0
+					possibleMoves.avoidOther(move)
+					break
 				}
 			}
 			// avoid head to head
@@ -163,8 +188,7 @@ func move(state GameState) BattlesnakeMoveResponse {
 			for _, otherMove := range possibleMoves.All {
 				otherHeadPos := newHead(other.Head, otherMove)
 				if samePos(nextHeadPos, otherHeadPos) {
-					log.Printf("head2head avoidance: setting %s to false", move)
-					possibleMoves.Weighted[move] -= 0.1
+					possibleMoves.avoidHead2Head(move)
 				}
 			}
 		}
