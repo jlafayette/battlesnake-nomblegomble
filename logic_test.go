@@ -157,6 +157,15 @@ func TestSelfAvoidance(t *testing.T) {
 			intoSelf: []string{"right"},
 			intoWall: []string{"up", "left"},
 		},
+		{
+			name: "tail chase not ok (just eaten)",
+			input: Battlesnake{
+				Head:   Coord{X: 1, Y: 1},
+				Body:   []Coord{{X: 1, Y: 1}, {X: 1, Y: 2}, {X: 2, Y: 2}, {X: 2, Y: 1}, {X: 2, Y: 0}, {X: 1, Y: 0}},
+				Health: 100,
+			},
+			intoSelf: []string{"up", "right", "down"},
+		},
 	}
 
 	for _, tc := range tests {
