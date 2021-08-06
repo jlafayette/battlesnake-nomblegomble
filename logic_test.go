@@ -226,3 +226,80 @@ func TestHead2Head(t *testing.T) {
 		}
 	}
 }
+
+func TestFood(t *testing.T) {
+	tests := []struct {
+		name     string
+		input    Battlesnake
+		food     []Coord
+		expected string
+	}{
+		{
+			name: "eat when starving",
+			input: Battlesnake{
+				Head:   Coord{X: 5, Y: 5},
+				Body:   []Coord{{X: 5, Y: 5}, {X: 5, Y: 4}, {X: 6, Y: 4}},
+				Health: 1,
+			},
+			food:     []Coord{{X: 6, Y: 5}},
+			expected: "right",
+		},
+		{
+			name: "go towards food when hungry",
+			input: Battlesnake{
+				Head:   Coord{X: 5, Y: 5},
+				Body:   []Coord{{X: 5, Y: 5}, {X: 5, Y: 4}, {X: 6, Y: 4}},
+				Health: 20,
+			},
+			food:     []Coord{{X: 0, Y: 5}},
+			expected: "left",
+		},
+	}
+
+	for _, tc := range tests {
+		state := GameState{
+			Board: Board{
+				Width:  12,
+				Height: 12,
+				Snakes: []Battlesnake{tc.input},
+				Food:   tc.food,
+			},
+			You: tc.input,
+		}
+
+		nextMove := move(state)
+
+		if nextMove.Move != tc.expected {
+			t.Errorf("%s: expected %s, got %s", tc.name, tc.expected, nextMove.Move)
+		}
+	}
+}
+
+func TestMath(t *testing.T) {
+	tests := []struct {
+		head     Coord
+		food     Coord
+		expected int
+	}{
+		{
+			head:     Coord{X: 0, Y: 0},
+			food:     Coord{X: 2, Y: 2},
+			expected: 4,
+		},
+		{
+			head:     Coord{X: 5, Y: 5},
+			food:     Coord{X: 7, Y: 3},
+			expected: 4,
+		},
+	}
+
+	for _, tc := range tests {
+
+		actual := distance(tc.head, tc.food)
+
+		if actual != tc.expected {
+			t.Errorf("expected %d, got %d", tc.expected, actual)
+		}
+
+	}
+}

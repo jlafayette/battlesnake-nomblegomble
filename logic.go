@@ -113,8 +113,22 @@ func (m *Moves) avoidOther(move string) {
 }
 
 func (m *Moves) avoidHead2Head(move string) {
-	m.Weighted[move] -= 0.1
+	m.Weighted[move] -= 0.2
 	log.Printf("head2head avoidance: setting %s to %f", move, m.Weighted[move])
+}
+
+// Abs returns the absolute value of x.
+func Abs(x int) int {
+	if x < 0 {
+		return -x
+	}
+	return x
+}
+
+// distance returns the manhatten distance between two coordinates.
+func distance(p1, p2 Coord) int {
+	// In a plane with p1 at (x1, y1) and p2 at (x2, y2), it is |x1 - x2| + |y1 - y2|
+	return Abs(p1.X-p2.X) + Abs(p1.Y-p2.Y)
 }
 
 // This function is called on every turn of a game. Use the provided GameState to decide
@@ -194,8 +208,25 @@ func move(state GameState) BattlesnakeMoveResponse {
 		}
 	}
 
-	// TODO: Step 4 - Find food.
-	// Use information in GameState to seek out and find food.
+	// Find food.
+	// TODO: tune based on hunger and strategy
+	maxDistance := distance(Coord{X: 0, Y: 0}, Coord{X: boardWidth - 1, Y: boardHeight - 1})
+	for _, move := range possibleMoves.safe() {
+		pos := newHead(myHead, move)
+		for _, food := range state.Board.Food {
+			if samePos(pos, food) {
+				possibleMoves.Weighted[move] += 0.1
+				break
+			}
+			d1 := distance(myHead, food)
+			d2 := distance(pos, food)
+			if d2 < d1 {
+				amount := 0.001 * float64(maxDistance-d2)
+				possibleMoves.Weighted[move] += amount
+				log.Printf("Increased %s weight by: %f", move, amount)
+			}
+		}
+	}
 
 	// Finally, choose a move from the available safe moves.
 	nextMove := possibleMoves.best()
