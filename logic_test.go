@@ -48,8 +48,8 @@ func TestNeckAvoidance(t *testing.T) {
 		state := GameState{
 			Board: Board{
 				Snakes: []Battlesnake{tc.input},
-				Width:  12,
-				Height: 12,
+				Width:  11,
+				Height: 11,
 			},
 			You: tc.input,
 		}
@@ -57,7 +57,7 @@ func TestNeckAvoidance(t *testing.T) {
 		nextMove := move(state)
 
 		if nextMove.Move == tc.noGo {
-			t.Errorf("snake moved onto its own neck, %s", nextMove.Move)
+			t.Errorf("%s: snake moved onto its own neck, %s", tc.name, nextMove.Move)
 		}
 	}
 }
@@ -73,11 +73,13 @@ func contains(moves []string, move string) bool {
 
 func TestWallAvoidance(t *testing.T) {
 	tests := []struct {
+		name     string
 		input    Battlesnake
 		intoNeck string
 		intoWall []string
 	}{
 		{
+			name: "wall avoidance 1",
 			input: Battlesnake{
 				// Lower left corner
 				Head: Coord{X: 0, Y: 0},
@@ -87,6 +89,7 @@ func TestWallAvoidance(t *testing.T) {
 			intoWall: []string{"left", "down"},
 		},
 		{
+			name: "wall avoidance 2",
 			input: Battlesnake{
 				// top right corner
 				Head: Coord{X: 11, Y: 11},
@@ -96,15 +99,17 @@ func TestWallAvoidance(t *testing.T) {
 			intoWall: []string{"up", "right"},
 		},
 		{
+			name: "wall avoidance 3",
 			input: Battlesnake{
 				// bottom right corner (facing down)
 				Head: Coord{X: 11, Y: 0},
-				Body: []Coord{{X: 11, Y: 0}, {X: 11, Y: 10}, {X: 11, Y: 9}},
+				Body: []Coord{{X: 11, Y: 0}, {X: 11, Y: 1}, {X: 11, Y: 2}},
 			},
 			intoNeck: "up",
 			intoWall: []string{"down", "right"},
 		},
 		{
+			name: "wall avoidance 4",
 			input: Battlesnake{
 				// top left corner (facing up)
 				Head: Coord{X: 0, Y: 11},
@@ -128,10 +133,10 @@ func TestWallAvoidance(t *testing.T) {
 		nextMove := move(state)
 
 		if nextMove.Move == tc.intoNeck {
-			t.Errorf("snake moved onto its own neck, %s", nextMove.Move)
+			t.Errorf("%s: snake moved onto its own neck, %s", tc.name, nextMove.Move)
 		}
 		if contains(tc.intoWall, nextMove.Move) {
-			t.Errorf("snake moved into a wall, %s", nextMove.Move)
+			t.Errorf("%s: snake moved into a wall, %s", tc.name, nextMove.Move)
 		}
 	}
 }

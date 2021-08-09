@@ -50,7 +50,11 @@ func (g *Grid) Area(state *GameState, move string) int {
 	// super simple time
 	// for each move, find the area of connected cells
 	// for move in moves
-	g.push(newHead(state.You.Head, move))
+	startingCoord := newHead(state.You.Head, move)
+	if startingCoord.outOfBounds(state.Board.Width, state.Board.Height) {
+		return 0
+	}
+	g.push(startingCoord)
 	area := 0
 	for {
 		// pop item
