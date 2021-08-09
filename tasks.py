@@ -30,7 +30,7 @@ async def copy_file(path):
 @task
 def deploy(ctx):
     f = "main"
-    ctx.run(f"go build -o {f} main.go logic.go", env={"GOOS": "linux", "GOARCH": "amd64"})
+    ctx.run(f"go build -o {f} main.go logic.go grid.go", env={"GOOS": "linux", "GOARCH": "amd64"})
     print("Deploying...")
     try:
         asyncio.get_event_loop().run_until_complete(copy_file(f))

@@ -6,35 +6,50 @@ import (
 
 func TestNeckAvoidance(t *testing.T) {
 	tests := []struct {
+		name  string
 		input Battlesnake
 		noGo  string
 	}{
-		{input: Battlesnake{
-			// Length 3, facing right
-			Head: Coord{X: 2, Y: 0},
-			Body: []Coord{{X: 2, Y: 0}, {X: 1, Y: 0}, {X: 0, Y: 0}},
-		}, noGo: "left"},
-		{input: Battlesnake{
-			// Length 3, facing left
-			Head: Coord{X: 7, Y: 0},
-			Body: []Coord{{X: 7, Y: 0}, {X: 8, Y: 0}, {X: 9, Y: 0}},
-		}, noGo: "right"},
-		{input: Battlesnake{
-			// Length 3, facing up
-			Head: Coord{X: 5, Y: 10},
-			Body: []Coord{{X: 5, Y: 9}, {X: 5, Y: 8}, {X: 5, Y: 7}},
-		}, noGo: "down"},
-		{input: Battlesnake{
-			// Length 3, facing down
-			Head: Coord{X: 5, Y: 1},
-			Body: []Coord{{X: 5, Y: 2}, {X: 5, Y: 3}, {X: 5, Y: 4}},
-		}, noGo: "up"},
+		{
+			name: "neck avoidance 1",
+			input: Battlesnake{
+				// Length 3, facing right
+				Head: Coord{X: 2, Y: 0},
+				Body: []Coord{{X: 2, Y: 0}, {X: 1, Y: 0}, {X: 0, Y: 0}},
+			}, noGo: "left",
+		},
+		{
+			name: "neck avoidance 2",
+			input: Battlesnake{
+				// Length 3, facing left
+				Head: Coord{X: 7, Y: 0},
+				Body: []Coord{{X: 7, Y: 0}, {X: 8, Y: 0}, {X: 9, Y: 0}},
+			}, noGo: "right",
+		},
+		{
+			name: "neck avoidance 3",
+			input: Battlesnake{
+				// Length 3, facing up
+				Head: Coord{X: 5, Y: 10},
+				Body: []Coord{{X: 5, Y: 9}, {X: 5, Y: 8}, {X: 5, Y: 7}},
+			}, noGo: "down",
+		},
+		{
+			name: "neck avoidance 4",
+			input: Battlesnake{
+				// Length 3, facing down
+				Head: Coord{X: 5, Y: 1},
+				Body: []Coord{{X: 5, Y: 2}, {X: 5, Y: 3}, {X: 5, Y: 4}},
+			}, noGo: "up",
+		},
 	}
 
 	for _, tc := range tests {
 		state := GameState{
 			Board: Board{
 				Snakes: []Battlesnake{tc.input},
+				Width:  12,
+				Height: 12,
 			},
 			You: tc.input,
 		}
@@ -223,6 +238,50 @@ func TestHead2Head(t *testing.T) {
 
 		if nextMove.Move != tc.expected {
 			t.Errorf("Prefer head2head over the wall or self, expected right, got %s", nextMove.Move)
+		}
+	}
+}
+
+func TestSpace(t *testing.T) {
+	tests := []struct {
+		name         string
+		input        Battlesnake
+		intoSelf     []string
+		intoWall     []string
+		intoBadSpace []string
+	}{
+		{
+			name: "avoid small space 1",
+			input: Battlesnake{
+				Head: Coord{2, 0},
+				Body: []Coord{{2, 0}, {2, 1}, {1, 1}, {0, 1}, {0, 0}},
+			},
+			intoSelf:     []string{"up"},
+			intoWall:     []string{"down"},
+			intoBadSpace: []string{"left"},
+		},
+	}
+
+	for _, tc := range tests {
+		state := GameState{
+			Board: Board{
+				Width:  12,
+				Height: 12,
+				Snakes: []Battlesnake{tc.input},
+			},
+			You: tc.input,
+		}
+
+		nextMove := move(state)
+
+		if contains(tc.intoSelf, nextMove.Move) {
+			t.Errorf("%s: snake moved into self, %s", tc.name, nextMove.Move)
+		}
+		if contains(tc.intoWall, nextMove.Move) {
+			t.Errorf("%s: snake moved into wall, %s", tc.name, nextMove.Move)
+		}
+		if contains(tc.intoWall, nextMove.Move) {
+			t.Errorf("%s: snake moved into small space with, %s", tc.name, nextMove.Move)
 		}
 	}
 }

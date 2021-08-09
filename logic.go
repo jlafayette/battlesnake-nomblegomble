@@ -223,10 +223,26 @@ func move(state GameState) BattlesnakeMoveResponse {
 			if d2 < d1 {
 				amount := 0.001 * float64(maxDistance-d2)
 				possibleMoves.Weighted[move] += amount
-				log.Printf("Increased %s weight by: %f", move, amount)
+				log.Printf("food: increased %s weight by: %f", move, amount)
 			}
 		}
 	}
+
+	// Seek out larger spaces
+	// From the head of each snake, do a breadth first search of possible moves
+	grid := NewGrid(state.Board.Width, state.Board.Height)
+	moves := possibleMoves.safe()
+	if len(moves) > 1 {
+		for _, move := range moves {
+			log.Printf("checking area for move: %s", move)
+			area := grid.Area(&state, move)
+			amount := 0.001 * float64(area)
+			possibleMoves.Weighted[move] += amount
+			log.Printf("area: increased %s weight by: %f", move, amount)
+		}
+	}
+
+	// Details shrink tails (later)
 
 	// Finally, choose a move from the available safe moves.
 	nextMove := possibleMoves.best()
