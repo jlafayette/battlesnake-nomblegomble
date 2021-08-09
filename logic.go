@@ -53,10 +53,6 @@ func newHead(head Coord, move string) Coord {
 	// return Coord{head.X, head.Y} // invalid move - shouldn't happen
 }
 
-func samePos(a, b Coord) bool {
-	return a.X == b.X && a.Y == b.Y
-}
-
 type Moves struct {
 	All      []string
 	Weighted map[string]float64
@@ -115,20 +111,6 @@ func (m *Moves) avoidOther(move string) {
 func (m *Moves) avoidHead2Head(move string) {
 	m.Weighted[move] -= 0.2
 	log.Printf("head2head avoidance: setting %s to %f", move, m.Weighted[move])
-}
-
-// Abs returns the absolute value of x.
-func Abs(x int) int {
-	if x < 0 {
-		return -x
-	}
-	return x
-}
-
-// distance returns the manhatten distance between two coordinates.
-func distance(p1, p2 Coord) int {
-	// In a plane with p1 at (x1, y1) and p2 at (x2, y2), it is |x1 - x2| + |y1 - y2|
-	return Abs(p1.X-p2.X) + Abs(p1.Y-p2.Y)
 }
 
 // This function is called on every turn of a game. Use the provided GameState to decide
