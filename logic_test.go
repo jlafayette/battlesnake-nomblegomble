@@ -247,6 +247,71 @@ func TestHead2Head(t *testing.T) {
 	}
 }
 
+func TestHead2HeadJson1(t *testing.T) {
+	tests := []struct {
+		state GameState
+		ok    []string
+		notOk []string
+	}{
+		{
+			state: GameState{
+				Board: Board{
+					Width:  11,
+					Height: 11,
+					Food:   []Coord{{5, 5}, {6, 10}, {4, 2}, {9, 2}, {0, 5}},
+					Snakes: []Battlesnake{
+						{
+							ID:     "snake-0-id",
+							Name:   "snake0",
+							Health: 97,
+							Head:   Coord{5, 6},
+							Body:   []Coord{{5, 6}, {5, 7}, {5, 8}},
+							Length: 3,
+						},
+						{
+							ID:     "snake-1-id",
+							Name:   "snake1",
+							Health: 97,
+							Head:   Coord{5, 4},
+							Body:   []Coord{{5, 4}, {5, 3}, {5, 2}},
+							Length: 3,
+						},
+					},
+				},
+				You: Battlesnake{
+					ID:     "snake-0-id",
+					Name:   "snake0",
+					Health: 97,
+					Head:   Coord{5, 6},
+					Body:   []Coord{{5, 6}, {5, 7}, {5, 8}},
+					Length: 3,
+				},
+			},
+			ok:    []string{"left", "right"},
+			notOk: []string{"down", "up"},
+		},
+	}
+	for _, tc := range tests {
+
+		nextMove := move(tc.state)
+
+		for _, badMove := range tc.notOk {
+			if nextMove.Move == badMove {
+				t.Errorf("expected one of %v, got %s", tc.ok, nextMove.Move)
+			}
+		}
+		found := false
+		for _, okMove := range tc.ok {
+			if nextMove.Move == okMove {
+				found = true
+			}
+		}
+		if !found {
+			t.Errorf("expected one of %v, got %s", tc.ok, nextMove.Move)
+		}
+	}
+}
+
 func TestSpace(t *testing.T) {
 	tests := []struct {
 		name         string
@@ -265,13 +330,24 @@ func TestSpace(t *testing.T) {
 			intoWall:     []string{"down"},
 			intoBadSpace: []string{"left"},
 		},
+		{
+			name: "avoid small space 2",
+			input: Battlesnake{
+				Health: 100,
+				Head:   Coord{0, 0},
+				Body:   []Coord{{0, 5}, {1, 5}, {2, 5}, {3, 5}, {3, 6}, {4, 6}, {5, 6}, {5, 5}, {4, 5}, {4, 4}, {3, 4}, {2, 4}, {1, 4}},
+			},
+			intoSelf:     []string{"right"},
+			intoWall:     []string{"left"},
+			intoBadSpace: []string{"up"},
+		},
 	}
 
 	for _, tc := range tests {
 		state := GameState{
 			Board: Board{
-				Width:  12,
-				Height: 12,
+				Width:  7,
+				Height: 7,
 				Snakes: []Battlesnake{tc.input},
 			},
 			You: tc.input,

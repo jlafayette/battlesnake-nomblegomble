@@ -239,7 +239,7 @@ func h2h(state *GameState, moves Scored) Scored {
 					} else if state.You.Length == other.Length {
 						// not great since you both die... but still very
 						// exiting
-						moves[move] = 0.1
+						moves[move] = 0.01
 					} else {
 						// very bad, run away
 						moves[move] = 0.0
@@ -318,6 +318,7 @@ func move(state GameState) BattlesnakeMoveResponse {
 	// avoid others (body)
 	// the result is the combination of avoid self, avoid walls, and avoid other snakes
 	avoidInstantDeath := avoidOthers(&state, moves)
+	log.Printf("avoidInstantDeath: %v", avoidInstantDeath)
 
 	// head2head
 	h2hScore := h2h(&state, avoidInstantDeath)
@@ -327,13 +328,29 @@ func move(state GameState) BattlesnakeMoveResponse {
 
 	// seek food
 	foodScore := foooood(&state, avoidInstantDeath)
+	log.Printf("foodScore: %v", foodScore)
+
+	foodWeight := 1.0
+	// longEnough := true
+	// for _, snake := range state.Board.Snakes {
+	// 	if state.You.Length < snake.Length+4 {
+	// 		longEnough = false
+	// 		break
+	// 	}
+	// }
+	// foodWeight = 1.0 - remap(float64(state.You.Health), 1.0, 50.0, 0.0, 1.0)
+	// if !longEnough {
+	// 	foodWeight = foodWeight + 1.0
+	// }
+	// foodWeight = remap(foodWeight, 0.0, 2.0, 0.0, 1.0)
 
 	finalWeightedScore := combineMoves([]WeightedScore{
 		{1.0, avoidInstantDeath},
 		{1.0, h2hScore},
 		{1.0, spaceScore},
-		{1.0, foodScore}, // TODO: tune based on other snakes length and hunger
+		{foodWeight, foodScore}, // TODO: tune based on other snakes length and hunger
 	})
+	log.Printf("finalWeightedScore: %v", finalWeightedScore)
 	nextMove := finalWeightedScore.best()
 
 	log.Printf("%s MOVE %d: %s\n", state.Game.ID, state.Turn, nextMove)
