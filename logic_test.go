@@ -315,16 +315,22 @@ func TestHead2HeadJson1(t *testing.T) {
 func TestSpace(t *testing.T) {
 	tests := []struct {
 		name         string
-		input        Battlesnake
+		input        Board
 		intoSelf     []string
 		intoWall     []string
 		intoBadSpace []string
 	}{
 		{
 			name: "avoid small space 1",
-			input: Battlesnake{
-				Head: Coord{2, 0},
-				Body: []Coord{{2, 0}, {2, 1}, {1, 1}, {0, 1}, {0, 0}},
+			input: Board{
+				Snakes: []Battlesnake{
+					{
+						Head: Coord{2, 0},
+						Body: []Coord{{2, 0}, {2, 1}, {1, 1}, {0, 1}, {0, 0}},
+					},
+				},
+				Width:  7,
+				Height: 7,
 			},
 			intoSelf:     []string{"up"},
 			intoWall:     []string{"down"},
@@ -332,10 +338,17 @@ func TestSpace(t *testing.T) {
 		},
 		{
 			name: "avoid small space 2",
-			input: Battlesnake{
-				Health: 100,
-				Head:   Coord{0, 0},
-				Body:   []Coord{{0, 5}, {1, 5}, {2, 5}, {3, 5}, {3, 6}, {4, 6}, {5, 6}, {5, 5}, {4, 5}, {4, 4}, {3, 4}, {2, 4}, {1, 4}},
+			input: Board{
+				Snakes: []Battlesnake{
+					{
+						Health: 100,
+						Head:   Coord{0, 5},
+						Body:   []Coord{{0, 5}, {1, 5}, {2, 5}, {3, 5}, {3, 6}, {4, 6}, {5, 6}, {5, 5}, {4, 5}, {4, 4}, {3, 4}, {2, 4}, {1, 4}},
+					},
+				},
+				Food:   []Coord{{4, 1}, {6, 6}},
+				Width:  7,
+				Height: 7,
 			},
 			intoSelf:     []string{"right"},
 			intoWall:     []string{"left"},
@@ -345,12 +358,8 @@ func TestSpace(t *testing.T) {
 
 	for _, tc := range tests {
 		state := GameState{
-			Board: Board{
-				Width:  7,
-				Height: 7,
-				Snakes: []Battlesnake{tc.input},
-			},
-			You: tc.input,
+			Board: tc.input,
+			You:   tc.input.Snakes[0],
 		}
 
 		nextMove := move(state)
@@ -361,7 +370,7 @@ func TestSpace(t *testing.T) {
 		if contains(tc.intoWall, nextMove.Move) {
 			t.Errorf("%s: snake moved into wall, %s", tc.name, nextMove.Move)
 		}
-		if contains(tc.intoWall, nextMove.Move) {
+		if contains(tc.intoBadSpace, nextMove.Move) {
 			t.Errorf("%s: snake moved into small space with, %s", tc.name, nextMove.Move)
 		}
 	}

@@ -71,8 +71,8 @@ type Scored map[string]float64
 
 // Remap scores to 0 - 1 range
 func (moves Scored) zeroToOne() Scored {
-	minScore := 0.0
-	maxScore := 99999999.9
+	minScore := 99.0
+	maxScore := 0.0
 	for _, score := range moves {
 		minScore = min(minScore, score)
 		maxScore = max(maxScore, score)
@@ -283,17 +283,21 @@ func gimmeSomeSpace(state *GameState, moves Scored) Scored {
 	// From the head of each snake, do a breadth first search of possible moves
 	grid := NewGrid(state.Board.Width, state.Board.Height)
 	safeMoves := moves.safeMoves()
+	// log.Printf("      moves: %v", moves)
 	if len(safeMoves) > 1 {
 		for _, move := range safeMoves {
 			// log.Printf("checking area for move: %s", move)
 			area := grid.Area(state, move)
+			// log.Printf("move: %s, area: %d", move, area)
 			amount := 0.01 * float64(area)
 			moves[move] += amount
 			// log.Printf("area: increased %s weight by: %f", move, amount)
 		}
 	}
-
-	return moves.zeroToOne()
+	// log.Printf("m          : %v", moves)
+	m := moves.zeroToOne()
+	// log.Printf("m zeroToOne: %v", m)
+	return m
 }
 
 // This function is called on every turn of a game. Use the provided GameState to decide
@@ -311,14 +315,17 @@ func move(state GameState) BattlesnakeMoveResponse {
 
 	// avoid self
 	avoidSelfScore := avoidSelf(&state)
+	// log.Printf("avoidSelfScore: %v", avoidSelfScore)
 	// avoid walls
 	avoidWallsScore := avoidWalls(&state)
+	// log.Printf("avoidWallsScore: %v", avoidWallsScore)
 	moves := combineMoves([]WeightedScore{{1.0, avoidSelfScore}, {1.0, avoidWallsScore}})
+	// log.Printf("combinedSelfAndWall: %v", moves)
 
 	// avoid others (body)
 	// the result is the combination of avoid self, avoid walls, and avoid other snakes
 	avoidInstantDeath := avoidOthers(&state, moves)
-	log.Printf("avoidInstantDeath: %v", avoidInstantDeath)
+	// log.Printf("avoidInstantDeath: %v", avoidInstantDeath)
 
 	// head2head
 	h2hScore := h2h(&state, avoidInstantDeath)
@@ -328,7 +335,7 @@ func move(state GameState) BattlesnakeMoveResponse {
 
 	// seek food
 	foodScore := foooood(&state, avoidInstantDeath)
-	log.Printf("foodScore: %v", foodScore)
+	// log.Printf("foodScore: %v", foodScore)
 
 	foodWeight := 1.0
 	// longEnough := true
