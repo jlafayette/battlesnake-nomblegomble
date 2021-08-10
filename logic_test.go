@@ -450,6 +450,263 @@ func TestAvoidBadHead2Head(t *testing.T) {
 	}
 }
 
+func TestKillerInstinct1(t *testing.T) {
+	state := GameState{
+		Game: Game{
+			ID: "37719616-712a-4dea-9dbd-b9dfa992d908",
+			Ruleset: Ruleset{
+				Name:    "standard",
+				Version: "",
+			},
+			Timeout: 500,
+		},
+		Turn: 80,
+		Board: Board{
+			Height: 11,
+			Width:  11,
+			Food:   []Coord{{9, 10}, {8, 9}},
+			Snakes: []Battlesnake{
+				{
+					ID:      "gs_x3Mybq4HHmYSHKbGh83fk9rJ",
+					Name:    "nomblegomble",
+					Health:  100,
+					Head:    Coord{4, 6},
+					Body:    []Coord{{4, 6}, {4, 5}, {4, 4}, {4, 3}, {3, 3}, {2, 3}, {2, 4}, {2, 5}, {2, 6}, {1, 6}, {1, 7}, {1, 7}},
+					Length:  12,
+					Latency: "22",
+				},
+				{
+					ID:      "gs_D6yxdPV87SbYfrFYSDK7JVTR",
+					Name:    "Scared Cobra Chicken",
+					Health:  63,
+					Head:    Coord{5, 7},
+					Body:    []Coord{{5, 7}, {6, 7}, {6, 8}, {5, 8}, {5, 9}},
+					Length:  5,
+					Latency: "204",
+				},
+				{
+					ID:      "gs_vJxJGRgK43X9G8DDBmK8CDSQ",
+					Name:    "jsnek2",
+					Health:  98,
+					Head:    Coord{10, 4},
+					Body:    []Coord{{10, 4}, {10, 3}, {10, 2}, {9, 2}, {9, 3}, {9, 4}, {8, 4}},
+					Length:  7,
+					Latency: "263",
+				},
+			},
+		},
+		You: Battlesnake{
+			ID:      "gs_x3Mybq4HHmYSHKbGh83fk9rJ",
+			Name:    "nomblegomble",
+			Health:  100,
+			Head:    Coord{4, 6},
+			Body:    []Coord{{4, 6}, {4, 5}, {4, 4}, {4, 3}, {3, 3}, {2, 3}, {2, 4}, {2, 5}, {2, 6}, {1, 6}, {1, 7}, {1, 7}},
+			Length:  12,
+			Latency: "22",
+		},
+	}
+
+	nextMove := move(state)
+
+	if nextMove.Move == "down" {
+		t.Errorf("snake moved into self, %s", nextMove.Move)
+	}
+	if nextMove.Move == "left" {
+		t.Errorf("snake backed down from a kill, %s", nextMove.Move)
+	}
+}
+
+func TestKillerInstinct2(t *testing.T) {
+
+	state := GameState{
+		Game: Game{
+			ID: "37719616-712a-4dea-9dbd-b9dfa992d908",
+			Ruleset: Ruleset{
+				Name:    "standard",
+				Version: "",
+			},
+			Timeout: 500,
+		},
+		Turn: 81,
+		Board: Board{
+			Height: 11,
+			Width:  11,
+			Food:   []Coord{{9, 10}, {8, 9}},
+			Snakes: []Battlesnake{
+				{
+					ID:      "gs_x3Mybq4HHmYSHKbGh83fk9rJ",
+					Name:    "nomblegomble",
+					Health:  99,
+					Head:    Coord{3, 6},
+					Body:    []Coord{{3, 6}, {4, 6}, {4, 5}, {4, 4}, {4, 3}, {3, 3}, {2, 3}, {2, 4}, {2, 5}, {2, 6}, {1, 6}, {1, 7}},
+					Length:  12,
+					Latency: "21",
+				},
+				{
+					ID:      "gs_D6yxdPV87SbYfrFYSDK7JVTR",
+					Name:    "Scared Cobra Chicken",
+					Health:  62,
+					Head:    Coord{4, 7},
+					Body:    []Coord{{4, 7}, {5, 7}, {6, 7}, {6, 8}, {5, 8}},
+					Length:  5,
+					Latency: "205",
+				},
+				{
+					ID:      "gs_vJxJGRgK43X9G8DDBmK8CDSQ",
+					Name:    "jsnek2",
+					Health:  97,
+					Head:    Coord{10, 5},
+					Body:    []Coord{{10, 5}, {10, 4}, {10, 3}, {10, 2}, {9, 2}, {9, 3}, {9, 4}},
+					Length:  7,
+					Latency: "254",
+				},
+			},
+		},
+		You: Battlesnake{
+			ID:      "gs_x3Mybq4HHmYSHKbGh83fk9rJ",
+			Name:    "nomblegomble",
+			Health:  99,
+			Head:    Coord{3, 6},
+			Body:    []Coord{{3, 6}, {4, 6}, {4, 5}, {4, 4}, {4, 3}, {3, 3}, {2, 3}, {2, 4}, {2, 5}, {2, 6}, {1, 6}, {1, 7}},
+			Length:  12,
+			Latency: "21",
+		},
+	}
+
+	nextMove := move(state)
+
+	if nextMove.Move == "down" {
+		t.Errorf("snake moved into too small of space, %s", nextMove.Move)
+	}
+	if nextMove.Move == "left" {
+		t.Errorf("snake moved into self, %s", nextMove.Move)
+	}
+	if nextMove.Move == "right" {
+		t.Errorf("snake moved into self, %s", nextMove.Move)
+	}
+}
+
+func TestKillerInstinct3(t *testing.T) {
+	state := GameState{
+		Game: Game{
+			ID: "f53ef734-3349-467d-9eee-89b2d6f9b4fa",
+			Ruleset: Ruleset{
+				Name:    "standard",
+				Version: "",
+			},
+			Timeout: 500,
+		},
+		Turn: 97,
+		Board: Board{
+			Height: 11,
+			Width:  11,
+			Food:   []Coord{{0, 2}},
+			Snakes: []Battlesnake{
+				{
+					ID:      "gs_YSGWKK73YPHrX3vdG3hJhGHT",
+					Name:    "nomblegomble",
+					Health:  95,
+					Head:    Coord{1, 2},
+					Body:    []Coord{{1, 2}, {1, 3}, {0, 3}, {0, 4}, {1, 4}, {2, 4}, {2, 3}, {3, 3}, {4, 3}, {4, 4}, {5, 4}, {6, 4}},
+					Length:  12,
+					Latency: "21",
+				},
+				{
+					ID:      "gs_mmKppxxMFHWF73VYrjBM8RS8",
+					Name:    "Ekans on a Plane",
+					Health:  90,
+					Head:    Coord{2, 1},
+					Body:    []Coord{{2, 1}, {1, 1}, {0, 1}, {0, 0}, {1, 0}, {2, 0}, {3, 0}, {4, 0}, {5, 0}},
+					Length:  9,
+					Latency: "73",
+				},
+			},
+		},
+		You: Battlesnake{
+			ID:      "gs_YSGWKK73YPHrX3vdG3hJhGHT",
+			Name:    "nomblegomble",
+			Health:  95,
+			Head:    Coord{1, 2},
+			Body:    []Coord{{1, 2}, {1, 3}, {0, 3}, {0, 4}, {1, 4}, {2, 4}, {2, 3}, {3, 3}, {4, 3}, {4, 4}, {5, 4}, {6, 4}},
+			Length:  12,
+			Latency: "21",
+		},
+	}
+
+	nextMove := move(state)
+
+	if nextMove.Move == "left" {
+		t.Errorf("snake moved into too small of space, %s", nextMove.Move)
+	}
+	if nextMove.Move == "up" {
+		t.Errorf("snake moved into self, %s", nextMove.Move)
+	}
+	if nextMove.Move == "down" {
+		t.Errorf("snake moved into other snake, %s", nextMove.Move)
+	}
+}
+
+// This one is tricky because the Head2Head happens on the tail of the other snake
+func TestKillerInstinctOtherTail4(t *testing.T) {
+	state := GameState{
+		Game: Game{
+			ID: "e5652b90-b24e-43ff-ba46-c00ef8b1cb41",
+			Ruleset: Ruleset{
+				Name:    "standard",
+				Version: "",
+			},
+			Timeout: 500,
+		},
+		Turn: 223,
+		Board: Board{
+			Height: 11,
+			Width:  11,
+			Food:   []Coord{{2, 0}, {0, 2}, {2, 10}},
+			Snakes: []Battlesnake{
+				{
+					ID:      "gs_jjjF7vvJC9tWc6dBM4MhjKrW",
+					Name:    "nomblegomble",
+					Health:  95,
+					Head:    Coord{7, 2},
+					Body:    []Coord{{7, 2}, {8, 2}, {8, 3}, {9, 3}, {9, 4}, {9, 5}, {10, 5}, {10, 6}, {10, 7}, {10, 8}, {10, 9}, {10, 10}, {9, 10}, {9, 9}, {8, 9}, {7, 9}, {6, 9}, {6, 8}, {6, 7}, {5, 7}, {4, 7}, {4, 6}, {4, 5}, {5, 5}, {6, 5}, {7, 5}, {7, 6}, {7, 7}, {8, 7}, {9, 7}, {9, 6}, {8, 6}, {8, 5}, {8, 4}, {7, 4}, {7, 3}, {6, 3}, {5, 3}, {5, 2}, {4, 2}, {3, 2}, {2, 2}},
+					Length:  42,
+					Latency: "20",
+				},
+				{
+					ID:      "gs_3F4d6gQq9ygjhykc6JpmmTmJ",
+					Name:    "Eremetic Eric",
+					Health:  74,
+					Head:    Coord{6, 1},
+					Body:    []Coord{{6, 1}, {5, 1}, {5, 0}, {6, 0}, {7, 0}, {7, 1}},
+					Length:  6,
+					Latency: "15",
+				},
+			},
+		},
+		You: Battlesnake{
+			ID:      "gs_jjjF7vvJC9tWc6dBM4MhjKrW",
+			Name:    "nomblegomble",
+			Health:  95,
+			Head:    Coord{7, 2},
+			Body:    []Coord{{7, 2}, {8, 2}, {8, 3}, {9, 3}, {9, 4}, {9, 5}, {10, 5}, {10, 6}, {10, 7}, {10, 8}, {10, 9}, {10, 10}, {9, 10}, {9, 9}, {8, 9}, {7, 9}, {6, 9}, {6, 8}, {6, 7}, {5, 7}, {4, 7}, {4, 6}, {4, 5}, {5, 5}, {6, 5}, {7, 5}, {7, 6}, {7, 7}, {8, 7}, {9, 7}, {9, 6}, {8, 6}, {8, 5}, {8, 4}, {7, 4}, {7, 3}, {6, 3}, {5, 3}, {5, 2}, {4, 2}, {3, 2}, {2, 2}},
+			Length:  42,
+			Latency: "20",
+		},
+	}
+
+	nextMove := move(state)
+
+	if nextMove.Move == "left" {
+		t.Errorf("snake moved into too small of space, %s", nextMove.Move)
+	}
+	if nextMove.Move == "up" {
+		t.Errorf("snake moved into self, %s", nextMove.Move)
+	}
+	if nextMove.Move == "right" {
+		t.Errorf("snake moved into self, %s", nextMove.Move)
+	}
+}
+
 func TestFood(t *testing.T) {
 	tests := []struct {
 		name     string
@@ -522,6 +779,85 @@ func TestMath(t *testing.T) {
 
 		if actual != tc.expected {
 			t.Errorf("expected %d, got %d", tc.expected, actual)
+		}
+
+	}
+}
+
+func TestCombineWeights(t *testing.T) {
+	tests := []struct {
+		scores   []WeightedScore
+		expected Scored
+	}{
+		{
+			scores: []WeightedScore{
+				{true, 1.0, Scored{"up": 1.0, "down": 1.0, "left": 1.0, "right": 1.0}},
+			},
+			expected: Scored{"up": 1.0, "down": 1.0, "left": 1.0, "right": 1.0},
+		},
+		{
+			scores: []WeightedScore{
+				{true, 1.0, Scored{"up": 1.0, "down": 1.0, "left": 1.0, "right": 1.0}},
+				{true, 1.0, Scored{"up": 0.0, "down": 0.5, "left": 1.0, "right": 1.0}},
+			},
+			expected: Scored{"up": 0.0, "down": 0.5, "left": 1.0, "right": 1.0},
+		},
+		{
+			scores: []WeightedScore{
+				{true, 1.0, Scored{"up": 0.0, "down": 1.0, "left": 1.0, "right": 1.0}},
+				{true, 1.0, Scored{"up": 0.5, "down": 0.01, "left": 0.5, "right": 0.5}},
+				{false, 1.0, Scored{"up": 0.0, "down": 1.0, "left": 0.8, "right": 0.8}},
+			},
+			expected: Scored{"up": 0.0, "down": 0.02, "left": 0.9, "right": 0.9},
+		},
+	}
+
+	for _, tc := range tests {
+
+		actual := combineMoves(tc.scores)
+
+		for move, score := range actual {
+			if actual[move] != tc.expected[move] {
+				t.Errorf("%s: expected %.2f, got %.2f", move, tc.expected[move], score)
+			}
+		}
+
+	}
+}
+
+func TestRemap(t *testing.T) {
+	tests := []struct {
+		oldValue float64
+		oldMin   float64
+		oldMax   float64
+		newMin   float64
+		newMax   float64
+		expected float64
+	}{
+		{
+			oldValue: 1,
+			oldMin:   0,
+			oldMax:   2,
+			newMin:   0,
+			newMax:   1,
+			expected: 0.5,
+		},
+		{
+			oldValue: 0,
+			oldMin:   0,
+			oldMax:   0,
+			newMin:   0,
+			newMax:   1,
+			expected: 0,
+		},
+	}
+
+	for _, tc := range tests {
+
+		actual := remap(tc.oldValue, tc.oldMin, tc.oldMax, tc.newMin, tc.newMax)
+
+		if actual != tc.expected {
+			t.Errorf("expected %.4f, got %.4f", tc.expected, actual)
 		}
 
 	}

@@ -19,8 +19,13 @@ func distance(p1, p2 Coord) int {
 }
 
 func remap(old, oldMin, oldMax, newMin, newMax float64) float64 {
-	// NewValue = (((OldValue - OldMin) * (NewMax - NewMin)) / (OldMax - OldMin)) + NewMin
-	return (((old - oldMin) * (newMax - newMin)) / (oldMax - oldMin)) + newMin
+	oldRange := oldMax - oldMin
+	if oldRange == 0 {
+		return newMin
+	} else {
+		newRange := newMax - newMin
+		return (((old - oldMin) * newRange) / oldRange) + newMin
+	}
 }
 
 func min(a, b float64) float64 {

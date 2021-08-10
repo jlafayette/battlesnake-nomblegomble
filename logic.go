@@ -6,6 +6,7 @@ package main
 // from the list of possible moves!
 
 import (
+	"fmt"
 	"log"
 )
 
@@ -83,6 +84,10 @@ func (moves Scored) zeroToOne() Scored {
 	return moves
 }
 
+func (moves Scored) String() string {
+	return fmt.Sprintf("Scored[up:%.2f down:%.2f left:%.2f right:%.2f]", moves["up"], moves["down"], moves["left"], moves["right"])
+}
+
 func (m Scored) best() string {
 	// log.Printf("Finding best move from: %v", m)
 	nextMove := "none"
@@ -112,6 +117,7 @@ func (m Scored) safeMoves() []string {
 }
 
 type WeightedScore struct {
+	negate bool
 	weight float64
 	scored Scored
 }
@@ -123,9 +129,21 @@ func combineMoves(scores []WeightedScore) Scored {
 		"left":  1.0,
 		"right": 1.0,
 	}
+	// Add all the bonus scores first
 	for _, ws := range scores {
 		for move, score := range ws.scored {
-			moves[move] = moves[move] * (score * ws.weight)
+			if !ws.negate {
+				// This is more additive bonus
+				moves[move] = moves[move] + (score * ws.weight)
+			}
+		}
+	}
+	// Then apply the multiplier scores
+	for _, ws := range scores {
+		for move, score := range ws.scored {
+			if ws.negate {
+				moves[move] = moves[move] * (score * ws.weight)
+			}
 		}
 	}
 	return moves
@@ -133,7 +151,7 @@ func combineMoves(scores []WeightedScore) Scored {
 
 // Don't let your Battlesnake collide with itself (tail chasing ok though)
 func avoidSelf(state *GameState) Scored {
-	moves := map[string]float64{
+	moves := Scored{
 		"up":    1.0,
 		"down":  1.0,
 		"left":  1.0,
@@ -163,7 +181,7 @@ func avoidSelf(state *GameState) Scored {
 
 // Don't hit walls.
 func avoidWalls(state *GameState) Scored {
-	moves := map[string]float64{
+	moves := Scored{
 		"up":    1.0,
 		"down":  1.0,
 		"left":  1.0,
@@ -183,7 +201,13 @@ func avoidWalls(state *GameState) Scored {
 	return moves
 }
 
-func avoidOthers(state *GameState, moves Scored) Scored {
+func avoidOthers(state *GameState, prevMoves Scored) Scored {
+	moves := Scored{
+		"up":    1.0,
+		"down":  1.0,
+		"left":  1.0,
+		"right": 1.0,
+	}
 	// Don't collide with others.
 	for _, move := range moves.safeMoves() {
 		nextHeadPos := newHead(state.You.Head, move)
@@ -209,8 +233,15 @@ func avoidOthers(state *GameState, moves Scored) Scored {
 }
 
 // Score moves based on exciting head2head possibilities
-func h2h(state *GameState, moves Scored) Scored {
+func h2h(state *GameState) Scored {
 	// start at 0.5 for all options, as far as h2h goes, this is boring and safe
+	moves := map[string]float64{
+		"up":    0.5,
+		"down":  0.5,
+		"left":  0.5,
+		"right": 0.5,
+	}
+
 	for move, score := range moves {
 		moves[move] = score * 0.5
 	}
@@ -252,9 +283,16 @@ func h2h(state *GameState, moves Scored) Scored {
 }
 
 // Find food.
-func foooood(state *GameState, moves Scored) Scored {
+func foooood(state *GameState, avoidDeathMoves Scored) Scored {
 	// TODO: tune based on hunger and strategy
-	safeMoves := moves.safeMoves()
+	safeMoves := avoidDeathMoves.safeMoves()
+
+	moves := Scored{
+		"up":    0.0,
+		"down":  0.0,
+		"left":  0.0,
+		"right": 0.0,
+	}
 
 	maxDistance := distance(Coord{X: 0, Y: 0}, Coord{X: state.Board.Width - 1, Y: state.Board.Height - 1})
 	for _, move := range safeMoves {
@@ -278,21 +316,30 @@ func foooood(state *GameState, moves Scored) Scored {
 	return moves.zeroToOne()
 }
 
-func gimmeSomeSpace(state *GameState, moves Scored) Scored {
+func gimmeSomeSpace(state *GameState, deathMoves Scored) Scored {
+	moves := Scored{
+		"up":    0.0,
+		"down":  0.0,
+		"left":  0.0,
+		"right": 0.0,
+	}
 	// Seek out larger spaces
 	// From the head of each snake, do a breadth first search of possible moves
 	grid := NewGrid(state.Board.Width, state.Board.Height)
-	safeMoves := moves.safeMoves()
-	// log.Printf("      moves: %v", moves)
-	if len(safeMoves) > 1 {
-		for _, move := range safeMoves {
-			// log.Printf("checking area for move: %s", move)
-			area := grid.Area(state, move)
-			// log.Printf("move: %s, area: %d", move, area)
-			amount := 0.01 * float64(area)
-			moves[move] += amount
-			// log.Printf("area: increased %s weight by: %f", move, amount)
-		}
+	safeMoves := deathMoves.safeMoves()
+
+	// area of snake len is ok
+	// anything less is bad news
+	for _, move := range safeMoves {
+		// log.Printf("checking area for move: %s", move)
+		area := grid.Area(state, move)
+		// log.Printf("move: %s, area: %d", move, area)
+
+		// area 1 len 10  0.1
+		// area 11 len 10 1.1
+		amount := 0.1 * float64(area)
+		moves[move] = amount
+		// log.Printf("area: set %s weight to: %.2f", move, amount)
 	}
 	// log.Printf("m          : %v", moves)
 	m := moves.zeroToOne()
@@ -319,45 +366,46 @@ func move(state GameState) BattlesnakeMoveResponse {
 	// avoid walls
 	avoidWallsScore := avoidWalls(&state)
 	// log.Printf("avoidWallsScore: %v", avoidWallsScore)
-	moves := combineMoves([]WeightedScore{{1.0, avoidSelfScore}, {1.0, avoidWallsScore}})
+	moves := combineMoves([]WeightedScore{{true, 1.0, avoidSelfScore}, {true, 1.0, avoidWallsScore}})
 	// log.Printf("combinedSelfAndWall: %v", moves)
 
 	// avoid others (body)
 	// the result is the combination of avoid self, avoid walls, and avoid other snakes
 	avoidInstantDeath := avoidOthers(&state, moves)
-	// log.Printf("avoidInstantDeath: %v", avoidInstantDeath)
+	// log.Print("avoidInstantDeath: ", avoidInstantDeath)
 
 	// head2head
-	h2hScore := h2h(&state, avoidInstantDeath)
+	h2hScore := h2h(&state)
+	// log.Print("h2hScore: ", h2hScore)
 
 	// prefer larger areas (don't get boxed in)
 	spaceScore := gimmeSomeSpace(&state, avoidInstantDeath)
+	// log.Print("spaceScore: ", spaceScore)
 
 	// seek food
 	foodScore := foooood(&state, avoidInstantDeath)
-	// log.Printf("foodScore: %v", foodScore)
+	// log.Print("foodScore: ", foodScore)
 
-	foodWeight := 1.0
-	// longEnough := true
-	// for _, snake := range state.Board.Snakes {
-	// 	if state.You.Length < snake.Length+4 {
-	// 		longEnough = false
-	// 		break
-	// 	}
-	// }
+	foodWeight := 0.0
+	longEnough := true
+	for _, snake := range state.Board.Snakes {
+		if state.You.Length < snake.Length+4 {
+			longEnough = false
+			break
+		}
+	}
 	// foodWeight = 1.0 - remap(float64(state.You.Health), 1.0, 50.0, 0.0, 1.0)
-	// if !longEnough {
-	// 	foodWeight = foodWeight + 1.0
-	// }
-	// foodWeight = remap(foodWeight, 0.0, 2.0, 0.0, 1.0)
+	if !longEnough {
+		foodWeight = foodWeight + 1.0
+	}
 
 	finalWeightedScore := combineMoves([]WeightedScore{
-		{1.0, avoidInstantDeath},
-		{1.0, h2hScore},
-		{1.0, spaceScore},
-		{foodWeight, foodScore}, // TODO: tune based on other snakes length and hunger
+		{true, 1.0, avoidInstantDeath},
+		{true, 1.0, h2hScore},
+		{true, 1.0, spaceScore},
+		{false, foodWeight, foodScore},
 	})
-	log.Printf("finalWeightedScore: %v", finalWeightedScore)
+	log.Print("finalWeightedScore: ", finalWeightedScore)
 	nextMove := finalWeightedScore.best()
 
 	log.Printf("%s MOVE %d: %s\n", state.Game.ID, state.Turn, nextMove)
