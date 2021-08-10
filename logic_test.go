@@ -376,6 +376,80 @@ func TestSpace(t *testing.T) {
 	}
 }
 
+func TestAvoidBadHead2Head(t *testing.T) {
+	state := GameState{
+		Game: Game{
+			ID: "3509d89e-8809-46c9-b46c-164158eaac26",
+			Ruleset: Ruleset{
+				Name: "standard",
+			},
+			Timeout: 500,
+		},
+		Turn: 3,
+		Board: Board{
+			Height: 11,
+			Width:  11,
+			Food:   []Coord{{0, 4}, {8, 2}, {4, 2}, {6, 10}, {5, 5}},
+			Snakes: []Battlesnake{
+				{
+					ID:      "gs_PgQqRchTF6k3FWhVk6fvkXv4",
+					Name:    "nomblegomble",
+					Health:  97,
+					Head:    Coord{5, 6},
+					Body:    []Coord{{5, 6}, {5, 7}, {5, 8}},
+					Length:  3,
+					Latency: "21",
+				},
+				{
+					ID:      "gs_xw9mxDXPHD7fgFKgxBdMpJQT",
+					Name:    "rnd",
+					Health:  97,
+					Head:    Coord{1, 8},
+					Body:    []Coord{{1, 8}, {1, 7}, {1, 6}},
+					Length:  3,
+					Latency: "0",
+				},
+				{
+					ID:      "gs_hVTbbK4dXGPJGCjxmKx9ktJf",
+					Name:    "Mangofox",
+					Health:  97,
+					Head:    Coord{9, 4},
+					Body:    []Coord{{9, 4}, {9, 3}, {9, 2}},
+					Length:  3,
+					Latency: "0",
+				},
+				{
+					ID:      "gs_K4C6SmXkKSjWxwv3bY96djxD",
+					Name:    "Steve",
+					Health:  97,
+					Head:    Coord{5, 4},
+					Body:    []Coord{{5, 4}, {5, 3}, {5, 2}},
+					Length:  3,
+					Latency: "0",
+				},
+			},
+		},
+		You: Battlesnake{
+			ID:      "gs_PgQqRchTF6k3FWhVk6fvkXv4",
+			Name:    "nomblegomble",
+			Health:  97,
+			Head:    Coord{5, 6},
+			Body:    []Coord{{5, 6}, {5, 7}, {5, 8}},
+			Length:  3,
+			Latency: "21",
+		},
+	}
+
+	nextMove := move(state)
+
+	if nextMove.Move == "up" {
+		t.Errorf("snake moved into self, %s", nextMove.Move)
+	}
+	if nextMove.Move == "down" {
+		t.Errorf("snake moved into a head2head that will kill both snakes, %s", nextMove.Move)
+	}
+}
+
 func TestFood(t *testing.T) {
 	tests := []struct {
 		name     string
