@@ -894,6 +894,153 @@ func TestSpaceCutoff2(t *testing.T) {
 	}
 }
 
+func TestSpaceCutoff3(t *testing.T) {
+	state := GameState{
+		Game: Game{
+			ID: "3c3b7dcc-4f7d-48d2-9449-ee22bda84390",
+			Ruleset: Ruleset{
+				Name:    "standard",
+				Version: "",
+			},
+			Timeout: 500,
+		},
+		Turn: 32,
+		Board: Board{
+			Height: 11,
+			Width:  11,
+			Food:   []Coord{{8, 2}, {9, 4}, {4, 1}, {3, 4}, {9, 7}},
+			Snakes: []Battlesnake{
+				{
+					ID:      "gs_YwVHBvWKTXXKKjXvM6y93VKH",
+					Name:    "nomblegomble",
+					Health:  83,
+					Head:    Coord{8, 4},
+					Body:    []Coord{{8, 4}, {8, 3}, {7, 3}, {7, 2}, {7, 1}},
+					Length:  5,
+					Latency: "22",
+				},
+				{
+					ID:      "gs_3W9Dm9F4Hw73fXgxPPmVRwFX",
+					Name:    "nates_python",
+					Health:  98,
+					Head:    Coord{5, 9},
+					Body:    []Coord{{5, 9}, {6, 9}, {7, 9}, {7, 8}, {7, 7}},
+					Length:  5,
+					Latency: "220",
+				},
+				{
+					ID:      "gs_Bgj94MjGM8c7Mqppbhvjcx3K",
+					Name:    "carl",
+					Health:  86,
+					Head:    Coord{5, 3},
+					Body:    []Coord{{5, 3}, {4, 3}, {3, 3}, {3, 2}, {3, 1}, {2, 1}},
+					Length:  6,
+					Latency: "250",
+				},
+				{
+					ID:      "gs_pgQRpdYWW7cxQbhMpbwxwC84",
+					Name:    "Morley",
+					Health:  68,
+					Head:    Coord{7, 5},
+					Body:    []Coord{{7, 5}, {8, 5}, {9, 5}},
+					Length:  3,
+					Latency: "77",
+				},
+			},
+		},
+		You: Battlesnake{
+			ID:      "gs_YwVHBvWKTXXKKjXvM6y93VKH",
+			Name:    "nomblegomble",
+			Health:  83,
+			Head:    Coord{8, 4},
+			Body:    []Coord{{8, 4}, {8, 3}, {7, 3}, {7, 2}, {7, 1}},
+			Length:  5,
+			Latency: "22",
+		},
+	}
+
+	nextMove := move(state)
+
+	if nextMove.Move == "left" {
+		t.Errorf("snake moved into fatal H2H, %s (can be cut off)", nextMove.Move)
+	}
+	if nextMove.Move == "down" {
+		t.Errorf("snake moved into self, %s", nextMove.Move)
+	}
+	if nextMove.Move == "up" {
+		t.Errorf("snake moved into other snake, %s", nextMove.Move)
+	}
+}
+
+func TestSpaceCutoff4H2HWeaker(t *testing.T) {
+	state := GameState{
+		Game: Game{
+			ID: "8cb97ac0-f405-41a1-b007-a9a4b53bbbfa",
+			Ruleset: Ruleset{
+				Name:    "standard",
+				Version: "",
+			},
+			Timeout: 500,
+		},
+		Turn: 96,
+		Board: Board{
+			Height: 11,
+			Width:  11,
+			Food:   []Coord{{7, 0}},
+			Snakes: []Battlesnake{
+				{
+					ID:      "gs_tmWR3BFhBHMPhHYM37rqdB37",
+					Name:    "nomblegomble",
+					Health:  100,
+					Head:    Coord{8, 10},
+					Body:    []Coord{{8, 10}, {8, 9}, {8, 8}, {8, 7}, {7, 7}, {7, 8}, {6, 8}, {5, 8}, {5, 9}, {4, 9}, {3, 9}, {2, 9}, {2, 9}},
+					Length:  13,
+					Latency: "21",
+				},
+				{
+					ID:      "gs_XJ44wjQRyT3MPqqwTB8WKmpX",
+					Name:    "Ouroboros 2",
+					Health:  97,
+					Head:    Coord{9, 7},
+					Body:    []Coord{{9, 7}, {9, 6}, {8, 6}, {7, 6}, {6, 6}, {5, 6}, {4, 6}, {4, 5}, {3, 5}, {3, 4}, {3, 3}, {3, 2}, {3, 1}},
+					Length:  13,
+					Latency: "214",
+				},
+				{
+					ID:      "gs_6HpdTvFPJJHk8KKxXGSq4vdb",
+					Name:    "Canadian Bacon",
+					Health:  6,
+					Head:    Coord{2, 10},
+					Body:    []Coord{{2, 10}, {1, 10}, {1, 9}, {1, 8}},
+					Length:  4,
+					Latency: "197",
+				},
+			},
+		},
+		You: Battlesnake{
+			ID:      "gs_tmWR3BFhBHMPhHYM37rqdB37",
+			Name:    "nomblegomble",
+			Health:  100,
+			Head:    Coord{8, 10},
+			Body:    []Coord{{8, 10}, {8, 9}, {8, 8}, {8, 7}, {7, 7}, {7, 8}, {6, 8}, {5, 8}, {5, 9}, {4, 9}, {3, 9}, {2, 9}, {2, 9}},
+			Length:  13,
+			Latency: "21",
+		},
+	}
+
+	nextMove := move(state)
+
+	if nextMove.Move == "right" {
+		t.Errorf("snake moved into too small of space, %s (can be cut off)", nextMove.Move)
+	}
+	if nextMove.Move == "down" {
+		t.Errorf("snake moved into self, %s", nextMove.Move)
+	}
+	if nextMove.Move == "up" {
+		t.Errorf("snake moved into wall, %s", nextMove.Move)
+	}
+}
+
 // func TestSpaceCutoff2(t *testing.T) {
 
 // 	nextMove := move(state)
