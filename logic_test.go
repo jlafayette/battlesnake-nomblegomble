@@ -1041,6 +1041,159 @@ func TestSpaceCutoff4H2HWeaker(t *testing.T) {
 	}
 }
 
+func TestFoodStart0(t *testing.T) {
+	state := GameState{
+		Game: Game{
+			ID: "4c46aa82-936c-46c6-aeb2-6e33da287a3b",
+			Ruleset: Ruleset{
+				Name:    "standard",
+				Version: "",
+			},
+			Timeout: 500,
+		},
+		Turn: 0,
+		Board: Board{
+			Height: 11,
+			Width:  11,
+			Food:   []Coord{{0, 0}, {8, 4}, {10, 10}, {2, 10}, {5, 5}},
+			Snakes: []Battlesnake{
+				{
+					ID:      "gs_r4JCVS8Hbjq87Cg3BQM37HPf",
+					Name:    "nomblegomble",
+					Health:  100,
+					Head:    Coord{1, 1},
+					Body:    []Coord{{1, 1}, {1, 1}, {1, 1}},
+					Length:  3,
+					Latency: "",
+				},
+				{
+					ID:      "gs_VG6tp7kfmSXSkQyPHKjk3vC6",
+					Name:    "DDT",
+					Health:  100,
+					Head:    Coord{9, 5},
+					Body:    []Coord{{9, 5}, {9, 5}, {9, 5}},
+					Length:  3,
+					Latency: "",
+				},
+				{
+					ID:      "gs_VMrTMQrtfRrYdRPbdqbJYphd",
+					Name:    "Yung Snek V0",
+					Health:  100,
+					Head:    Coord{9, 9},
+					Body:    []Coord{{9, 9}, {9, 9}, {9, 9}},
+					Length:  3,
+					Latency: "",
+				},
+				{
+					ID:      "gs_BChKFRcw7qVwTmfCQYfSgB4P",
+					Name:    "Leonardo",
+					Health:  100,
+					Head:    Coord{1, 9},
+					Body:    []Coord{{1, 9}, {1, 9}, {1, 9}},
+					Length:  3,
+					Latency: "",
+				},
+			},
+		},
+		You: Battlesnake{
+			ID:      "gs_r4JCVS8Hbjq87Cg3BQM37HPf",
+			Name:    "nomblegomble",
+			Health:  100,
+			Head:    Coord{1, 1},
+			Body:    []Coord{{1, 1}, {1, 1}, {1, 1}},
+			Length:  3,
+			Latency: "",
+		},
+	}
+
+	nextMove := move(state)
+
+	if nextMove.Move == "up" {
+		t.Errorf("snake moved away from starting food, %s", nextMove.Move)
+	}
+	if nextMove.Move == "right" {
+		t.Errorf("snake moved away from starting food, %s", nextMove.Move)
+	}
+}
+
+func TestFoodStart1(t *testing.T) {
+	state := GameState{
+		Game: Game{
+			ID: "4c46aa82-936c-46c6-aeb2-6e33da287a3b",
+			Ruleset: Ruleset{
+				Name:    "standard",
+				Version: "",
+			},
+			Timeout: 500,
+		},
+		Turn: 1,
+		Board: Board{
+			Height: 11,
+			Width:  11,
+			Food:   []Coord{{0, 0}, {8, 4}, {10, 10}, {2, 10}, {5, 5}},
+			Snakes: []Battlesnake{
+				{
+					ID:      "gs_r4JCVS8Hbjq87Cg3BQM37HPf",
+					Name:    "nomblegomble",
+					Health:  99,
+					Head:    Coord{1, 0},
+					Body:    []Coord{{1, 0}, {1, 1}, {1, 1}},
+					Length:  3,
+					Latency: "46",
+				},
+				{
+					ID:      "gs_VG6tp7kfmSXSkQyPHKjk3vC6",
+					Name:    "DDT",
+					Health:  99,
+					Head:    Coord{9, 4},
+					Body:    []Coord{{9, 4}, {9, 5}, {9, 5}},
+					Length:  3,
+					Latency: "293",
+				},
+				{
+					ID:      "gs_VMrTMQrtfRrYdRPbdqbJYphd",
+					Name:    "Yung Snek V0",
+					Health:  99,
+					Head:    Coord{8, 9},
+					Body:    []Coord{{8, 9}, {9, 9}, {9, 9}},
+					Length:  3,
+					Latency: "282",
+				},
+				{
+					ID:      "gs_BChKFRcw7qVwTmfCQYfSgB4P",
+					Name:    "Leonardo",
+					Health:  99,
+					Head:    Coord{1, 10},
+					Body:    []Coord{{1, 10}, {1, 9}, {1, 9}},
+					Length:  3,
+					Latency: "288",
+				},
+			},
+		},
+		You: Battlesnake{
+			ID:      "gs_r4JCVS8Hbjq87Cg3BQM37HPf",
+			Name:    "nomblegomble",
+			Health:  99,
+			Head:    Coord{1, 0},
+			Body:    []Coord{{1, 0}, {1, 1}, {1, 1}},
+			Length:  3,
+			Latency: "46",
+		},
+	}
+
+	nextMove := move(state)
+
+	if nextMove.Move == "up" {
+		t.Errorf("snake moved away from starting food, %s", nextMove.Move)
+	}
+	if nextMove.Move == "down" {
+		t.Errorf("snake into wall, %s", nextMove.Move)
+	}
+	if nextMove.Move == "right" {
+		t.Errorf("snake moved away from starting food, %s", nextMove.Move)
+	}
+}
+
 // func TestSpaceCutoff2(t *testing.T) {
 
 // 	nextMove := move(state)

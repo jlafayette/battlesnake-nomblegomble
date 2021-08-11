@@ -91,10 +91,9 @@ func (moves Scored) copy() Scored {
 
 // Remap scores to 0 - 1 range
 func (moves Scored) zeroToOne() Scored {
-	minScore := 99.0
+	minScore := 0.0
 	maxScore := 0.0
 	for _, score := range moves {
-		minScore = min(minScore, score)
 		maxScore = max(maxScore, score)
 	}
 	for move, score := range moves {
@@ -297,9 +296,18 @@ func h2h(state *GameState) Scored {
 }
 
 // Find food.
-func foooood(state *GameState, avoidDeathMoves Scored) Scored {
+func foooood(state *GameState, scoresSoFar Scored) Scored {
 	// TODO: tune based on hunger and strategy
-	safeMoves := avoidDeathMoves.safeMoves()
+	safeMoves := scoresSoFar.safeMoves()
+
+	// Need food in <Health> moves
+	// Find closest food
+	// If closest food route is in space score highest space - <var>
+	// highest := 0.0
+	// for _, score := range scoresSoFar {
+	// 	highest = max(highest, score)
+	// }
+	// threshhold := highest * 0.5 // if it's higher than this, go for it
 
 	moves := Scored{
 		"up":    0.0,
@@ -308,19 +316,42 @@ func foooood(state *GameState, avoidDeathMoves Scored) Scored {
 		"right": 0.0,
 	}
 
-	maxDistance := distance(Coord{X: 0, Y: 0}, Coord{X: state.Board.Width - 1, Y: state.Board.Height - 1})
+	// how do we not cancel ourselves out here?
+
+	// sort food by distance and direction and other snakes near it?
+	// sort.Slice(state.Board.Food, func(i, j int) bool {
+	// 	di := distance(state.You.Head, state.Board.Food[i])
+	// 	dj := distance(state.You.Head, state.Board.Food[j])
+	// 	return di < dj
+	// })
+
 	for _, move := range safeMoves {
 		pos := newHead(state.You.Head, move)
 		for _, food := range state.Board.Food {
 			if samePos(pos, food) {
-				moves[move] += 0.1
+				moves[move] += 1.0
 				// log.Printf("food: increased %s weight by: %f", move, 1.0)
 				break
 			}
 			d1 := distance(state.You.Head, food)
 			d2 := distance(pos, food)
+
 			if d2 < d1 {
-				amount := 0.01 * float64(maxDistance-d2)
+				amount := 0.0
+				switch d2 {
+				case 1:
+					amount = 0.50
+				case 2:
+					amount = 0.25
+				case 3:
+					amount = 0.12
+				case 4:
+					amount = 0.05
+				case 5:
+					amount = 0.01
+				default:
+					amount = 0.001
+				}
 				moves[move] += amount
 				// log.Printf("food: increased %s weight by: %f", move, amount)
 			}
@@ -357,7 +388,7 @@ func gimmeSomeSpace(state *GameState, deathMoves Scored) Scored {
 	}
 	// log.Printf("m          : %v", moves)
 	m := moves.zeroToOne()
-	// log.Printf("m zeroToOne: %v", m)
+	// log.Print("m zeroToOne: ", m)
 	return m
 }
 
@@ -397,9 +428,19 @@ func move(state GameState) BattlesnakeMoveResponse {
 	// log.Print("spaceScore: ", spaceScore)
 
 	// seek food
-	foodScore := foooood(&state, avoidInstantDeath)
+	soFarWeightedScores := []WeightedScore{
+		{true, 1.0, avoidInstantDeath},
+		{true, 1.0, h2hScore},
+	}
+	if !spaceScore.empty() {
+		soFarWeightedScores = append(soFarWeightedScores, WeightedScore{true, 1.0, spaceScore})
+	}
+	scoreSoFar := combineMoves(soFarWeightedScores)
+	// log.Print("scoreSoFar: ", scoreSoFar)
+	foodScore := foooood(&state, scoreSoFar)
 	// log.Print("foodScore: ", foodScore)
 
+	// Determine how hungry the snake is
 	foodWeight := 0.0
 	longEnough := true
 	for _, snake := range state.Board.Snakes {
@@ -408,9 +449,16 @@ func move(state GameState) BattlesnakeMoveResponse {
 			break
 		}
 	}
-	// foodWeight = 1.0 - remap(float64(state.You.Health), 1.0, 50.0, 0.0, 1.0)
+	if state.You.Health < 50 {
+		foodWeight = 0.5
+	}
+	if state.You.Health < 25 {
+		foodWeight = 0.75
+	} else if state.You.Health < 10 {
+		foodWeight = 1.0
+	}
 	if !longEnough {
-		foodWeight = foodWeight + 1.0
+		foodWeight = max(foodWeight+0.25, 1.0)
 	}
 
 	weightedScores := []WeightedScore{
