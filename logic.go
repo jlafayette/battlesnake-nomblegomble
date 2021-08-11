@@ -70,6 +70,25 @@ func (c Coord) outOfBounds(width, height int) bool {
 
 type Scored map[string]float64
 
+func (moves Scored) empty() bool {
+	for _, score := range moves {
+		if score > 0.0 {
+			return false
+		}
+	}
+	return true
+}
+
+func (moves Scored) copy() Scored {
+	newMoves := Scored{
+		"up":    moves["up"],
+		"down":  moves["down"],
+		"left":  moves["left"],
+		"right": moves["right"],
+	}
+	return newMoves
+}
+
 // Remap scores to 0 - 1 range
 func (moves Scored) zeroToOne() Scored {
 	minScore := 99.0
@@ -202,12 +221,7 @@ func avoidWalls(state *GameState) Scored {
 }
 
 func avoidOthers(state *GameState, prevMoves Scored) Scored {
-	moves := Scored{
-		"up":    1.0,
-		"down":  1.0,
-		"left":  1.0,
-		"right": 1.0,
-	}
+	moves := prevMoves.copy()
 	// Don't collide with others.
 	for _, move := range moves.safeMoves() {
 		nextHeadPos := newHead(state.You.Head, move)
@@ -325,7 +339,7 @@ func gimmeSomeSpace(state *GameState, deathMoves Scored) Scored {
 	}
 	// Seek out larger spaces
 	// From the head of each snake, do a breadth first search of possible moves
-	grid := NewGrid(state.Board.Width, state.Board.Height)
+	grid := NewGrid(state)
 	safeMoves := deathMoves.safeMoves()
 
 	// area of snake len is ok
@@ -362,12 +376,12 @@ func move(state GameState) BattlesnakeMoveResponse {
 
 	// avoid self
 	avoidSelfScore := avoidSelf(&state)
-	// log.Printf("avoidSelfScore: %v", avoidSelfScore)
+	// log.Print("avoidSelfScore: ", avoidSelfScore)
 	// avoid walls
 	avoidWallsScore := avoidWalls(&state)
 	// log.Printf("avoidWallsScore: %v", avoidWallsScore)
 	moves := combineMoves([]WeightedScore{{true, 1.0, avoidSelfScore}, {true, 1.0, avoidWallsScore}})
-	// log.Printf("combinedSelfAndWall: %v", moves)
+	// log.Print("combinedSelfAndWall: ", moves)
 
 	// avoid others (body)
 	// the result is the combination of avoid self, avoid walls, and avoid other snakes
@@ -399,12 +413,18 @@ func move(state GameState) BattlesnakeMoveResponse {
 		foodWeight = foodWeight + 1.0
 	}
 
-	finalWeightedScore := combineMoves([]WeightedScore{
+	weightedScores := []WeightedScore{
 		{true, 1.0, avoidInstantDeath},
 		{true, 1.0, h2hScore},
-		{true, 1.0, spaceScore},
-		{false, foodWeight, foodScore},
-	})
+		// {false, foodWeight, foodScore},
+	}
+	if !spaceScore.empty() {
+		weightedScores = append(weightedScores, WeightedScore{true, 1.0, spaceScore})
+	}
+	weightedScores = append(weightedScores, WeightedScore{false, foodWeight, foodScore})
+	// log.Printf("%#v", weightedScores)
+
+	finalWeightedScore := combineMoves(weightedScores)
 	log.Print("finalWeightedScore: ", finalWeightedScore)
 	nextMove := finalWeightedScore.best()
 

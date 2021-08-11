@@ -232,8 +232,8 @@ func TestHead2Head(t *testing.T) {
 	for _, tc := range tests {
 		state := GameState{
 			Board: Board{
-				Width:  12,
-				Height: 12,
+				Width:  7,
+				Height: 7,
 				Snakes: []Battlesnake{tc.me, tc.other},
 			},
 			You: tc.me,
@@ -764,6 +764,151 @@ func TestKillerInstinctOtherTail4(t *testing.T) {
 	}
 }
 
+func TestSpaceCornered1(t *testing.T) {
+
+	state := GameState{
+		Game: Game{
+			ID: "7560784f-f380-427d-8350-80725b25207a",
+			Ruleset: Ruleset{
+				Name:    "standard",
+				Version: "",
+			},
+			Timeout: 500,
+		},
+		Turn: 68,
+		Board: Board{
+			Height: 11,
+			Width:  11,
+			Food:   []Coord{{6, 2}, {0, 2}, {6, 6}, {10, 3}},
+			Snakes: []Battlesnake{
+				{
+					ID:      "gs_bVHWqPM7PxRHkqCjGTgSkjhY",
+					Name:    "nomblegomble",
+					Health:  96,
+					Head:    Coord{8, 2},
+					Body:    []Coord{{8, 2}, {7, 2}, {7, 1}, {7, 0}, {6, 0}, {5, 0}, {4, 0}, {4, 1}, {4, 2}, {5, 2}},
+					Length:  10,
+					Latency: "22",
+				},
+				{
+					ID:      "gs_XPtjRWfB3VT7GXFHGkvhXXbd",
+					Name:    "MAsterStudentSlayer666",
+					Health:  85,
+					Head:    Coord{3, 3},
+					Body:    []Coord{{3, 3}, {2, 3}, {2, 4}, {1, 4}, {0, 4}, {0, 5}, {0, 6}},
+					Length:  7,
+					Latency: "219",
+				},
+				{
+					ID:      "gs_XyrrYqC3pg8W4DbSpF3jpPWc",
+					Name:    "leshchenko-1",
+					Health:  100,
+					Head:    Coord{9, 1},
+					Body:    []Coord{{9, 1}, {9, 2}, {9, 3}, {9, 4}, {9, 4}},
+					Length:  5,
+					Latency: "234",
+				},
+			},
+		},
+		You: Battlesnake{
+			ID:      "gs_bVHWqPM7PxRHkqCjGTgSkjhY",
+			Name:    "nomblegomble",
+			Health:  96,
+			Head:    Coord{8, 2},
+			Body:    []Coord{{8, 2}, {7, 2}, {7, 1}, {7, 0}, {6, 0}, {5, 0}, {4, 0}, {4, 1}, {4, 2}, {5, 2}},
+			Length:  10,
+			Latency: "22",
+		},
+	}
+
+	nextMove := move(state)
+
+	if nextMove.Move == "down" {
+		t.Errorf("snake moved into too small of space, %s (can be cut off)", nextMove.Move)
+	}
+	if nextMove.Move == "left" {
+		t.Errorf("snake moved into self, %s", nextMove.Move)
+	}
+	if nextMove.Move == "right" {
+		t.Errorf("snake moved into other snake, %s", nextMove.Move)
+	}
+}
+
+func TestSpaceCutoff2(t *testing.T) {
+	state := GameState{
+		Game: Game{
+			ID: "5ff70484-ac66-4025-90b6-9af1554b74b5",
+			Ruleset: Ruleset{
+				Name:    "standard",
+				Version: "",
+			},
+			Timeout: 500,
+		},
+		Turn: 81,
+		Board: Board{
+			Height: 11,
+			Width:  11,
+			Food:   []Coord{{10, 0}},
+			Snakes: []Battlesnake{
+				{
+					ID:      "gs_PVdSm9cYDRMk3R6Tk3Qqpw64",
+					Name:    "nomblegomble",
+					Health:  99,
+					Head:    Coord{10, 1},
+					Body:    []Coord{{10, 1}, {9, 1}, {8, 1}, {7, 1}, {7, 2}, {7, 3}, {6, 3}, {6, 4}, {6, 5}, {6, 6}, {6, 7}, {6, 8}, {6, 9}, {5, 9}},
+					Length:  14,
+					Latency: "21",
+				},
+				{
+					ID:      "gs_WJQ63xb7t6mpFCXqHVdPqBr4",
+					Name:    "Ifarus",
+					Health:  77,
+					Head:    Coord{3, 0},
+					Body:    []Coord{{3, 0}, {2, 0}, {1, 0}, {0, 0}, {0, 1}, {0, 2}, {0, 3}, {0, 4}},
+					Length:  8,
+					Latency: "76",
+				},
+			},
+		},
+		You: Battlesnake{
+			ID:      "gs_PVdSm9cYDRMk3R6Tk3Qqpw64",
+			Name:    "nomblegomble",
+			Health:  99,
+			Head:    Coord{10, 1},
+			Body:    []Coord{{10, 1}, {9, 1}, {8, 1}, {7, 1}, {7, 2}, {7, 3}, {6, 3}, {6, 4}, {6, 5}, {6, 6}, {6, 7}, {6, 8}, {6, 9}, {5, 9}},
+			Length:  14,
+			Latency: "21",
+		},
+	}
+
+	nextMove := move(state)
+
+	if nextMove.Move == "down" {
+		t.Errorf("snake moved into too small of space, %s (can be cut off)", nextMove.Move)
+	}
+	if nextMove.Move == "left" {
+		t.Errorf("snake moved into self, %s", nextMove.Move)
+	}
+	if nextMove.Move == "right" {
+		t.Errorf("snake moved into wall, %s", nextMove.Move)
+	}
+}
+
+// func TestSpaceCutoff2(t *testing.T) {
+
+// 	nextMove := move(state)
+
+// 	if nextMove.Move == "down" {
+// 		t.Errorf("snake moved into too small of space, %s (can be cut off)", nextMove.Move)
+// 	}
+// 	if nextMove.Move == "left" {
+// 		t.Errorf("snake moved into self, %s", nextMove.Move)
+// 	}
+// 	if nextMove.Move == "right" {
+// 		t.Errorf("snake moved into wall, %s", nextMove.Move)
+// 	}
+// }
+
 func TestFood(t *testing.T) {
 	tests := []struct {
 		name     string
@@ -867,6 +1012,14 @@ func TestCombineWeights(t *testing.T) {
 			},
 			expected: Scored{"up": 0.0, "down": 0.02, "left": 0.9, "right": 0.9},
 		},
+		{
+			scores: []WeightedScore{
+				{true, 1, Scored{"down": 1, "left": 1, "right": 1, "up": 0}},
+				{true, 1, Scored{"down": 0.25, "left": 0.25, "right": 0.1, "up": 0.25}},
+				{false, 1, Scored{"down": 0, "left": 0, "right": 0, "up": 0}},
+			},
+			expected: Scored{"up": 0.0, "down": 0.25, "left": 0.25, "right": 0.1},
+		},
 	}
 
 	for _, tc := range tests {
@@ -878,7 +1031,6 @@ func TestCombineWeights(t *testing.T) {
 				t.Errorf("%s: expected %.2f, got %.2f", move, tc.expected[move], score)
 			}
 		}
-
 	}
 }
 
