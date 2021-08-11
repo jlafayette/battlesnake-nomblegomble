@@ -1,9 +1,5 @@
 package main
 
-type VState struct {
-	Snakes map[string]bool
-}
-
 type Grid struct {
 	w       int
 	h       int

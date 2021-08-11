@@ -450,6 +450,63 @@ func TestAvoidBadHead2Head(t *testing.T) {
 	}
 }
 
+func TestHead2HeadBetterThanWall(t *testing.T) {
+	state := GameState{
+		Game: Game{
+			ID: "82cb8643-5f86-4674-a3ed-28c1d99a689f",
+			Ruleset: Ruleset{
+				Name:    "standard",
+				Version: "",
+			},
+			Timeout: 500,
+		},
+		Turn: 80,
+		Board: Board{
+			Height: 11,
+			Width:  11,
+			Food:   []Coord{{4, 10}, {6, 3}},
+			Snakes: []Battlesnake{
+				{
+					ID:      "gs_3CWVKmKbMYvmS7qQYPDkm9f8",
+					Name:    "nomblegomble",
+					Health:  83,
+					Head:    Coord{6, 10},
+					Body:    []Coord{{6, 10}, {5, 10}, {5, 9}, {4, 9}, {4, 8}, {3, 8}, {3, 7}},
+					Length:  7,
+					Latency: "21",
+				},
+				{
+					ID:      "gs_3D66hv63CXRMVRKDjCKDj8pJ",
+					Name:    "nomblegomble",
+					Health:  96,
+					Head:    Coord{7, 9},
+					Body:    []Coord{{7, 9}, {8, 9}, {9, 9}, {10, 9}, {10, 8}, {9, 8}, {8, 8}, {8, 7}},
+					Length:  8,
+					Latency: "21",
+				},
+			},
+		},
+		You: Battlesnake{
+			ID:      "gs_3CWVKmKbMYvmS7qQYPDkm9f8",
+			Name:    "nomblegomble",
+			Health:  83,
+			Head:    Coord{6, 10},
+			Body:    []Coord{{6, 10}, {5, 10}, {5, 9}, {4, 9}, {4, 8}, {3, 8}, {3, 7}},
+			Length:  7,
+			Latency: "21",
+		},
+	}
+
+	nextMove := move(state)
+
+	if nextMove.Move == "up" {
+		t.Errorf("snake moved into wall, %s  (should prefer h2h chance)", nextMove.Move)
+	}
+	if nextMove.Move == "left" {
+		t.Errorf("snake moved into self, %s  (should prefer h2h chance)", nextMove.Move)
+	}
+}
+
 func TestKillerInstinct1(t *testing.T) {
 	state := GameState{
 		Game: Game{

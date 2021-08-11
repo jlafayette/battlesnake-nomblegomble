@@ -270,10 +270,10 @@ func h2h(state *GameState) Scored {
 					} else if state.You.Length == other.Length {
 						// not great since you both die... but still very
 						// exiting
-						moves[move] = 0.01
+						moves[move] = 0.1
 					} else {
-						// very bad, run away
-						moves[move] = 0.0
+						// very bad, run away (but still better than the wall)
+						moves[move] = 0.01
 					}
 				}
 			}
