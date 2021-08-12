@@ -103,6 +103,9 @@ func HandleMove(w http.ResponseWriter, r *http.Request) {
 	}
 
 	response := move(state)
+	if state.Turn == 0 {
+		response.Shout = "i'm hungry"
+	}
 
 	w.Header().Set("Content-Type", "application/json")
 	err = json.NewEncoder(w).Encode(response)
