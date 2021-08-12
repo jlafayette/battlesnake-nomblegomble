@@ -1,8 +1,12 @@
 package main
 
-import "testing"
+import (
+	"fmt"
+	"testing"
+)
 
 func TestGrid(t *testing.T) {
+	fmt.Printf("starting")
 
 	you := Battlesnake{
 		Head: Coord{2, 0},
@@ -14,6 +18,7 @@ func TestGrid(t *testing.T) {
 			Snakes: []Battlesnake{you},
 			Width:  4,
 			Height: 4,
+			Food:   []Coord{{1, 0}, {0, 0}}, // 0,0 simulates bad luck of food spawning
 		},
 		You: you,
 	}
@@ -23,15 +28,16 @@ func TestGrid(t *testing.T) {
 	grid = NewGrid(&state)
 	rightArea := grid.Area(&state, "right")
 
-	if leftArea != 1 {
-		t.Errorf("expected 1, got %d", leftArea)
+	if leftArea != 2 {
+		t.Errorf("expected 2, got %d", leftArea)
 	}
-	if rightArea != 10 {
-		t.Errorf("expected 10, got %d", rightArea)
+	if rightArea != 16 {
+		t.Errorf("expected 16, got %d", rightArea)
 	}
 }
 
 func TestGrid2(t *testing.T) {
+	fmt.Println("starting TestGrid2")
 
 	state := GameState{
 		Game: Game{
@@ -75,10 +81,12 @@ func TestGrid2(t *testing.T) {
 	grid2 := NewGrid(&state)
 	downArea := grid2.Area(&state, "down")
 
-	if upArea != 7 {
-		t.Errorf("expected 7, got %d", upArea)
+	// because tail is here, it counts as infinate space
+	if upArea != 49 {
+		t.Errorf("expected 49, got %d", upArea)
 	}
 	if downArea != 15 {
 		t.Errorf("expected 15, got %d", downArea)
 	}
+
 }

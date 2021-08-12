@@ -312,7 +312,7 @@ func TestHead2HeadJson1(t *testing.T) {
 	}
 }
 
-func TestSpace(t *testing.T) {
+func TestSpaceBasic(t *testing.T) {
 	tests := []struct {
 		name         string
 		input        Board
@@ -331,6 +331,7 @@ func TestSpace(t *testing.T) {
 				},
 				Width:  7,
 				Height: 7,
+				Food:   []Coord{{1, 0}, {0, 0}}, // 0,0 simulates bad luck of food spawning
 			},
 			intoSelf:     []string{"up"},
 			intoWall:     []string{"down"},
@@ -537,6 +538,16 @@ func TestSpaceAvoidTiedHead2Head1(t *testing.T) {
 					Shout:   "",
 				},
 				{
+					ID:      "gs_GhqqhY7mhc3vbmXtRyVGkwMR",
+					Name:    "Fairy Rust",
+					Health:  96,
+					Head:    Coord{0, 2},
+					Body:    []Coord{{0, 2}, {1, 2}, {1, 1}, {1, 0}},
+					Length:  4,
+					Latency: "45",
+					Shout:   "",
+				},
+				{
 					ID:      "gs_fHQbrqVXFYQcvDk74wmmfv9Q",
 					Name:    "Legless Lizard",
 					Health:  96,
@@ -555,16 +566,6 @@ func TestSpaceAvoidTiedHead2Head1(t *testing.T) {
 					Length:  4,
 					Latency: "4",
 					Shout:   "From hellΓÇÖs heart I stab at thee",
-				},
-				{
-					ID:      "gs_GhqqhY7mhc3vbmXtRyVGkwMR",
-					Name:    "Fairy Rust",
-					Health:  96,
-					Head:    Coord{0, 2},
-					Body:    []Coord{{0, 2}, {1, 2}, {1, 1}, {1, 0}},
-					Length:  4,
-					Latency: "45",
-					Shout:   "",
 				},
 			},
 		},
@@ -1196,6 +1197,66 @@ func TestSpaceCutoff5(t *testing.T) {
 		t.Errorf("snake moved into wall, %s", nextMove.Move)
 	}
 	if nextMove.Move == "right" {
+		t.Errorf("snake moved into self, %s", nextMove.Move)
+	}
+}
+
+func TestSpaceOkToTailChase1(t *testing.T) {
+	state := GameState{
+		Game: Game{
+			ID: "71116f92-59d0-4f88-a578-a75035b4c1be",
+			Ruleset: Ruleset{
+				Name:    "standard",
+				Version: "",
+			},
+			Timeout: 500,
+		},
+		Turn: 224,
+		Board: Board{
+			Height: 11,
+			Width:  11,
+			Food:   []Coord{{8, 2}, {7, 9}, {0, 8}},
+			Snakes: []Battlesnake{
+				{
+					ID:      "gs_v8SbjcXHGrxjwjmwpmWPy67Q",
+					Name:    "nomblegomble",
+					Health:  98,
+					Head:    Coord{3, 1},
+					Body:    []Coord{{3, 1}, {3, 0}, {2, 0}, {1, 0}, {0, 0}, {0, 1}, {0, 2}, {0, 3}, {0, 4}, {1, 4}, {1, 3}, {2, 3}, {2, 2}, {3, 2}},
+					Length:  14,
+					Latency: "21",
+					Shout:   "",
+				},
+				{
+					ID:      "gs_bVJmK8pX8mkM7G4wVyjKCxtT",
+					Name:    "caicai-vilu",
+					Health:  99,
+					Head:    Coord{7, 1},
+					Body:    []Coord{{7, 1}, {7, 0}, {6, 0}, {5, 0}, {5, 1}, {5, 2}, {4, 2}, {4, 3}, {3, 3}, {3, 4}, {3, 5}, {2, 5}, {1, 5}, {1, 6}, {1, 7}, {1, 8}, {1, 9}, {2, 9}, {3, 9}, {4, 9}, {5, 9}, {6, 9}, {6, 8}, {5, 8}, {4, 8}, {3, 8}, {2, 8}, {2, 7}, {3, 7}, {4, 7}, {5, 7}, {6, 7}, {7, 7}, {8, 7}, {9, 7}},
+					Length:  35,
+					Latency: "75",
+					Shout:   "",
+				},
+			},
+		},
+		You: Battlesnake{
+			ID:      "gs_v8SbjcXHGrxjwjmwpmWPy67Q",
+			Name:    "nomblegomble",
+			Health:  98,
+			Head:    Coord{3, 1},
+			Body:    []Coord{{3, 1}, {3, 0}, {2, 0}, {1, 0}, {0, 0}, {0, 1}, {0, 2}, {0, 3}, {0, 4}, {1, 4}, {1, 3}, {2, 3}, {2, 2}, {3, 2}},
+			Length:  14,
+			Latency: "21",
+			Shout:   "",
+		},
+	}
+
+	nextMove := move(state)
+
+	if nextMove.Move == "right" {
+		t.Errorf("snake moved into too small of space, %s", nextMove.Move)
+	}
+	if nextMove.Move == "down" {
 		t.Errorf("snake moved into self, %s", nextMove.Move)
 	}
 }

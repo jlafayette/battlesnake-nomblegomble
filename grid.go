@@ -1,26 +1,37 @@
 package main
 
 type GridSquare struct {
-	visited map[int]int
 	x       int
 	y       int
+	isFood  bool
+	visited map[int]int
 }
 
 func (g *GridSquare) clear() {
 	g.visited = make(map[int]int)
+	g.isFood = false
 }
 
 type GridSnake struct {
 	index int     // the index of snake in *state
+	food  int     // how much food the snake may have eaten
 	body  []Coord // will update as turns go by and snake may eat food
 }
 
-func NewGridSnake(i int, b Battlesnake) GridSnake {
+func (s *GridSnake) nom() {
+	s.food += 1
+}
+
+func (s *GridSnake) length() int {
+	return len(s.body) + s.food
+}
+
+func NewGridSnake(i int, b Battlesnake) *GridSnake {
 	gs := GridSnake{index: i}
 	for _, c := range b.Body {
 		gs.body = append(gs.body, Coord{c.X, c.Y})
 	}
-	return gs
+	return &gs
 }
 
 type QItem struct {
@@ -34,7 +45,7 @@ type Grid struct {
 	h       int
 	q       chan QItem
 	qlen    int
-	snakes  map[int]GridSnake
+	snakes  map[int]*GridSnake
 	squares [][]GridSquare
 }
 
@@ -45,8 +56,16 @@ func NewGrid(state *GameState) Grid {
 	}
 	for x := range v {
 		for y := range v[x] {
+			isFood := false
+			for _, food := range state.Board.Food {
+				if samePos(Coord{x, y}, food) {
+					isFood = true
+					break
+				}
+			}
 			v[x][y].x = x
 			v[x][y].y = x
+			v[x][y].isFood = isFood
 			v[x][y].visited = make(map[int]int)
 		}
 	}
@@ -57,7 +76,7 @@ func NewGrid(state *GameState) Grid {
 }
 
 func (g *Grid) ResetSnakes(state *GameState) {
-	g.snakes = map[int]GridSnake{}
+	g.snakes = map[int]*GridSnake{}
 	for i, srcSnake := range state.Board.Snakes {
 		g.snakes[i] = NewGridSnake(i, srcSnake)
 	}
@@ -69,7 +88,6 @@ func (g *Grid) Clear() {
 			g.squares[x][y].clear()
 		}
 	}
-	// Clear snakes
 }
 
 func (g *Grid) push(item QItem) {
@@ -119,6 +137,9 @@ func (g *Grid) Area(state *GameState, move string) int {
 
 			// mark as visited
 			g.squares[x][y].visited[snakeIdx] = item.turn
+			if g.squares[x][y].isFood {
+				snake.nom()
+			}
 
 			// need to record more info
 			// otherSnake has visited on turn x
@@ -133,7 +154,10 @@ func (g *Grid) Area(state *GameState, move string) int {
 			// find neighbors
 			for _, n := range g.findNeighbors(state, item) {
 				// add neighbors to queue
-				g.push(n)
+				_, ok := g.squares[n.X][n.Y].visited[snakeIdx]
+				if !ok {
+					g.push(n)
+				}
 			}
 		}
 	}
@@ -166,7 +190,7 @@ func (g *Grid) Area(state *GameState, move string) int {
 		for otherIdx := range g.snakes {
 			otherTurn, visited := g.squares[x][y].visited[otherIdx]
 			if visited {
-				willDieInH2H := len(g.snakes[otherIdx].body) >= len(g.snakes[0].body)
+				willDieInH2H := g.snakes[otherIdx].length() >= g.snakes[0].length()
 				if otherTurn == item.turn && willDieInH2H {
 					// fmt.Println("turns are equal and will die in H2H")
 					isOk = false
@@ -183,6 +207,13 @@ func (g *Grid) Area(state *GameState, move string) int {
 
 		// mark as visited
 		g.squares[x][y].visited[0] = item.turn
+		if g.squares[x][y].isFood {
+			me, ok := g.snakes[0]
+			if ok {
+				me.nom()
+				// fmt.Printf("I ate food and I'm %d long now\n", me.length())
+			}
+		}
 
 		// need to record more info
 		// otherSnake has visited on turn x
@@ -194,7 +225,10 @@ func (g *Grid) Area(state *GameState, move string) int {
 		// find neighbors
 		for _, n := range g.findNeighbors(state, item) {
 			// add neighbors to queue
-			g.push(n)
+			_, iVisited := g.squares[n.X][n.Y].visited[0]
+			if !iVisited {
+				g.push(n)
+			}
 		}
 	}
 
@@ -204,6 +238,7 @@ func (g *Grid) Area(state *GameState, move string) int {
 }
 
 func (g *Grid) findNeighbors(state *GameState, item QItem) []QItem {
+	// fmt.Println("finding neighbors")
 	n := []QItem{}
 	turn := item.turn + 1
 	for _, candidate := range []QItem{
@@ -227,8 +262,13 @@ func (g *Grid) findNeighbors(state *GameState, item QItem) []QItem {
 		// self and other snakes
 		breakAll := false
 		for _, gsnake := range g.snakes {
-			// todo: subtract tails from body
-			for _, bc := range gsnake.body {
+			for i, bc := range gsnake.body {
+				// Subtract tails from body as turns go by
+				// (should account for eating)
+				if i > gsnake.length()-1-turn {
+					// fmt.Printf("break... because %d > %d\n", i, length-1-turn)
+					break
+				}
 				if samePos(Coord{candidate.X, candidate.Y}, bc) {
 					breakAll = true
 					break
