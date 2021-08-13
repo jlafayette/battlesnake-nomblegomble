@@ -1,6 +1,8 @@
 package main
 
 import (
+	"encoding/json"
+	"log"
 	"testing"
 )
 
@@ -448,6 +450,111 @@ func TestAvoidBadHead2Head(t *testing.T) {
 	}
 	if nextMove.Move == "down" {
 		t.Errorf("snake moved into a head2head that will kill both snakes, %s", nextMove.Move)
+	}
+}
+
+func TestAvoidBadHead2Head2(t *testing.T) {
+	state := GameState{
+		Game: Game{
+			ID: "294cee29-202c-4fe4-9482-db64cf19fad6",
+			Ruleset: Ruleset{
+				Name:    "standard",
+				Version: "",
+			},
+			Timeout: 500,
+		},
+		Turn: 41,
+		Board: Board{
+			Height: 11,
+			Width:  11,
+			Food:   []Coord{{6, 7}},
+			Snakes: []Battlesnake{
+				{
+					ID:      "gs_BgWvHQ7yGrhmrWkrfqdGHQrc",
+					Name:    "nomblegomble",
+					Health:  71,
+					Head:    Coord{0, 5},
+					Body:    []Coord{{0, 5}, {1, 5}, {1, 6}, {2, 6}, {3, 6}},
+					Length:  5,
+					Latency: "23",
+					Shout:   "",
+				},
+				{
+					ID:      "gs_7S76jFcGSmVCrKwydvth4fJ7",
+					Name:    "bsnek2",
+					Health:  78,
+					Head:    Coord{8, 3},
+					Body:    []Coord{{8, 3}, {8, 2}, {8, 1}, {9, 1}, {9, 2}, {10, 2}},
+					Length:  6,
+					Latency: "190",
+					Shout:   "",
+				},
+				{
+					ID:      "gs_ch43JRySwjgX3MyW8hr9HMkC",
+					Name:    "Boomslang",
+					Health:  99,
+					Head:    Coord{2, 3},
+					Body:    []Coord{{2, 3}, {3, 3}, {3, 2}, {3, 1}, {3, 0}, {4, 0}, {5, 0}, {6, 0}},
+					Length:  8,
+					Latency: "253",
+					Shout:   "",
+				},
+				{
+					ID:      "gs_RRmMymt6W9bwjHh9mtrfvPt3",
+					Name:    "Crimson",
+					Health:  83,
+					Head:    Coord{5, 4},
+					Body:    []Coord{{5, 4}, {5, 5}, {6, 5}, {6, 4}, {6, 3}, {5, 3}},
+					Length:  6,
+					Latency: "198",
+					Shout:   "",
+				},
+			},
+		},
+		You: Battlesnake{
+			ID:      "gs_BgWvHQ7yGrhmrWkrfqdGHQrc",
+			Name:    "nomblegomble",
+			Health:  71,
+			Head:    Coord{0, 5},
+			Body:    []Coord{{0, 5}, {1, 5}, {1, 6}, {2, 6}, {3, 6}},
+			Length:  5,
+			Latency: "23",
+			Shout:   "",
+		},
+	}
+
+	nextMove := move(state)
+
+	if nextMove.Move == "down" {
+		t.Errorf("snake moved into head2head zone, %s", nextMove.Move)
+	}
+	if nextMove.Move == "right" {
+		t.Errorf("snake moved into self, %s", nextMove.Move)
+	}
+	if nextMove.Move == "left" {
+		t.Errorf("snake moved into wall, %s", nextMove.Move)
+	}
+}
+
+func TestAvoidBadHead2Head2_diff(t *testing.T) {
+	data := `{"game":{"id":"294cee29-202c-4fe4-9482-db64cf19fad6","ruleset":{"name":"standard","version":"v1.0.17"},"timeout":500},"turn":41,"board":{"height":11,"width":11,"food":[{"x":6,"y":7}],"snakes":[{"id":"gs_7S76jFcGSmVCrKwydvth4fJ7","name":"bsnek2","health":78,"body":[{"x":8,"y":3},{"x":8,"y":2},{"x":8,"y":1},{"x":9,"y":1},{"x":9,"y":2},{"x":10,"y":2}],"head":{"x":8,"y":3},"length":6,"latency":"190","shout":"","squad":""},{"id":"gs_ch43JRySwjgX3MyW8hr9HMkC","name":"Boomslang","health":99,"body":[{"x":2,"y":3},{"x":3,"y":3},{"x":3,"y":2},{"x":3,"y":1},{"x":3,"y":0},{"x":4,"y":0},{"x":5,"y":0},{"x":6,"y":0}],"head":{"x":2,"y":3},"length":8,"latency":"253","shout":"","squad":""},{"id":"gs_BgWvHQ7yGrhmrWkrfqdGHQrc","name":"nomblegomble","health":71,"body":[{"x":0,"y":5},{"x":1,"y":5},{"x":1,"y":6},{"x":2,"y":6},{"x":3,"y":6}],"head":{"x":0,"y":5},"length":5,"latency":"23","shout":"","squad":""},{"id":"gs_RRmMymt6W9bwjHh9mtrfvPt3","name":"Crimson","health":83,"body":[{"x":5,"y":4},{"x":5,"y":5},{"x":6,"y":5},{"x":6,"y":4},{"x":6,"y":3},{"x":5,"y":3}],"head":{"x":5,"y":4},"length":6,"latency":"198","shout":"","squad":""}],"hazards":[]},"you":{"id":"gs_BgWvHQ7yGrhmrWkrfqdGHQrc","name":"nomblegomble","health":71,"body":[{"x":0,"y":5},{"x":1,"y":5},{"x":1,"y":6},{"x":2,"y":6},{"x":3,"y":6}],"head":{"x":0,"y":5},"length":5,"latency":"23","shout":"","squad":""}}`
+	// {"move":"down"}
+	state := GameState{}
+	err := json.Unmarshal([]byte(data), &state)
+	if err != nil {
+		log.Fatalln(err)
+	}
+
+	nextMove := move(state)
+
+	if nextMove.Move == "down" {
+		t.Errorf("snake moved into head2head zone, %s", nextMove.Move)
+	}
+	if nextMove.Move == "right" {
+		t.Errorf("snake moved into self, %s", nextMove.Move)
+	}
+	if nextMove.Move == "left" {
+		t.Errorf("snake moved into wall, %s", nextMove.Move)
 	}
 }
 

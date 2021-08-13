@@ -91,6 +91,8 @@ func HandleStart(w http.ResponseWriter, r *http.Request) {
 
 	start(state)
 
+	init_game_log(state.Game.ID)
+
 	// Nothing to respond with here
 }
 
@@ -102,10 +104,11 @@ func HandleMove(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	log_move(&state)
+
 	response := move(state)
-	if state.Turn == 0 {
-		response.Shout = "i'm hungry"
-	}
+
+	log_move_response(state.Game.ID, &response)
 
 	w.Header().Set("Content-Type", "application/json")
 	err = json.NewEncoder(w).Encode(response)
@@ -124,6 +127,8 @@ func HandleEnd(w http.ResponseWriter, r *http.Request) {
 	}
 
 	end(state)
+
+	close_game_log(state.Game.ID)
 
 	// Nothing to respond with here
 }

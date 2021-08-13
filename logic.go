@@ -425,7 +425,7 @@ func move(state GameState) BattlesnakeMoveResponse {
 
 	// prefer larger areas (don't get boxed in)
 	spaceScore := gimmeSomeSpace(&state, avoidInstantDeath)
-	log.Print("spaceScore: ", spaceScore)
+	// log.Print("spaceScore: ", spaceScore)
 
 	// seek food
 	soFarWeightedScores := []WeightedScore{
@@ -436,9 +436,9 @@ func move(state GameState) BattlesnakeMoveResponse {
 		soFarWeightedScores = append(soFarWeightedScores, WeightedScore{true, 1.0, spaceScore})
 	}
 	scoreSoFar := combineMoves(soFarWeightedScores)
-	log.Print("scoreSoFar: ", scoreSoFar)
+	// log.Print("scoreSoFar: ", scoreSoFar)
 	foodScore := foooood(&state, scoreSoFar)
-	log.Print("foodScore: ", foodScore)
+	// log.Print("foodScore: ", foodScore)
 
 	// Determine how hungry the snake is
 	foodWeight := 0.0
