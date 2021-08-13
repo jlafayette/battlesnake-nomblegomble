@@ -13,6 +13,7 @@ func (g *GridSquare) clear() {
 }
 
 type GridSnake struct {
+	isMe  bool
 	index int     // the index of snake in *state
 	food  int     // how much food the snake may have eaten
 	body  []Coord // will update as turns go by and snake may eat food
@@ -43,6 +44,7 @@ type QItem struct {
 type Grid struct {
 	w       int
 	h       int
+	myIndex int
 	q       chan QItem
 	qlen    int
 	snakes  map[int]*GridSnake
@@ -79,6 +81,10 @@ func (g *Grid) ResetSnakes(state *GameState) {
 	g.snakes = map[int]*GridSnake{}
 	for i, srcSnake := range state.Board.Snakes {
 		g.snakes[i] = NewGridSnake(i, srcSnake)
+		if srcSnake.ID == state.You.ID {
+			g.snakes[i].isMe = true
+			g.myIndex = i
+		}
 	}
 }
 
@@ -117,11 +123,10 @@ func (g *Grid) Area(state *GameState, move string) int {
 	}
 
 	for snakeIdx, snake := range g.snakes {
-		if snakeIdx == 0 {
+		if snake.isMe {
 			continue
 		}
 		g.push(QItem{X: snake.body[0].X, Y: snake.body[0].Y, turn: 0}) // add starting coord for each other snake (you already moved once)
-		// area := 0
 		for {
 			// pop item
 			item, empty := g.pop()
@@ -147,9 +152,6 @@ func (g *Grid) Area(state *GameState, move string) int {
 			// mySnake has visited on turn x
 			// if food, and orig = otherSnake, then other snake can grow
 			// each turn, the tail of each snake is no longer collidable (unless othersnake can grow=true for that turn)
-
-			// record area
-			// area += 1
 
 			// find neighbors
 			for _, n := range g.findNeighbors(state, item) {
@@ -182,7 +184,7 @@ func (g *Grid) Area(state *GameState, move string) int {
 		// starting at mySnake + move, traverse neighbors until reaching otherSnake visited on same turn
 		// 		do some fancy h2h logic here, can beat other snake?
 		// if other snake has visited first, then this is same as a wall, hard stop
-		_, iVisited := g.squares[x][y].visited[0]
+		_, iVisited := g.squares[x][y].visited[g.myIndex]
 		if iVisited {
 			continue
 		}
@@ -206,9 +208,9 @@ func (g *Grid) Area(state *GameState, move string) int {
 		}
 
 		// mark as visited
-		g.squares[x][y].visited[0] = item.turn
+		g.squares[x][y].visited[g.myIndex] = item.turn
 		if g.squares[x][y].isFood {
-			me, ok := g.snakes[0]
+			me, ok := g.snakes[g.myIndex]
 			if ok {
 				me.nom()
 				// fmt.Printf("I ate food and I'm %d long now\n", me.length())
@@ -225,7 +227,7 @@ func (g *Grid) Area(state *GameState, move string) int {
 		// find neighbors
 		for _, n := range g.findNeighbors(state, item) {
 			// add neighbors to queue
-			_, iVisited := g.squares[n.X][n.Y].visited[0]
+			_, iVisited := g.squares[n.X][n.Y].visited[g.myIndex]
 			if !iVisited {
 				g.push(n)
 			}
