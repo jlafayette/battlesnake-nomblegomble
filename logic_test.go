@@ -1392,65 +1392,65 @@ func TestSpaceCutoff5(t *testing.T) {
 	}
 }
 
-// func TestSpaceCutoff6(t *testing.T) {
-// 	state := GameState{
-// 		Game: Game{
-// 			ID: "e74d6f1d-a38a-4135-bb89-d17f387ba9ae",
-// 			Ruleset: Ruleset{
-// 				Name:    "standard",
-// 				Version: "v1.0.17",
-// 			},
-// 			Timeout: 500,
-// 		},
-// 		Turn: 108,
-// 		Board: Board{
-// 			Height: 11,
-// 			Width:  11,
-// 			Food:   []Coord{{1, 9}},
-// 			Snakes: []Battlesnake{
-// 				{
-// 					ID:      "gs_cYKtRkqxfMfyj46WH9J9VhmX",
-// 					Name:    "nomblegomble",
-// 					Health:  90,
-// 					Head:    Coord{6, 4},
-// 					Body:    []Coord{{6, 4}, {7, 4}, {7, 3}, {7, 2}, {7, 1}, {6, 1}, {5, 1}, {4, 1}, {3, 1}, {3, 0}, {2, 0}, {1, 0}, {0, 0}, {0, 1}, {1, 1}, {2, 1}, {2, 2}},
-// 					Length:  17,
-// 					Latency: "23",
-// 					Shout:   "",
-// 				},
-// 				{
-// 					ID:      "gs_M7h8gyWqTGRFg8GX4BJf3whb",
-// 					Name:    "Ophiophagus One",
-// 					Health:  100,
-// 					Head:    Coord{4, 4},
-// 					Body:    []Coord{{4, 4}, {4, 5}, {5, 5}, {5, 6}, {5, 7}, {6, 7}, {6, 7}},
-// 					Length:  7,
-// 					Latency: "211",
-// 					Shout:   "",
-// 				},
-// 			},
-// 		},
-// 		You: Battlesnake{
-// 			ID:      "gs_cYKtRkqxfMfyj46WH9J9VhmX",
-// 			Name:    "nomblegomble",
-// 			Health:  90,
-// 			Head:    Coord{6, 4},
-// 			Body:    []Coord{{6, 4}, {7, 4}, {7, 3}, {7, 2}, {7, 1}, {6, 1}, {5, 1}, {4, 1}, {3, 1}, {3, 0}, {2, 0}, {1, 0}, {0, 0}, {0, 1}, {1, 1}, {2, 1}, {2, 2}},
-// 			Length:  17,
-// 			Latency: "23",
-// 			Shout:   "",
-// 		},
-// 	}
+func TestSpaceCutoff6(t *testing.T) {
+	state := GameState{
+		Game: Game{
+			ID: "e74d6f1d-a38a-4135-bb89-d17f387ba9ae",
+			Ruleset: Ruleset{
+				Name:    "standard",
+				Version: "v1.0.17",
+			},
+			Timeout: 500,
+		},
+		Turn: 108,
+		Board: Board{
+			Height: 11,
+			Width:  11,
+			Food:   []Coord{{1, 9}},
+			Snakes: []Battlesnake{
+				{
+					ID:      "gs_cYKtRkqxfMfyj46WH9J9VhmX",
+					Name:    "nomblegomble",
+					Health:  90,
+					Head:    Coord{6, 4},
+					Body:    []Coord{{6, 4}, {7, 4}, {7, 3}, {7, 2}, {7, 1}, {6, 1}, {5, 1}, {4, 1}, {3, 1}, {3, 0}, {2, 0}, {1, 0}, {0, 0}, {0, 1}, {1, 1}, {2, 1}, {2, 2}},
+					Length:  17,
+					Latency: "23",
+					Shout:   "",
+				},
+				{
+					ID:      "gs_M7h8gyWqTGRFg8GX4BJf3whb",
+					Name:    "Ophiophagus One",
+					Health:  100,
+					Head:    Coord{4, 4},
+					Body:    []Coord{{4, 4}, {4, 5}, {5, 5}, {5, 6}, {5, 7}, {6, 7}, {6, 7}},
+					Length:  7,
+					Latency: "211",
+					Shout:   "",
+				},
+			},
+		},
+		You: Battlesnake{
+			ID:      "gs_cYKtRkqxfMfyj46WH9J9VhmX",
+			Name:    "nomblegomble",
+			Health:  90,
+			Head:    Coord{6, 4},
+			Body:    []Coord{{6, 4}, {7, 4}, {7, 3}, {7, 2}, {7, 1}, {6, 1}, {5, 1}, {4, 1}, {3, 1}, {3, 0}, {2, 0}, {1, 0}, {0, 0}, {0, 1}, {1, 1}, {2, 1}, {2, 2}},
+			Length:  17,
+			Latency: "23",
+			Shout:   "",
+		},
+	}
 
-// 	nextMove := move(state)
+	nextMove := move(state)
 
-// 	if nextMove.Move == "left" {
-// 		t.Errorf("snake moved into too small of space, %s (can be cut off)", nextMove.Move)
-// 	}
-// 	if nextMove.Move == "right" {
-// 		t.Errorf("snake moved into self, %s", nextMove.Move)
-// 	}
-// }
+	if nextMove.Move == "left" {
+		t.Errorf("snake moved into too small of space, %s (can be cut off)", nextMove.Move)
+	}
+	if nextMove.Move == "right" {
+		t.Errorf("snake moved into self, %s", nextMove.Move)
+	}
+}
 
 func TestSpaceOkToTailChase1(t *testing.T) {
 	state := GameState{
