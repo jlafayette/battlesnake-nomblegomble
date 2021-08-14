@@ -70,12 +70,11 @@ func (c Coord) outOfBounds(width, height int) bool {
 }
 
 // Don't let your Battlesnake collide with itself (tail chasing ok though)
-func avoidSelf(state *GameState) score.Scored {
-	moves := score.NewScored(1.0)
-	allMoves := []string{"up", "down", "left", "right"}
+func avoidSelf(state *GameState, moves *score.Moves) {
+	// allMoves := []string{"up", "down", "left", "right"}
 
-	for _, move := range allMoves {
-		nextHeadPos := newHead(state.You.Head, move)
+	for _, move := range moves.Iter() {
+		nextHeadPos := newHead(state.You.Head, move.Str)
 		for i, coord := range state.You.Body {
 
 			// it's ok to tail chase, but not just after eating
@@ -85,37 +84,34 @@ func avoidSelf(state *GameState) score.Scored {
 			}
 
 			if samePos(nextHeadPos, coord) {
-				moves[move] = 0.0
+				move.Death = true
 				break
 			}
 		}
 	}
 	// log.Printf("avoidSelf: up: %f down: %f left: %f right: %f", moves["up"], moves["down"], moves["left"], moves["right"])
-	return moves
+	// return moves
 }
 
 // Don't hit walls.
-func avoidWalls(state *GameState) score.Scored {
-	moves := score.NewScored(1.0)
+func avoidWalls(state *GameState, moves *score.Moves) {
 	if state.You.Head.X == 0 {
-		moves["left"] = 0.0
+		moves.Left.Death = true
 	} else if state.You.Head.X == state.Board.Width-1 {
-		moves["right"] = 0.0
+		moves.Right.Death = true
 	}
 	if state.You.Head.Y == 0 {
-		moves["down"] = 0.0
+		moves.Down.Death = true
 	} else if state.You.Head.Y == state.Board.Height-1 {
-		moves["up"] = 0.0
+		moves.Up.Death = true
 	}
-
-	return moves
 }
 
-func avoidOthers(state *GameState, prevMoves score.Scored) score.Scored {
-	moves := prevMoves.Copy()
+func avoidOthers(state *GameState, moves *score.Moves) {
+	// moves := prevMoves.Copy()
 	// Don't collide with others.
 	for _, move := range moves.SafeMoves() {
-		nextHeadPos := newHead(state.You.Head, move)
+		nextHeadPos := newHead(state.You.Head, move.Str)
 		for _, other := range state.Board.Snakes {
 			// if state.You.ID == other.ID {
 			// 	continue
@@ -128,33 +124,26 @@ func avoidOthers(state *GameState, prevMoves score.Scored) score.Scored {
 				}
 
 				if samePos(nextHeadPos, coord) {
-					moves[move] = 0.0
+					move.Death = true
 					break
 				}
 			}
 		}
 	}
-	return moves
 }
 
 // Score moves based on exciting head2head possibilities
-func h2h(state *GameState) score.Scored {
-	// start at 0.25 for all options, as far as h2h goes, this is boring and safe
-	moves := score.NewScored(0.25)
+func h2h(state *GameState, moves *score.Moves) {
 
 	// Avoid head to head
 	allMoves := []string{"up", "down", "left", "right"}
-	for _, move := range allMoves {
-		if moves[move] <= 0.0 {
-			continue
-		}
-		nextHeadPos := newHead(state.You.Head, move)
+	for _, move := range moves.SafeMoves() {
+		nextHeadPos := newHead(state.You.Head, move.Str)
 		for _, other := range state.Board.Snakes {
 			if state.You.ID == other.ID {
 				continue
 			}
 			// avoid head to head
-			// TODO: account for which snake is longer
 			for _, otherMove := range allMoves {
 				otherHeadPos := newHead(other.Head, otherMove)
 				if samePos(nextHeadPos, otherHeadPos) {
@@ -162,27 +151,28 @@ func h2h(state *GameState) score.Scored {
 						// this could be bad because the other snake doesn't have
 						// to move here, putting us in a trapped position
 						// but as far as h2h scores go, it's the best
-						moves[move] = 1.0
+						move.H2h.Outcome = score.Win
+						// moves[move] = 1.0
 						// what about 3-way possible collision?
 					} else if state.You.Length == other.Length {
 						// not great since you both die... but still very
 						// exiting
-						moves[move] = 0.1
+						move.H2h.Outcome = score.Tie
+						// moves[move] = 0.1
 					} else {
 						// very bad, run away (but still better than the wall)
-						moves[move] = 0.01
+						move.H2h.Outcome = score.Lose
+						// moves[move] = 0.01
 					}
 				}
 			}
 		}
 	}
-	return moves
 }
 
 // Find food.
-func foooood(state *GameState, scoresSoFar score.Scored) score.Scored {
+func foooood(state *GameState, moves *score.Moves) {
 	// TODO: tune based on hunger and strategy
-	safeMoves := scoresSoFar.SafeMoves()
 
 	// Need food in <Health> moves
 	// Find closest food
@@ -193,8 +183,6 @@ func foooood(state *GameState, scoresSoFar score.Scored) score.Scored {
 	// }
 	// threshhold := highest * 0.5 // if it's higher than this, go for it
 
-	moves := score.NewScored(0.0)
-
 	// how do we not cancel ourselves out here?
 
 	// sort food by distance and direction and other snakes near it?
@@ -204,11 +192,11 @@ func foooood(state *GameState, scoresSoFar score.Scored) score.Scored {
 	// 	return di < dj
 	// })
 
-	for _, move := range safeMoves {
-		pos := newHead(state.You.Head, move)
+	for _, move := range moves.SafeMoves() {
+		pos := newHead(state.You.Head, move.Str)
 		for _, food := range state.Board.Food {
 			if samePos(pos, food) {
-				moves[move] += 1.0
+				move.Food.LegacyScore += 1.0
 				// log.Printf("food: increased %s weight by: %f", move, 1.0)
 				break
 			}
@@ -231,39 +219,34 @@ func foooood(state *GameState, scoresSoFar score.Scored) score.Scored {
 				default:
 					amount = 0.001
 				}
-				moves[move] += amount
+				move.Food.LegacyScore += amount
 				// log.Printf("food: increased %s weight by: %f", move, amount)
 			}
 		}
 	}
-
-	return moves.ZeroToOne()
 }
 
-func gimmeSomeSpace(state *GameState, deathMoves score.Scored) score.Scored {
-	moves := score.NewScored(0.0)
+func gimmeSomeSpace(state *GameState, moves *score.Moves) {
 	// Seek out larger spaces
 	// From the head of each snake, do a breadth first search of possible moves
 	grid := NewGrid(state)
-	safeMoves := deathMoves.SafeMoves()
 
 	// area of snake len is ok
 	// anything less is bad news
-	for _, move := range safeMoves {
+	for _, move := range moves.SafeMoves() {
 		// log.Printf("checking area for move: %s", move)
-		area := grid.Area(state, move)
+		area := grid.Area(state, move.Str)
 		// log.Printf("move: %s, area: %d", move, area)
 
 		// area 1 len 10  0.1
 		// area 11 len 10 1.1
-		amount := 0.1 * float64(area)
-		moves[move] = amount
+		move.Space = area
 		// log.Printf("area: set %s weight to: %.2f", move, amount)
 	}
 	// log.Printf("m          : %v", moves)
-	m := moves.ZeroToOne()
+	// m := moves.ZeroToOne()
 	// log.Print("m zeroToOne: ", m)
-	return m
+	// return m
 }
 
 // This function is called on every turn of a game. Use the provided GameState to decide
@@ -279,79 +262,83 @@ func move(state GameState) BattlesnakeMoveResponse {
 	//   scores for a move together (min=0, max=1).
 	// The move with the heighest final score wins.
 
+	moves := score.NewMoves(state.You.Length)
+
 	// avoid self
-	avoidSelfScore := avoidSelf(&state)
+	avoidSelf(&state, moves)
 	// log.Print("avoidSelfScore: ", avoidSelfScore)
 	// avoid walls
-	avoidWallsScore := avoidWalls(&state)
+	avoidWalls(&state, moves)
 	// log.Printf("avoidWallsScore: %v", avoidWallsScore)
-	moves := score.CombineMoves([]score.WeightedScore{
-		score.NewWeightedScore(true, 1.0, avoidSelfScore),
-		score.NewWeightedScore(true, 1.0, avoidWallsScore),
-	})
+	// moves := score.CombineMoves([]score.WeightedScore{
+	// 	score.NewWeightedScore(true, 1.0, avoidSelfScore),
+	// 	score.NewWeightedScore(true, 1.0, avoidWallsScore),
+	// })
 	// log.Print("combinedSelfAndWall: ", moves)
 
 	// avoid others (body)
 	// the result is the combination of avoid self, avoid walls, and avoid other snakes
-	avoidInstantDeath := avoidOthers(&state, moves)
-	log.Print("avoidInstantDeath: ", avoidInstantDeath)
+	avoidOthers(&state, moves)
+	// log.Print("avoidInstantDeath: ", avoidInstantDeath)
 
 	// head2head
-	h2hScore := h2h(&state)
-	log.Print("h2hScore: ", h2hScore)
+	h2h(&state, moves)
+	// log.Print("h2hScore: ", h2hScore)
 
 	// prefer larger areas (don't get boxed in)
-	spaceScore := gimmeSomeSpace(&state, avoidInstantDeath)
-	log.Print("spaceScore: ", spaceScore)
+	gimmeSomeSpace(&state, moves)
+	// log.Print("spaceScore: ", spaceScore)
 
 	// seek food
-	soFarWeightedScores := []score.WeightedScore{
-		score.NewWeightedScore(true, 1.0, avoidInstantDeath),
-		score.NewWeightedScore(true, 1.0, h2hScore),
-	}
-	if !spaceScore.IsEmpty() {
-		soFarWeightedScores = append(soFarWeightedScores, score.NewWeightedScore(true, 1.0, spaceScore))
-	}
-	scoreSoFar := score.CombineMoves(soFarWeightedScores)
-	log.Print("scoreSoFar: ", scoreSoFar)
-	foodScore := foooood(&state, scoreSoFar)
-	log.Print("foodScore: ", foodScore)
+	// soFarWeightedScores := []score.WeightedScore{
+	// 	score.NewWeightedScore(true, 1.0, avoidInstantDeath),
+	// 	score.NewWeightedScore(true, 1.0, h2hScore),
+	// }
+	// if !spaceScore.IsEmpty() {
+	// 	soFarWeightedScores = append(soFarWeightedScores, score.NewWeightedScore(true, 1.0, spaceScore))
+	// }
+	// scoreSoFar := score.CombineMoves(soFarWeightedScores)
+	// log.Print("scoreSoFar: ", scoreSoFar)
+	foooood(&state, moves)
+	// log.Print("foodScore: ", foodScore)
 
 	// Determine how hungry the snake is
-	foodWeight := 0.0
-	longEnough := true
-	for _, snake := range state.Board.Snakes {
-		if state.You.Length < snake.Length+4 {
-			longEnough = false
-			break
-		}
-	}
-	if state.You.Health < 50 {
-		foodWeight = 0.5
-	}
-	if state.You.Health < 25 {
-		foodWeight = 0.75
-	} else if state.You.Health < 10 {
-		foodWeight = 1.0
-	}
-	if !longEnough {
-		foodWeight = max(foodWeight+0.25, 1.0)
-	}
+	// foodWeight := 0.0
+	// longEnough := true
+	// for _, snake := range state.Board.Snakes {
+	// 	if state.You.Length < snake.Length+4 {
+	// 		longEnough = false
+	// 		break
+	// 	}
+	// }
+	// if state.You.Health < 50 {
+	// 	foodWeight = 0.5
+	// }
+	// if state.You.Health < 25 {
+	// 	foodWeight = 0.75
+	// } else if state.You.Health < 10 {
+	// 	foodWeight = 1.0
+	// }
+	// if !longEnough {
+	// 	foodWeight = max(foodWeight+0.25, 1.0)
+	// }
 
-	weightedScores := []score.WeightedScore{
-		score.NewWeightedScore(true, 1.0, avoidInstantDeath),
-		score.NewWeightedScore(true, 1.0, h2hScore),
-		// score.NewWeightedScore(false, foodWeight, foodScore),
-	}
-	if !spaceScore.IsEmpty() {
-		weightedScores = append(weightedScores, score.NewWeightedScore(true, 1.0, spaceScore))
-	}
-	weightedScores = append(weightedScores, score.NewWeightedScore(false, foodWeight, foodScore))
-	// log.Printf("%#v", weightedScores)
+	// weightedScores := []score.WeightedScore{
+	// 	score.NewWeightedScore(true, 1.0, avoidInstantDeath),
+	// 	score.NewWeightedScore(true, 1.0, h2hScore),
+	// 	// score.NewWeightedScore(false, foodWeight, foodScore),
+	// }
+	// if !spaceScore.IsEmpty() {
+	// 	weightedScores = append(weightedScores, score.NewWeightedScore(true, 1.0, spaceScore))
+	// }
+	// weightedScores = append(weightedScores, score.NewWeightedScore(false, foodWeight, foodScore))
+	// // log.Printf("%#v", weightedScores)
 
-	finalWeightedScore := score.CombineMoves(weightedScores)
-	log.Print("finalWeightedScore: ", finalWeightedScore)
-	nextMove := finalWeightedScore.Best()
+	// finalWeightedScore := score.CombineMoves(weightedScores)
+	// log.Print("finalWeightedScore: ", finalWeightedScore)
+	// nextMove := finalWeightedScore.Best()
+	// log.Println(moves)
+	nextMove := moves.Choice()
 
 	log.Printf("%s MOVE %d: %s\n", state.Game.ID, state.Turn, nextMove)
 	return BattlesnakeMoveResponse{
