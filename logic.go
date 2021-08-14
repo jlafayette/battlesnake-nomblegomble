@@ -1,9 +1,6 @@
 package main
 
-// This file can be a nice home for your Battlesnake logic and related helper functions.
-//
-// We have started this for you, with a function to help remove the 'neck' direction
-// from the list of possible moves!
+// This file hold the main logic for the endpoints - mostly the move one.
 
 import (
 	"log"
@@ -71,8 +68,6 @@ func (c Coord) outOfBounds(width, height int) bool {
 
 // Don't let your Battlesnake collide with itself (tail chasing ok though)
 func avoidSelf(state *GameState, moves *score.Moves) {
-	// allMoves := []string{"up", "down", "left", "right"}
-
 	for _, move := range moves.Iter() {
 		nextHeadPos := newHead(state.You.Head, move.Str)
 		for i, coord := range state.You.Body {
@@ -89,8 +84,6 @@ func avoidSelf(state *GameState, moves *score.Moves) {
 			}
 		}
 	}
-	// log.Printf("avoidSelf: up: %f down: %f left: %f right: %f", moves["up"], moves["down"], moves["left"], moves["right"])
-	// return moves
 }
 
 // Don't hit walls.
@@ -107,9 +100,8 @@ func avoidWalls(state *GameState, moves *score.Moves) {
 	}
 }
 
+// Avoid moves that collide with others snakes.
 func avoidOthers(state *GameState, moves *score.Moves) {
-	// moves := prevMoves.Copy()
-	// Don't collide with others.
 	for _, move := range moves.SafeMoves() {
 		nextHeadPos := newHead(state.You.Head, move.Str)
 		for _, other := range state.Board.Snakes {
@@ -172,26 +164,6 @@ func h2h(state *GameState, moves *score.Moves) {
 
 // Find food.
 func foooood(state *GameState, moves *score.Moves) {
-	// TODO: tune based on hunger and strategy
-
-	// Need food in <Health> moves
-	// Find closest food
-	// If closest food route is in space score highest space - <var>
-	// highest := 0.0
-	// for _, score := range scoresSoFar {
-	// 	highest = max(highest, score)
-	// }
-	// threshhold := highest * 0.5 // if it's higher than this, go for it
-
-	// how do we not cancel ourselves out here?
-
-	// sort food by distance and direction and other snakes near it?
-	// sort.Slice(state.Board.Food, func(i, j int) bool {
-	// 	di := distance(state.You.Head, state.Board.Food[i])
-	// 	dj := distance(state.You.Head, state.Board.Food[j])
-	// 	return di < dj
-	// })
-
 	for _, move := range moves.SafeMoves() {
 		pos := newHead(state.You.Head, move.Str)
 		for _, food := range state.Board.Food {
@@ -243,101 +215,37 @@ func gimmeSomeSpace(state *GameState, moves *score.Moves) {
 		move.Space = area
 		// log.Printf("area: set %s weight to: %.2f", move, amount)
 	}
-	// log.Printf("m          : %v", moves)
-	// m := moves.ZeroToOne()
-	// log.Print("m zeroToOne: ", m)
-	// return m
 }
 
 // This function is called on every turn of a game. Use the provided GameState to decide
 // where to move -- valid moves are "up", "down", "left", or "right".
-// We've provided some code and comments to get you started.
 func move(state GameState) BattlesnakeMoveResponse {
 
 	// 4 possible moves
-	// Each computation stage will return the four moves with a score from 0 to 1.
-	// A strategy is run which outputs a weight for each stage from 0 to 1. This
-	//   represents how important that stage is given the current context.
-	// The final score for the moves is determined multiplying all the weighted
-	//   scores for a move together (min=0, max=1).
-	// The move with the heighest final score wins.
-
+	// Each computation stage will add information to the score.Moves struct.
+	// This will calcuation the final move once all the data has been added to
+	// it with moves.Choice()
 	moves := score.NewMoves(state.You.Length)
 
 	// avoid self
 	avoidSelf(&state, moves)
-	// log.Print("avoidSelfScore: ", avoidSelfScore)
+
 	// avoid walls
 	avoidWalls(&state, moves)
-	// log.Printf("avoidWallsScore: %v", avoidWallsScore)
-	// moves := score.CombineMoves([]score.WeightedScore{
-	// 	score.NewWeightedScore(true, 1.0, avoidSelfScore),
-	// 	score.NewWeightedScore(true, 1.0, avoidWallsScore),
-	// })
-	// log.Print("combinedSelfAndWall: ", moves)
 
 	// avoid others (body)
 	// the result is the combination of avoid self, avoid walls, and avoid other snakes
 	avoidOthers(&state, moves)
-	// log.Print("avoidInstantDeath: ", avoidInstantDeath)
 
 	// head2head
 	h2h(&state, moves)
-	// log.Print("h2hScore: ", h2hScore)
 
 	// prefer larger areas (don't get boxed in)
 	gimmeSomeSpace(&state, moves)
-	// log.Print("spaceScore: ", spaceScore)
 
 	// seek food
-	// soFarWeightedScores := []score.WeightedScore{
-	// 	score.NewWeightedScore(true, 1.0, avoidInstantDeath),
-	// 	score.NewWeightedScore(true, 1.0, h2hScore),
-	// }
-	// if !spaceScore.IsEmpty() {
-	// 	soFarWeightedScores = append(soFarWeightedScores, score.NewWeightedScore(true, 1.0, spaceScore))
-	// }
-	// scoreSoFar := score.CombineMoves(soFarWeightedScores)
-	// log.Print("scoreSoFar: ", scoreSoFar)
 	foooood(&state, moves)
-	// log.Print("foodScore: ", foodScore)
 
-	// Determine how hungry the snake is
-	// foodWeight := 0.0
-	// longEnough := true
-	// for _, snake := range state.Board.Snakes {
-	// 	if state.You.Length < snake.Length+4 {
-	// 		longEnough = false
-	// 		break
-	// 	}
-	// }
-	// if state.You.Health < 50 {
-	// 	foodWeight = 0.5
-	// }
-	// if state.You.Health < 25 {
-	// 	foodWeight = 0.75
-	// } else if state.You.Health < 10 {
-	// 	foodWeight = 1.0
-	// }
-	// if !longEnough {
-	// 	foodWeight = max(foodWeight+0.25, 1.0)
-	// }
-
-	// weightedScores := []score.WeightedScore{
-	// 	score.NewWeightedScore(true, 1.0, avoidInstantDeath),
-	// 	score.NewWeightedScore(true, 1.0, h2hScore),
-	// 	// score.NewWeightedScore(false, foodWeight, foodScore),
-	// }
-	// if !spaceScore.IsEmpty() {
-	// 	weightedScores = append(weightedScores, score.NewWeightedScore(true, 1.0, spaceScore))
-	// }
-	// weightedScores = append(weightedScores, score.NewWeightedScore(false, foodWeight, foodScore))
-	// // log.Printf("%#v", weightedScores)
-
-	// finalWeightedScore := score.CombineMoves(weightedScores)
-	// log.Print("finalWeightedScore: ", finalWeightedScore)
-	// nextMove := finalWeightedScore.Best()
-	// log.Println(moves)
 	nextMove := moves.Choice()
 
 	log.Printf("%s MOVE %d: %s\n", state.Game.ID, state.Turn, nextMove)
