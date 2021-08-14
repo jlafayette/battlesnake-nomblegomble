@@ -28,6 +28,15 @@ func max(a, b float64) float64 {
 
 type Scored map[string]float64
 
+func NewScored(value float64) Scored {
+	return Scored{
+		"up":    value,
+		"down":  value,
+		"left":  value,
+		"right": value,
+	}
+}
+
 func (moves Scored) IsEmpty() bool {
 	for _, score := range moves {
 		if score > 0.0 {

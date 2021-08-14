@@ -4,6 +4,11 @@
 
 * [Go 1.16](https://golang.org/)
 
+## TODO List
+
+* Pass value reference if not changing the struct (like state)
+* Pass pointer reference if modifying
+
 ## Running Tests
 
 ```shell

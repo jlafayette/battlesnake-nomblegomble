@@ -71,12 +71,7 @@ func (c Coord) outOfBounds(width, height int) bool {
 
 // Don't let your Battlesnake collide with itself (tail chasing ok though)
 func avoidSelf(state *GameState) score.Scored {
-	moves := score.Scored{
-		"up":    1.0,
-		"down":  1.0,
-		"left":  1.0,
-		"right": 1.0,
-	}
+	moves := score.NewScored(1.0)
 	allMoves := []string{"up", "down", "left", "right"}
 
 	for _, move := range allMoves {
@@ -101,12 +96,7 @@ func avoidSelf(state *GameState) score.Scored {
 
 // Don't hit walls.
 func avoidWalls(state *GameState) score.Scored {
-	moves := score.Scored{
-		"up":    1.0,
-		"down":  1.0,
-		"left":  1.0,
-		"right": 1.0,
-	}
+	moves := score.NewScored(1.0)
 	if state.You.Head.X == 0 {
 		moves["left"] = 0.0
 	} else if state.You.Head.X == state.Board.Width-1 {
@@ -149,17 +139,9 @@ func avoidOthers(state *GameState, prevMoves score.Scored) score.Scored {
 
 // Score moves based on exciting head2head possibilities
 func h2h(state *GameState) score.Scored {
-	// start at 0.5 for all options, as far as h2h goes, this is boring and safe
-	moves := map[string]float64{
-		"up":    0.5,
-		"down":  0.5,
-		"left":  0.5,
-		"right": 0.5,
-	}
+	// start at 0.25 for all options, as far as h2h goes, this is boring and safe
+	moves := score.NewScored(0.25)
 
-	for move, score := range moves {
-		moves[move] = score * 0.5
-	}
 	// Avoid head to head
 	allMoves := []string{"up", "down", "left", "right"}
 	for _, move := range allMoves {
@@ -211,12 +193,7 @@ func foooood(state *GameState, scoresSoFar score.Scored) score.Scored {
 	// }
 	// threshhold := highest * 0.5 // if it's higher than this, go for it
 
-	moves := score.Scored{
-		"up":    0.0,
-		"down":  0.0,
-		"left":  0.0,
-		"right": 0.0,
-	}
+	moves := score.NewScored(0.0)
 
 	// how do we not cancel ourselves out here?
 
@@ -264,12 +241,7 @@ func foooood(state *GameState, scoresSoFar score.Scored) score.Scored {
 }
 
 func gimmeSomeSpace(state *GameState, deathMoves score.Scored) score.Scored {
-	moves := score.Scored{
-		"up":    0.0,
-		"down":  0.0,
-		"left":  0.0,
-		"right": 0.0,
-	}
+	moves := score.NewScored(0.0)
 	// Seek out larger spaces
 	// From the head of each snake, do a breadth first search of possible moves
 	grid := NewGrid(state)
