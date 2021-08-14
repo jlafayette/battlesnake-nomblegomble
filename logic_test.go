@@ -558,6 +558,90 @@ func TestAvoidBadHead2Head2_diff(t *testing.T) {
 	}
 }
 
+// // Other snakes are likely to go for food, so don't go for it if you don't have to.
+// func TestAvoidFoodInEqualHead2Head1(t *testing.T) {
+// 	state := GameState{
+// 		Game: Game{
+// 			ID: "f2ce457a-7eb1-43cf-b495-831498b753e0",
+// 			Ruleset: Ruleset{
+// 				Name:    "standard",
+// 				Version: "v1.0.17",
+// 			},
+// 			Timeout: 500,
+// 		},
+// 		Turn: 54,
+// 		Board: Board{
+// 			Height: 11,
+// 			Width:  11,
+// 			Food:   []Coord{{2, 7}},
+// 			Snakes: []Battlesnake{
+// 				{
+// 					ID:      "gs_qW3xGphphfBRBPjfqt7phy6X",
+// 					Name:    "TC5001",
+// 					Health:  98,
+// 					Head:    Coord{8, 2},
+// 					Body:    []Coord{{8, 2}, {9, 2}, {10, 2}, {10, 1}, {10, 0}, {9, 0}, {8, 0}, {7, 0}, {7, 1}, {6, 1}},
+// 					Length:  10,
+// 					Latency: "215",
+// 					Shout:   "",
+// 				},
+// 				{
+// 					ID:      "gs_97jPPpfDBqHYhxkkrdHHrQTY",
+// 					Name:    "nomblegomble",
+// 					Health:  98,
+// 					Head:    Coord{3, 7},
+// 					Body:    []Coord{{3, 7}, {3, 8}, {4, 8}, {5, 8}, {5, 7}, {5, 6}, {4, 6}, {3, 6}},
+// 					Length:  8,
+// 					Latency: "22",
+// 					Shout:   "",
+// 				},
+// 				{
+// 					ID:      "gs_7w9rQ6VDrSpYpgRCjygk8mmF",
+// 					Name:    "bsnek2",
+// 					Health:  99,
+// 					Head:    Coord{9, 9},
+// 					Body:    []Coord{{9, 9}, {9, 8}, {9, 7}, {9, 6}, {9, 5}, {8, 5}, {8, 4}},
+// 					Length:  7,
+// 					Latency: "284",
+// 					Shout:   "",
+// 				},
+// 				{
+// 					ID:      "gs_RmhhbkKtHSff73R66GMT33gJ",
+// 					Name:    "SnakeJS",
+// 					Health:  69,
+// 					Head:    Coord{2, 6},
+// 					Body:    []Coord{{2, 6}, {2, 5}, {3, 5}, {3, 4}, {3, 3}, {3, 2}, {3, 1}, {4, 1}},
+// 					Length:  8,
+// 					Latency: "239",
+// 					Shout:   "[2 5] --> [2 7]",
+// 				},
+// 			},
+// 		},
+// 		You: Battlesnake{
+// 			ID:      "gs_97jPPpfDBqHYhxkkrdHHrQTY",
+// 			Name:    "nomblegomble",
+// 			Health:  98,
+// 			Head:    Coord{3, 7},
+// 			Body:    []Coord{{3, 7}, {3, 8}, {4, 8}, {5, 8}, {5, 7}, {5, 6}, {4, 6}, {3, 6}},
+// 			Length:  8,
+// 			Latency: "22",
+// 			Shout:   "",
+// 		},
+// 	}
+
+// 	nextMove := move(state)
+
+// 	if nextMove.Move == "left" {
+// 		t.Errorf("snake moved into likely H2H on food, %s", nextMove.Move)
+// 	}
+// 	if nextMove.Move == "up" {
+// 		t.Errorf("snake moved into self, %s", nextMove.Move)
+// 	}
+// 	if nextMove.Move == "right" {
+// 		t.Errorf("snake moved into too small a space, %s", nextMove.Move)
+// 	}
+// }
+
 func TestHead2HeadBetterThanWall(t *testing.T) {
 	state := GameState{
 		Game: Game{
@@ -1308,6 +1392,66 @@ func TestSpaceCutoff5(t *testing.T) {
 	}
 }
 
+// func TestSpaceCutoff6(t *testing.T) {
+// 	state := GameState{
+// 		Game: Game{
+// 			ID: "e74d6f1d-a38a-4135-bb89-d17f387ba9ae",
+// 			Ruleset: Ruleset{
+// 				Name:    "standard",
+// 				Version: "v1.0.17",
+// 			},
+// 			Timeout: 500,
+// 		},
+// 		Turn: 108,
+// 		Board: Board{
+// 			Height: 11,
+// 			Width:  11,
+// 			Food:   []Coord{{1, 9}},
+// 			Snakes: []Battlesnake{
+// 				{
+// 					ID:      "gs_cYKtRkqxfMfyj46WH9J9VhmX",
+// 					Name:    "nomblegomble",
+// 					Health:  90,
+// 					Head:    Coord{6, 4},
+// 					Body:    []Coord{{6, 4}, {7, 4}, {7, 3}, {7, 2}, {7, 1}, {6, 1}, {5, 1}, {4, 1}, {3, 1}, {3, 0}, {2, 0}, {1, 0}, {0, 0}, {0, 1}, {1, 1}, {2, 1}, {2, 2}},
+// 					Length:  17,
+// 					Latency: "23",
+// 					Shout:   "",
+// 				},
+// 				{
+// 					ID:      "gs_M7h8gyWqTGRFg8GX4BJf3whb",
+// 					Name:    "Ophiophagus One",
+// 					Health:  100,
+// 					Head:    Coord{4, 4},
+// 					Body:    []Coord{{4, 4}, {4, 5}, {5, 5}, {5, 6}, {5, 7}, {6, 7}, {6, 7}},
+// 					Length:  7,
+// 					Latency: "211",
+// 					Shout:   "",
+// 				},
+// 			},
+// 		},
+// 		You: Battlesnake{
+// 			ID:      "gs_cYKtRkqxfMfyj46WH9J9VhmX",
+// 			Name:    "nomblegomble",
+// 			Health:  90,
+// 			Head:    Coord{6, 4},
+// 			Body:    []Coord{{6, 4}, {7, 4}, {7, 3}, {7, 2}, {7, 1}, {6, 1}, {5, 1}, {4, 1}, {3, 1}, {3, 0}, {2, 0}, {1, 0}, {0, 0}, {0, 1}, {1, 1}, {2, 1}, {2, 2}},
+// 			Length:  17,
+// 			Latency: "23",
+// 			Shout:   "",
+// 		},
+// 	}
+
+// 	nextMove := move(state)
+
+// 	if nextMove.Move == "left" {
+// 		t.Errorf("snake moved into too small of space, %s (can be cut off)", nextMove.Move)
+// 	}
+// 	if nextMove.Move == "right" {
+// 		t.Errorf("snake moved into self, %s", nextMove.Move)
+// 	}
+// }
+
 func TestSpaceOkToTailChase1(t *testing.T) {
 	state := GameState{
 		Game: Game{
@@ -1670,54 +1814,6 @@ func TestMath(t *testing.T) {
 			t.Errorf("expected %d, got %d", tc.expected, actual)
 		}
 
-	}
-}
-
-func TestCombineWeights(t *testing.T) {
-	tests := []struct {
-		scores   []WeightedScore
-		expected Scored
-	}{
-		{
-			scores: []WeightedScore{
-				{true, 1.0, Scored{"up": 1.0, "down": 1.0, "left": 1.0, "right": 1.0}},
-			},
-			expected: Scored{"up": 1.0, "down": 1.0, "left": 1.0, "right": 1.0},
-		},
-		{
-			scores: []WeightedScore{
-				{true, 1.0, Scored{"up": 1.0, "down": 1.0, "left": 1.0, "right": 1.0}},
-				{true, 1.0, Scored{"up": 0.0, "down": 0.5, "left": 1.0, "right": 1.0}},
-			},
-			expected: Scored{"up": 0.0, "down": 0.5, "left": 1.0, "right": 1.0},
-		},
-		{
-			scores: []WeightedScore{
-				{true, 1.0, Scored{"up": 0.0, "down": 1.0, "left": 1.0, "right": 1.0}},
-				{true, 1.0, Scored{"up": 0.5, "down": 0.01, "left": 0.5, "right": 0.5}},
-				{false, 1.0, Scored{"up": 0.0, "down": 1.0, "left": 0.8, "right": 0.8}},
-			},
-			expected: Scored{"up": 0.0, "down": 0.02, "left": 0.9, "right": 0.9},
-		},
-		{
-			scores: []WeightedScore{
-				{true, 1, Scored{"down": 1, "left": 1, "right": 1, "up": 0}},
-				{true, 1, Scored{"down": 0.25, "left": 0.25, "right": 0.1, "up": 0.25}},
-				{false, 1, Scored{"down": 0, "left": 0, "right": 0, "up": 0}},
-			},
-			expected: Scored{"up": 0.0, "down": 0.25, "left": 0.25, "right": 0.1},
-		},
-	}
-
-	for _, tc := range tests {
-
-		actual := combineMoves(tc.scores)
-
-		for move, score := range actual {
-			if actual[move] != tc.expected[move] {
-				t.Errorf("%s: expected %.2f, got %.2f", move, tc.expected[move], score)
-			}
-		}
 	}
 }
 
