@@ -105,6 +105,16 @@ func (m Moves) maxLegacyFood() float64 {
 
 func (m Moves) Choice() string {
 
+	// More than one tied or losing h2h?
+	// This is useful to try and avoid food in this case.
+	h2hCount := 0
+	for _, score := range m.SafeMoves() {
+		if score.H2h.Outcome != Na && score.H2h.Outcome != Win {
+			h2hCount += 1
+		}
+	}
+	// log.Printf("h2hCount: %d", h2hCount)
+
 	for _, score := range m.Iter() {
 		// Death
 		if score.Death {
@@ -113,18 +123,29 @@ func (m Moves) Choice() string {
 
 		// H2H
 		var h2h float64
+		noFood := false
 		switch score.H2h.Outcome {
 		case Na:
 			h2h = 0.0
 		case Win:
 			h2h = 1.0
 		case Tie:
-			h2h = 0.1
+			// If there are multiple h2h and one of them is food, chances are
+			// the other snake will go for the food, so it's a better bet to
+			// go the other way.
+			if h2hCount > 1 {
+				if score.H2h.IsFood {
+					h2h = 0.05
+					noFood = true // don't go for the food!
+				} else {
+					h2h = 0.4 // prefer the non food (mostly to overcome possible area difference)
+				}
+			} else {
+				h2h = 0.1
+			}
 		case Lose:
 			h2h = 0.01
 		}
-		// TODO: work in food and other choices into H2H calculation
-		// log.Printf("%s h2h score: %.2f", score.Str, h2h)
 		score.result += h2h
 
 		// Space
@@ -132,7 +153,6 @@ func (m Moves) Choice() string {
 		// TODO: turn off food if space test does not pass
 		space := remap(float64(score.Space), 0.0, float64(m.maxSpace()), 0.0, 1.0)
 		score.result += space
-		// log.Printf("%s space score: %.2f", score.Str, space)
 
 		// Food
 		// TODO: replace with calculation based on food in space
@@ -150,8 +170,12 @@ func (m Moves) Choice() string {
 			foodWeight = max(foodWeight+0.25, 1.0)
 		}
 		foodScore := food * foodWeight * space
-		// log.Printf("%s food score: %.2f", score.Str, foodScore)
+		if noFood {
+			foodScore = 0.0
+		}
 		score.result += foodScore
+
+		// log.Printf("%s scores | h2h: %.2f, space: %.2f, food: %.2f", score.Str, h2h, space, foodScore)
 	}
 
 	// Pick move based on result value.

@@ -558,89 +558,89 @@ func TestAvoidBadHead2Head2_diff(t *testing.T) {
 	}
 }
 
-// // Other snakes are likely to go for food, so don't go for it if you don't have to.
-// func TestAvoidFoodInEqualHead2Head1(t *testing.T) {
-// 	state := GameState{
-// 		Game: Game{
-// 			ID: "f2ce457a-7eb1-43cf-b495-831498b753e0",
-// 			Ruleset: Ruleset{
-// 				Name:    "standard",
-// 				Version: "v1.0.17",
-// 			},
-// 			Timeout: 500,
-// 		},
-// 		Turn: 54,
-// 		Board: Board{
-// 			Height: 11,
-// 			Width:  11,
-// 			Food:   []Coord{{2, 7}},
-// 			Snakes: []Battlesnake{
-// 				{
-// 					ID:      "gs_qW3xGphphfBRBPjfqt7phy6X",
-// 					Name:    "TC5001",
-// 					Health:  98,
-// 					Head:    Coord{8, 2},
-// 					Body:    []Coord{{8, 2}, {9, 2}, {10, 2}, {10, 1}, {10, 0}, {9, 0}, {8, 0}, {7, 0}, {7, 1}, {6, 1}},
-// 					Length:  10,
-// 					Latency: "215",
-// 					Shout:   "",
-// 				},
-// 				{
-// 					ID:      "gs_97jPPpfDBqHYhxkkrdHHrQTY",
-// 					Name:    "nomblegomble",
-// 					Health:  98,
-// 					Head:    Coord{3, 7},
-// 					Body:    []Coord{{3, 7}, {3, 8}, {4, 8}, {5, 8}, {5, 7}, {5, 6}, {4, 6}, {3, 6}},
-// 					Length:  8,
-// 					Latency: "22",
-// 					Shout:   "",
-// 				},
-// 				{
-// 					ID:      "gs_7w9rQ6VDrSpYpgRCjygk8mmF",
-// 					Name:    "bsnek2",
-// 					Health:  99,
-// 					Head:    Coord{9, 9},
-// 					Body:    []Coord{{9, 9}, {9, 8}, {9, 7}, {9, 6}, {9, 5}, {8, 5}, {8, 4}},
-// 					Length:  7,
-// 					Latency: "284",
-// 					Shout:   "",
-// 				},
-// 				{
-// 					ID:      "gs_RmhhbkKtHSff73R66GMT33gJ",
-// 					Name:    "SnakeJS",
-// 					Health:  69,
-// 					Head:    Coord{2, 6},
-// 					Body:    []Coord{{2, 6}, {2, 5}, {3, 5}, {3, 4}, {3, 3}, {3, 2}, {3, 1}, {4, 1}},
-// 					Length:  8,
-// 					Latency: "239",
-// 					Shout:   "[2 5] --> [2 7]",
-// 				},
-// 			},
-// 		},
-// 		You: Battlesnake{
-// 			ID:      "gs_97jPPpfDBqHYhxkkrdHHrQTY",
-// 			Name:    "nomblegomble",
-// 			Health:  98,
-// 			Head:    Coord{3, 7},
-// 			Body:    []Coord{{3, 7}, {3, 8}, {4, 8}, {5, 8}, {5, 7}, {5, 6}, {4, 6}, {3, 6}},
-// 			Length:  8,
-// 			Latency: "22",
-// 			Shout:   "",
-// 		},
-// 	}
+// Other snakes are likely to go for food, so don't go for it if you don't have to.
+func TestAvoidFoodInEqualHead2Head1(t *testing.T) {
+	state := GameState{
+		Game: Game{
+			ID: "f2ce457a-7eb1-43cf-b495-831498b753e0",
+			Ruleset: Ruleset{
+				Name:    "standard",
+				Version: "v1.0.17",
+			},
+			Timeout: 500,
+		},
+		Turn: 54,
+		Board: Board{
+			Height: 11,
+			Width:  11,
+			Food:   []Coord{{2, 7}},
+			Snakes: []Battlesnake{
+				{
+					ID:      "gs_qW3xGphphfBRBPjfqt7phy6X",
+					Name:    "TC5001",
+					Health:  98,
+					Head:    Coord{8, 2},
+					Body:    []Coord{{8, 2}, {9, 2}, {10, 2}, {10, 1}, {10, 0}, {9, 0}, {8, 0}, {7, 0}, {7, 1}, {6, 1}},
+					Length:  10,
+					Latency: "215",
+					Shout:   "",
+				},
+				{
+					ID:      "gs_97jPPpfDBqHYhxkkrdHHrQTY",
+					Name:    "nomblegomble",
+					Health:  98,
+					Head:    Coord{3, 7},
+					Body:    []Coord{{3, 7}, {3, 8}, {4, 8}, {5, 8}, {5, 7}, {5, 6}, {4, 6}, {3, 6}},
+					Length:  8,
+					Latency: "22",
+					Shout:   "",
+				},
+				{
+					ID:      "gs_7w9rQ6VDrSpYpgRCjygk8mmF",
+					Name:    "bsnek2",
+					Health:  99,
+					Head:    Coord{9, 9},
+					Body:    []Coord{{9, 9}, {9, 8}, {9, 7}, {9, 6}, {9, 5}, {8, 5}, {8, 4}},
+					Length:  7,
+					Latency: "284",
+					Shout:   "",
+				},
+				{
+					ID:      "gs_RmhhbkKtHSff73R66GMT33gJ",
+					Name:    "SnakeJS",
+					Health:  69,
+					Head:    Coord{2, 6},
+					Body:    []Coord{{2, 6}, {2, 5}, {3, 5}, {3, 4}, {3, 3}, {3, 2}, {3, 1}, {4, 1}},
+					Length:  8,
+					Latency: "239",
+					Shout:   "[2 5] --> [2 7]",
+				},
+			},
+		},
+		You: Battlesnake{
+			ID:      "gs_97jPPpfDBqHYhxkkrdHHrQTY",
+			Name:    "nomblegomble",
+			Health:  98,
+			Head:    Coord{3, 7},
+			Body:    []Coord{{3, 7}, {3, 8}, {4, 8}, {5, 8}, {5, 7}, {5, 6}, {4, 6}, {3, 6}},
+			Length:  8,
+			Latency: "22",
+			Shout:   "",
+		},
+	}
 
-// 	nextMove := move(state)
+	nextMove := move(state)
 
-// 	if nextMove.Move == "left" {
-// 		t.Errorf("snake moved into likely H2H on food, %s", nextMove.Move)
-// 	}
-// 	if nextMove.Move == "up" {
-// 		t.Errorf("snake moved into self, %s", nextMove.Move)
-// 	}
-// 	if nextMove.Move == "right" {
-// 		t.Errorf("snake moved into too small a space, %s", nextMove.Move)
-// 	}
-// }
+	if nextMove.Move == "left" {
+		t.Errorf("snake moved into likely H2H on food, %s", nextMove.Move)
+	}
+	if nextMove.Move == "up" {
+		t.Errorf("snake moved into self, %s", nextMove.Move)
+	}
+	if nextMove.Move == "right" {
+		t.Errorf("snake moved into too small a space, %s", nextMove.Move)
+	}
+}
 
 func TestHead2HeadBetterThanWall(t *testing.T) {
 	state := GameState{

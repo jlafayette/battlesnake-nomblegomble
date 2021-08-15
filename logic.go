@@ -139,6 +139,12 @@ func h2h(state *GameState, moves *score.Moves) {
 			for _, otherMove := range allMoves {
 				otherHeadPos := newHead(other.Head, otherMove)
 				if samePos(nextHeadPos, otherHeadPos) {
+					// Check for food on this square
+					for _, f := range state.Board.Food {
+						if samePos(nextHeadPos, f) {
+							move.H2h.IsFood = true
+						}
+					}
 					if state.You.Length > other.Length {
 						// this could be bad because the other snake doesn't have
 						// to move here, putting us in a trapped position
