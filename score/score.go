@@ -43,9 +43,10 @@ const (
 
 // Details like percentage, equal, how many other options you have or the other snake has
 type H2H struct {
-	IsFood  bool
-	Outcome H2HOutcome
-	// Percentage float64 // based on other moves the snake has 0-1
+	IsFood  bool       // Is the tile food?
+	Outcome H2HOutcome // What would be the result?
+	ID      string     // ID of the other snake
+	Len     string     // Length of other snake (could open up if h2h is a win)
 }
 
 type FoodInfo struct {
@@ -103,16 +104,21 @@ func (m Moves) maxLegacyFood() float64 {
 	return max(0, max(m.Up.Food.LegacyScore, max(m.Down.Food.LegacyScore, max(m.Left.Food.LegacyScore, m.Right.Food.LegacyScore))))
 }
 
-func (m Moves) Choice() string {
-
-	// More than one tied or losing h2h?
-	// This is useful to try and avoid food in this case.
+func (m Moves) h2hDeathCount() int {
 	h2hCount := 0
 	for _, score := range m.SafeMoves() {
 		if score.H2h.Outcome != Na && score.H2h.Outcome != Win {
 			h2hCount += 1
 		}
 	}
+	return h2hCount
+}
+
+func (m Moves) Choice() string {
+
+	// More than one tied or losing h2h?
+	// This is useful to try and avoid food in this case.
+	h2hDeathCount := m.h2hDeathCount()
 	// log.Printf("h2hCount: %d", h2hCount)
 
 	for _, score := range m.Iter() {
@@ -133,7 +139,7 @@ func (m Moves) Choice() string {
 			// If there are multiple h2h and one of them is food, chances are
 			// the other snake will go for the food, so it's a better bet to
 			// go the other way.
-			if h2hCount > 1 {
+			if h2hDeathCount > 1 {
 				if score.H2h.IsFood {
 					h2h = 0.05
 					noFood = true // don't go for the food!
@@ -153,6 +159,9 @@ func (m Moves) Choice() string {
 		// TODO: turn off food if space test does not pass
 		space := remap(float64(score.Space), 0.0, float64(m.maxSpace()), 0.0, 1.0)
 		score.result += space
+		if score.Space < score.Mylen {
+			noFood = true
+		}
 
 		// Food
 		// TODO: replace with calculation based on food in space
@@ -175,7 +184,7 @@ func (m Moves) Choice() string {
 		}
 		score.result += foodScore
 
-		// log.Printf("%s scores | h2h: %.2f, space: %.2f, food: %.2f", score.Str, h2h, space, foodScore)
+		// log.Printf("%s scores | h2h: %.2f, area/space: %d/%.2f, food: %.2f", score.Str, h2h, score.Space, space, foodScore)
 	}
 
 	// Pick move based on result value.
