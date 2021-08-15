@@ -15,33 +15,33 @@ func TestNeckAvoidance(t *testing.T) {
 		{
 			name: "neck avoidance 1",
 			input: Battlesnake{
-				// Length 3, facing right
-				Head: Coord{X: 2, Y: 0},
-				Body: []Coord{{X: 2, Y: 0}, {X: 1, Y: 0}, {X: 0, Y: 0}},
+				Length: 3, // facing right
+				Head:   Coord{X: 2, Y: 0},
+				Body:   []Coord{{X: 2, Y: 0}, {X: 1, Y: 0}, {X: 0, Y: 0}},
 			}, noGo: "left",
 		},
 		{
 			name: "neck avoidance 2",
 			input: Battlesnake{
-				// Length 3, facing left
-				Head: Coord{X: 7, Y: 0},
-				Body: []Coord{{X: 7, Y: 0}, {X: 8, Y: 0}, {X: 9, Y: 0}},
+				Length: 3, // facing left
+				Head:   Coord{X: 7, Y: 0},
+				Body:   []Coord{{X: 7, Y: 0}, {X: 8, Y: 0}, {X: 9, Y: 0}},
 			}, noGo: "right",
 		},
 		{
 			name: "neck avoidance 3",
 			input: Battlesnake{
-				// Length 3, facing up
-				Head: Coord{X: 5, Y: 10},
-				Body: []Coord{{X: 5, Y: 9}, {X: 5, Y: 8}, {X: 5, Y: 7}},
+				Length: 3, // facing up
+				Head:   Coord{X: 5, Y: 10},
+				Body:   []Coord{{X: 5, Y: 9}, {X: 5, Y: 8}, {X: 5, Y: 7}},
 			}, noGo: "down",
 		},
 		{
 			name: "neck avoidance 4",
 			input: Battlesnake{
-				// Length 3, facing down
-				Head: Coord{X: 5, Y: 1},
-				Body: []Coord{{X: 5, Y: 2}, {X: 5, Y: 3}, {X: 5, Y: 4}},
+				Length: 3, // facing down
+				Head:   Coord{X: 5, Y: 1},
+				Body:   []Coord{{X: 5, Y: 2}, {X: 5, Y: 3}, {X: 5, Y: 4}},
 			}, noGo: "up",
 		},
 	}
@@ -84,8 +84,11 @@ func TestWallAvoidance(t *testing.T) {
 			name: "wall avoidance 1",
 			input: Battlesnake{
 				// Lower left corner
-				Head: Coord{X: 0, Y: 0},
-				Body: []Coord{{X: 0, Y: 0}, {X: 1, Y: 0}, {X: 2, Y: 0}},
+				ID:     "my-id",
+				Length: 3,
+				Health: 90,
+				Head:   Coord{X: 0, Y: 0},
+				Body:   []Coord{{X: 0, Y: 0}, {X: 1, Y: 0}, {X: 2, Y: 0}},
 			},
 			intoNeck: "right",
 			intoWall: []string{"left", "down"},
@@ -94,8 +97,11 @@ func TestWallAvoidance(t *testing.T) {
 			name: "wall avoidance 2",
 			input: Battlesnake{
 				// top right corner
-				Head: Coord{X: 11, Y: 11},
-				Body: []Coord{{X: 11, Y: 11}, {X: 10, Y: 11}, {X: 9, Y: 11}},
+				ID:     "my-id",
+				Length: 3,
+				Health: 90,
+				Head:   Coord{X: 11, Y: 11},
+				Body:   []Coord{{X: 11, Y: 11}, {X: 10, Y: 11}, {X: 9, Y: 11}},
 			},
 			intoNeck: "left",
 			intoWall: []string{"up", "right"},
@@ -104,8 +110,11 @@ func TestWallAvoidance(t *testing.T) {
 			name: "wall avoidance 3",
 			input: Battlesnake{
 				// bottom right corner (facing down)
-				Head: Coord{X: 11, Y: 0},
-				Body: []Coord{{X: 11, Y: 0}, {X: 11, Y: 1}, {X: 11, Y: 2}},
+				ID:     "my-id",
+				Length: 3,
+				Health: 90,
+				Head:   Coord{X: 11, Y: 0},
+				Body:   []Coord{{X: 11, Y: 0}, {X: 11, Y: 1}, {X: 11, Y: 2}},
 			},
 			intoNeck: "up",
 			intoWall: []string{"down", "right"},
@@ -114,8 +123,11 @@ func TestWallAvoidance(t *testing.T) {
 			name: "wall avoidance 4",
 			input: Battlesnake{
 				// top left corner (facing up)
-				Head: Coord{X: 0, Y: 11},
-				Body: []Coord{{X: 0, Y: 11}, {X: 0, Y: 10}, {X: 0, Y: 9}},
+				ID:     "my-id",
+				Length: 3,
+				Health: 90,
+				Head:   Coord{X: 0, Y: 11},
+				Body:   []Coord{{X: 0, Y: 11}, {X: 0, Y: 10}, {X: 0, Y: 9}},
 			},
 			intoNeck: "down",
 			intoWall: []string{"left", "up"},
@@ -153,8 +165,11 @@ func TestSelfAvoidance(t *testing.T) {
 		{
 			name: "body check",
 			input: Battlesnake{
-				Head: Coord{X: 5, Y: 5},
-				Body: []Coord{{X: 5, Y: 5}, {X: 5, Y: 4}, {X: 6, Y: 4}, {X: 6, Y: 5}, {X: 6, Y: 6}, {X: 5, Y: 6}, {X: 4, Y: 6}},
+				ID:     "my-id",
+				Length: 7,
+				Health: 90,
+				Head:   Coord{X: 5, Y: 5},
+				Body:   []Coord{{X: 5, Y: 5}, {X: 5, Y: 4}, {X: 6, Y: 4}, {X: 6, Y: 5}, {X: 6, Y: 6}, {X: 5, Y: 6}, {X: 4, Y: 6}},
 			},
 			intoSelf: []string{"up", "right", "down"},
 		},
@@ -162,9 +177,11 @@ func TestSelfAvoidance(t *testing.T) {
 		{
 			name: "tail chase ok 1",
 			input: Battlesnake{
+				ID:     "my-id",
+				Length: 4,
+				Health: 99,
 				Head:   Coord{X: 11, Y: 0},
 				Body:   []Coord{{X: 11, Y: 0}, {X: 10, Y: 0}, {X: 10, Y: 1}, {X: 11, Y: 1}},
-				Health: 99,
 			},
 			intoSelf: []string{"left"},
 			intoWall: []string{"down", "right"},
@@ -172,9 +189,11 @@ func TestSelfAvoidance(t *testing.T) {
 		{
 			name: "tail chase ok 2",
 			input: Battlesnake{
+				ID:     "my-id",
+				Length: 4,
+				Health: 99,
 				Head:   Coord{X: 0, Y: 11},
 				Body:   []Coord{{X: 0, Y: 11}, {X: 1, Y: 11}, {X: 1, Y: 10}, {X: 0, Y: 10}},
-				Health: 99,
 			},
 			intoSelf: []string{"right"},
 			intoWall: []string{"up", "left"},
@@ -182,9 +201,11 @@ func TestSelfAvoidance(t *testing.T) {
 		{
 			name: "tail chase not ok (just eaten)",
 			input: Battlesnake{
+				ID:     "my-id",
+				Length: 6,
+				Health: 100,
 				Head:   Coord{X: 1, Y: 1},
 				Body:   []Coord{{X: 1, Y: 1}, {X: 1, Y: 2}, {X: 2, Y: 2}, {X: 2, Y: 1}, {X: 2, Y: 0}, {X: 1, Y: 0}},
-				Health: 100,
 			},
 			intoSelf: []string{"up", "right", "down"},
 		},
@@ -327,8 +348,11 @@ func TestSpaceBasic(t *testing.T) {
 			input: Board{
 				Snakes: []Battlesnake{
 					{
-						Head: Coord{2, 0},
-						Body: []Coord{{2, 0}, {2, 1}, {1, 1}, {0, 1}, {0, 0}},
+						ID:     "my-id",
+						Length: 5,
+						Health: 75,
+						Head:   Coord{2, 0},
+						Body:   []Coord{{2, 0}, {2, 1}, {1, 1}, {0, 1}, {0, 0}},
 					},
 				},
 				Width:  7,
@@ -344,6 +368,8 @@ func TestSpaceBasic(t *testing.T) {
 			input: Board{
 				Snakes: []Battlesnake{
 					{
+						ID:     "my-id",
+						Length: 13,
 						Health: 100,
 						Head:   Coord{0, 5},
 						Body:   []Coord{{0, 5}, {1, 5}, {2, 5}, {3, 5}, {3, 6}, {4, 6}, {5, 6}, {5, 5}, {4, 5}, {4, 4}, {3, 4}, {2, 4}, {1, 4}},
@@ -1599,6 +1625,69 @@ func TestSpaceCutoff6(t *testing.T) {
 	}
 }
 
+func TestSpaceCutoff7(t *testing.T) {
+	state := GameState{
+		Game: Game{
+			ID: "43172677-aa69-4a04-aecc-4aedcf238d05",
+			Ruleset: Ruleset{
+				Name:    "standard",
+				Version: "v1.0.17",
+			},
+			Timeout: 500,
+		},
+		Turn: 144,
+		Board: Board{
+			Height: 11,
+			Width:  11,
+			Food:   []Coord{{9, 9}, {2, 7}, {5, 3}},
+			Snakes: []Battlesnake{
+				{
+					ID:      "gs_K96GMhmm4XqSJDgbDmfdSv3J",
+					Name:    "nomblegomble",
+					Health:  89,
+					Head:    Coord{2, 4},
+					Body:    []Coord{{2, 4}, {2, 5}, {3, 5}, {4, 5}, {5, 5}, {5, 4}, {6, 4}, {7, 4}, {8, 4}, {9, 4}, {10, 4}, {10, 5}, {9, 5}, {8, 5}, {7, 5}, {6, 5}},
+					Length:  16,
+					Latency: "22",
+					Shout:   "",
+				},
+				{
+					ID:      "gs_MF6b9fcWTpS9FRTCVJMK88r4",
+					Name:    "Super Snakey",
+					Health:  95,
+					Head:    Coord{3, 3},
+					Body:    []Coord{{3, 3}, {2, 3}, {2, 2}, {2, 1}, {1, 1}, {1, 0}, {2, 0}, {3, 0}, {3, 1}, {3, 2}, {4, 2}, {5, 2}, {6, 2}, {7, 2}, {7, 1}},
+					Length:  15,
+					Latency: "226",
+					Shout:   "",
+				},
+			},
+		},
+		You: Battlesnake{
+			ID:      "gs_K96GMhmm4XqSJDgbDmfdSv3J",
+			Name:    "nomblegomble",
+			Health:  89,
+			Head:    Coord{2, 4},
+			Body:    []Coord{{2, 4}, {2, 5}, {3, 5}, {4, 5}, {5, 5}, {5, 4}, {6, 4}, {7, 4}, {8, 4}, {9, 4}, {10, 4}, {10, 5}, {9, 5}, {8, 5}, {7, 5}, {6, 5}},
+			Length:  16,
+			Latency: "22",
+			Shout:   "",
+		},
+	}
+
+	nextMove := move(state)
+
+	if nextMove.Move == "right" {
+		t.Errorf("snake moved into too small of space, %s (can be cut off)", nextMove.Move)
+	}
+	if nextMove.Move == "up" {
+		t.Errorf("snake moved into self, %s", nextMove.Move)
+	}
+	if nextMove.Move == "down" {
+		t.Errorf("snake moved into other snake, %s", nextMove.Move)
+	}
+}
+
 func TestSpaceOkToTailChase1(t *testing.T) {
 	state := GameState{
 		Game: Game{
@@ -1900,6 +1989,8 @@ func TestFood(t *testing.T) {
 				Head:   Coord{X: 5, Y: 5},
 				Body:   []Coord{{X: 5, Y: 5}, {X: 5, Y: 4}, {X: 6, Y: 4}},
 				Health: 1,
+				Length: 3,
+				ID:     "my-id",
 			},
 			food:     []Coord{{X: 6, Y: 5}},
 			expected: "right",
@@ -1910,6 +2001,8 @@ func TestFood(t *testing.T) {
 				Head:   Coord{X: 5, Y: 5},
 				Body:   []Coord{{X: 5, Y: 5}, {X: 5, Y: 4}, {X: 6, Y: 4}},
 				Health: 20,
+				Length: 3,
+				ID:     "my-id",
 			},
 			food:     []Coord{{X: 0, Y: 5}},
 			expected: "left",

@@ -87,15 +87,15 @@ func avoidSelf(state *GameState, moves *score.Moves) {
 }
 
 // Don't hit walls.
-func avoidWalls(state *GameState, moves *score.Moves) {
-	if state.You.Head.X == 0 {
+func avoidWalls(state *GameState, head Coord, moves *score.Moves) {
+	if head.X == 0 {
 		moves.Left.Death = true
-	} else if state.You.Head.X == state.Board.Width-1 {
+	} else if head.X == state.Board.Width-1 {
 		moves.Right.Death = true
 	}
-	if state.You.Head.Y == 0 {
+	if head.Y == 0 {
 		moves.Down.Death = true
-	} else if state.You.Head.Y == state.Board.Height-1 {
+	} else if head.Y == state.Board.Height-1 {
 		moves.Up.Death = true
 	}
 }
@@ -135,6 +135,13 @@ func h2h(state *GameState, moves *score.Moves) {
 			if state.You.ID == other.ID {
 				continue
 			}
+
+			// All safe moves of other snake
+			otherScore := score.NewMoves(other.Length)
+			avoidWalls(state, other.Head, moves)
+			avoidOthers(state, moves)
+			optionCount := otherScore.SafeCount()
+
 			// avoid head to head
 			for _, otherMove := range allMoves {
 				otherHeadPos := newHead(other.Head, otherMove)
@@ -156,6 +163,7 @@ func h2h(state *GameState, moves *score.Moves) {
 
 					move.H2h.ID = other.ID
 					move.H2h.Len = int(other.Length)
+					move.H2h.OptionCount = optionCount
 					if state.You.Length > other.Length {
 						// this could be bad because the other snake doesn't have
 						// to move here, putting us in a trapped position
@@ -218,13 +226,14 @@ func foooood(state *GameState, moves *score.Moves) {
 func gimmeSomeSpace(state *GameState, moves *score.Moves) {
 	// Seek out larger spaces
 	// From the head of each snake, do a breadth first search of possible moves
-	grid := NewGrid(state)
+	// grid := NewGrid(state)
 
 	// area of snake len is ok
 	// anything less is bad news
 	for _, move := range moves.SafeMoves() {
 		// log.Printf("checking area for move: %s", move)
-		area := grid.Area(state, move.Str)
+		// grid.Reset(state)  // TODO: Figure out why this doesn't reset properly.
+		area := GetArea(state, move.Str)
 		// log.Printf("move: %s, area: %d", move, area)
 
 		// area 1 len 10  0.1
@@ -248,7 +257,7 @@ func move(state GameState) BattlesnakeMoveResponse {
 	avoidSelf(&state, moves)
 
 	// avoid walls
-	avoidWalls(&state, moves)
+	avoidWalls(&state, state.You.Head, moves)
 
 	// avoid others (body)
 	// the result is the combination of avoid self, avoid walls, and avoid other snakes

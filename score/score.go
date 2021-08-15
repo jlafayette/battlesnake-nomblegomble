@@ -43,10 +43,11 @@ const (
 
 // Details like percentage, equal, how many other options you have or the other snake has
 type H2H struct {
-	IsFood  bool       // Is the tile food?
-	Len     int        // Length of other snake (could open up if h2h is a win)
-	ID      string     // ID of the other snake
-	Outcome H2HOutcome // What would be the result? (Na means no h2h)
+	IsFood      bool       // Is the tile food?
+	Len         int        // Length of other snake (could open up if h2h is a win)
+	OptionCount int        // number of safe moves the other snake has
+	ID          string     // ID of the other snake
+	Outcome     H2HOutcome // What would be the result? (Na means no h2h)
 }
 
 type FoodInfo struct {
@@ -96,6 +97,16 @@ func (m *Moves) SafeMoves() []*Score {
 	return safe
 }
 
+func (m *Moves) SafeCount() int {
+	count := 0
+	for _, move := range m.Iter() {
+		if !move.Death {
+			count += 1
+		}
+	}
+	return count
+}
+
 func (m Moves) maxSpace() int {
 	return maxInt(0, maxInt(m.Up.Space, maxInt(m.Down.Space, maxInt(m.Left.Space, m.Right.Space))))
 }
@@ -134,7 +145,7 @@ func (m Moves) Choice() string {
 		case Na:
 			h2h = 0.0
 		case Win:
-			h2h = 1.0
+			h2h = (1.0 / float64(score.H2h.OptionCount))
 		case Tie:
 			// If there are multiple h2h and one of them is food, chances are
 			// the other snake will go for the food, so it's a better bet to
@@ -157,7 +168,7 @@ func (m Moves) Choice() string {
 		// Space
 		// TODO: make space relative to mylen
 		// TODO: turn off food if space test does not pass
-		space := remap(float64(score.Space), 0.0, float64(m.maxSpace()), 0.0, 1.0)
+		space := remap(float64(score.Space), 0.0, float64(score.Mylen), 0.0, 1.0)
 		score.result += space
 		if score.Space < score.Mylen {
 			noFood = true
@@ -184,7 +195,7 @@ func (m Moves) Choice() string {
 		}
 		score.result += foodScore
 
-		// log.Printf("%s scores | h2h: %.2f, area/space: %d/%.2f, food: %.2f", score.Str, h2h, score.Space, space, foodScore)
+		log.Printf("%s scores | h2h: %.2f, area/space: %d/%.2f, food: %.2f", score.Str, h2h, score.Space, space, foodScore)
 	}
 
 	// Pick move based on result value.

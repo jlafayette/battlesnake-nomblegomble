@@ -77,6 +77,11 @@ func NewGrid(state *GameState) Grid {
 	return grid
 }
 
+func (g *Grid) Reset(state *GameState) {
+	g.Clear()
+	g.ResetSnakes(state)
+}
+
 func (g *Grid) ResetSnakes(state *GameState) {
 	g.snakes = map[int]*GridSnake{}
 	for i, srcSnake := range state.Board.Snakes {
@@ -180,6 +185,7 @@ func (g *Grid) Area(state *GameState, move string) int {
 		if empty {
 			break
 		}
+		// log.Printf("pop %v", item)
 
 		// starting at mySnake + move, traverse neighbors until reaching otherSnake visited on same turn
 		// 		do some fancy h2h logic here, can beat other snake?
@@ -192,7 +198,7 @@ func (g *Grid) Area(state *GameState, move string) int {
 		for otherIdx := range g.snakes {
 			otherTurn, visited := g.squares[x][y].visited[otherIdx]
 			if visited {
-				willDieInH2H := g.snakes[otherIdx].length() >= g.snakes[0].length()
+				willDieInH2H := g.snakes[otherIdx].length() >= g.snakes[g.myIndex].length()
 				if otherTurn == item.turn && willDieInH2H {
 					// fmt.Println("turns are equal and will die in H2H")
 					isOk = false
@@ -234,8 +240,6 @@ func (g *Grid) Area(state *GameState, move string) int {
 		}
 	}
 
-	g.Clear()
-	g.ResetSnakes(state)
 	return area
 }
 
@@ -268,7 +272,7 @@ func (g *Grid) findNeighbors(state *GameState, item QItem) []QItem {
 				// Subtract tails from body as turns go by
 				// (should account for eating)
 				if i > gsnake.length()-1-turn {
-					// fmt.Printf("break... because %d > %d\n", i, length-1-turn)
+					// fmt.Printf("break... because %d > %d\n", i, gsnake.length()-1-turn)
 					break
 				}
 				if samePos(Coord{candidate.X, candidate.Y}, bc) {
@@ -286,4 +290,9 @@ func (g *Grid) findNeighbors(state *GameState, item QItem) []QItem {
 		n = append(n, candidate)
 	}
 	return n
+}
+
+func GetArea(state *GameState, move string) int {
+	grid := NewGrid(state)
+	return grid.Area(state, move)
 }
