@@ -558,6 +558,80 @@ func TestAvoidBadHead2Head2_diff(t *testing.T) {
 	}
 }
 
+// One snake can be beat, but not the longer one!
+func TestAvoid3WayBadHead2Head1(t *testing.T) {
+	state := GameState{
+		Game: Game{
+			ID: "8bc4c92d-9e78-4542-bc42-0e41bb2d8689",
+			Ruleset: Ruleset{
+				Name:    "standard",
+				Version: "v1.0.17",
+			},
+			Timeout: 500,
+		},
+		Turn: 114,
+		Board: Board{
+			Height: 11,
+			Width:  11,
+			Food:   []Coord{{0, 9}, {10, 8}},
+			Snakes: []Battlesnake{
+				{
+					ID:      "gs_WGPDfp6p4jf3DcYvQM4hRp9C",
+					Name:    "Devious Devin",
+					Health:  95,
+					Head:    Coord{5, 5},
+					Body:    []Coord{{5, 5}, {4, 5}, {3, 5}, {2, 5}, {1, 5}, {0, 5}, {0, 6}, {0, 7}, {0, 8}, {1, 8}, {2, 8}, {2, 7}, {3, 7}},
+					Length:  13,
+					Latency: "59",
+					Shout:   "",
+				},
+				{
+					ID:      "gs_GJjQ6md8htSKpg8k4SvCT99V",
+					Name:    "nomblegomble",
+					Health:  94,
+					Head:    Coord{6, 4},
+					Body:    []Coord{{6, 4}, {5, 4}, {4, 4}, {3, 4}, {2, 4}, {1, 4}, {1, 3}, {2, 3}, {3, 3}, {3, 2}, {3, 1}},
+					Length:  11,
+					Latency: "23",
+					Shout:   "",
+				},
+				{
+					ID:      "gs_gmYrStYRmQ68tTy9Yrb66k9S",
+					Name:    "Titanoboa",
+					Health:  99,
+					Head:    Coord{7, 5},
+					Body:    []Coord{{7, 5}, {7, 4}, {7, 3}, {8, 3}, {8, 4}, {8, 5}, {8, 6}, {9, 6}},
+					Length:  8,
+					Latency: "241",
+					Shout:   "",
+				},
+			},
+		},
+		You: Battlesnake{
+			ID:      "gs_GJjQ6md8htSKpg8k4SvCT99V",
+			Name:    "nomblegomble",
+			Health:  94,
+			Head:    Coord{6, 4},
+			Body:    []Coord{{6, 4}, {5, 4}, {4, 4}, {3, 4}, {2, 4}, {1, 4}, {1, 3}, {2, 3}, {3, 3}, {3, 2}, {3, 1}},
+			Length:  11,
+			Latency: "23",
+			Shout:   "",
+		},
+	}
+
+	nextMove := move(state)
+
+	if nextMove.Move == "up" {
+		t.Errorf("snake moved into bad 3 way h2h, %s (one other snake is larger)", nextMove.Move)
+	}
+	if nextMove.Move == "left" {
+		t.Errorf("snake moved into self, %s", nextMove.Move)
+	}
+	if nextMove.Move == "right" {
+		t.Errorf("snake moved into other snake, %s", nextMove.Move)
+	}
+}
+
 // Other snakes are likely to go for food, so don't go for it if you don't have to.
 func TestAvoidFoodInEqualHead2Head1(t *testing.T) {
 	state := GameState{

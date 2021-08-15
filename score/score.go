@@ -44,9 +44,9 @@ const (
 // Details like percentage, equal, how many other options you have or the other snake has
 type H2H struct {
 	IsFood  bool       // Is the tile food?
-	Outcome H2HOutcome // What would be the result?
+	Len     int        // Length of other snake (could open up if h2h is a win)
 	ID      string     // ID of the other snake
-	Len     string     // Length of other snake (could open up if h2h is a win)
+	Outcome H2HOutcome // What would be the result? (Na means no h2h)
 }
 
 type FoodInfo struct {

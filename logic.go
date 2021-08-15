@@ -145,6 +145,17 @@ func h2h(state *GameState, moves *score.Moves) {
 							move.H2h.IsFood = true
 						}
 					}
+
+					// If there is already a H2H with a longer snake, then keep that one. This is
+					// a possible 3-way h2h and the longest other snake is the one to worry about.
+					if move.H2h.ID != "" {
+						if move.H2h.Len > int(other.Length) {
+							continue
+						}
+					}
+
+					move.H2h.ID = other.ID
+					move.H2h.Len = int(other.Length)
 					if state.You.Length > other.Length {
 						// this could be bad because the other snake doesn't have
 						// to move here, putting us in a trapped position
