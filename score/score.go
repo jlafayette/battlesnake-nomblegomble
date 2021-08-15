@@ -130,12 +130,14 @@ func (m Moves) Choice() string {
 	// More than one tied or losing h2h?
 	// This is useful to try and avoid food in this case.
 	h2hDeathCount := m.h2hDeathCount()
-	// log.Printf("h2hCount: %d", h2hCount)
+	// log.Printf("h2hDeathCount: %d", h2hDeathCount)
 
 	for _, score := range m.Iter() {
 		// Death
 		if score.Death {
 			score.result = 0.0
+			// log.Printf("%s = death", score.Str)
+			continue
 		}
 
 		// H2H
@@ -195,7 +197,7 @@ func (m Moves) Choice() string {
 		}
 		score.result += foodScore
 
-		log.Printf("%s scores | h2h: %.2f, area/space: %d/%.2f, food: %.2f", score.Str, h2h, score.Space, space, foodScore)
+		// log.Printf("%s scores | h2h: %.2f, area/space: %d/%.2f, food: %.2f", score.Str, h2h, score.Space, space, foodScore)
 	}
 
 	// Pick move based on result value.

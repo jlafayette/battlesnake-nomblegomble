@@ -137,10 +137,10 @@ func h2h(state *GameState, moves *score.Moves) {
 			}
 
 			// All safe moves of other snake
-			otherScore := score.NewMoves(other.Length)
-			avoidWalls(state, other.Head, moves)
-			avoidOthers(state, moves)
-			optionCount := otherScore.SafeCount()
+			otherMoves := score.NewMoves(other.Length)
+			avoidWalls(state, other.Head, otherMoves)
+			avoidOthers(state, otherMoves)
+			optionCount := otherMoves.SafeCount()
 
 			// avoid head to head
 			for _, otherMove := range allMoves {

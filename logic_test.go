@@ -232,6 +232,83 @@ func TestSelfAvoidance(t *testing.T) {
 	}
 }
 
+func TestSelfAvoidance2(t *testing.T) {
+	state := GameState{
+		Game: Game{
+			ID: "72dd383c-bcc9-4e18-a01a-2e6ddd911630",
+			Ruleset: Ruleset{
+				Name:    "standard",
+				Version: "v1.0.17",
+			},
+			Timeout: 500,
+		},
+		Turn: 2,
+		Board: Board{
+			Height: 11,
+			Width:  11,
+			Food:   []Coord{{8, 10}, {5, 5}},
+			Snakes: []Battlesnake{
+				{
+					ID:      "gs_MPyShWKrcHkXMCtDWfFtCvGD",
+					Name:    "Canadian Bacon",
+					Health:  98,
+					Head:    Coord{10, 10},
+					Body:    []Coord{{10, 10}, {10, 9}, {9, 9}},
+					Length:  3,
+					Latency: "218",
+					Shout:   "",
+				},
+				{
+					ID:      "gs_Vpf7rhGj3qmKykCQGbqrCp9G",
+					Name:    "nomblegomble",
+					Health:  100,
+					Head:    Coord{8, 4},
+					Body:    []Coord{{8, 4}, {8, 5}, {9, 5}, {9, 5}},
+					Length:  4,
+					Latency: "22",
+					Shout:   "",
+				},
+				{
+					ID:      "gs_RffxTd39SdRRRy8qVMGdQGkJ",
+					Name:    "msbs",
+					Health:  100,
+					Head:    Coord{0, 8},
+					Body:    []Coord{{0, 8}, {0, 9}, {1, 9}, {1, 9}},
+					Length:  4,
+					Latency: "50",
+					Shout:   "",
+				},
+				{
+					ID:      "gs_QRcYBqP8PYFBYvdGfbpQm9rb",
+					Name:    "random-boii-2.0",
+					Health:  100,
+					Head:    Coord{4, 0},
+					Body:    []Coord{{4, 0}, {4, 1}, {5, 1}, {5, 1}},
+					Length:  4,
+					Latency: "242",
+					Shout:   "",
+				},
+			},
+		},
+		You: Battlesnake{
+			ID:      "gs_Vpf7rhGj3qmKykCQGbqrCp9G",
+			Name:    "nomblegomble",
+			Health:  100,
+			Head:    Coord{8, 4},
+			Body:    []Coord{{8, 4}, {8, 5}, {9, 5}, {9, 5}},
+			Length:  4,
+			Latency: "22",
+			Shout:   "",
+		},
+	}
+
+	nextMove := move(state)
+
+	if nextMove.Move == "up" {
+		t.Errorf("snake moved into self, %s", nextMove.Move)
+	}
+}
+
 func TestHead2Head(t *testing.T) {
 	tests := []struct {
 		me       Battlesnake
