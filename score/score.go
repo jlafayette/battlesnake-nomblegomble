@@ -16,6 +16,13 @@ func remap(old, oldMin, oldMax, newMin, newMax float64) float64 {
 	}
 }
 
+func min(a, b float64) float64 {
+	if a < b {
+		return a
+	}
+	return b
+}
+
 func max(a, b float64) float64 {
 	if a > b {
 		return a
@@ -142,7 +149,8 @@ func (m Moves) Choice() string {
 
 		// H2H
 		var h2h float64
-		noFood := false
+		ignoreFood := false
+		ignoreSpace := false
 		switch score.H2h.Outcome {
 		case Na:
 			h2h = 0.0
@@ -155,7 +163,7 @@ func (m Moves) Choice() string {
 			if h2hDeathCount > 1 {
 				if score.H2h.IsFood {
 					h2h = 0.05
-					noFood = true // don't go for the food!
+					ignoreFood = true // don't go for the food!
 				} else {
 					h2h = 0.4 // prefer the non food (mostly to overcome possible area difference)
 				}
@@ -164,16 +172,23 @@ func (m Moves) Choice() string {
 			}
 		case Lose:
 			h2h = 0.01
+			ignoreFood = true
+			// Area has a bug where since you move first, a losing h2h is skipped
+			// over, resulting in way too much space where is should be zero.
+			ignoreSpace = true
 		}
 		score.result += h2h
 
 		// Space
-		// TODO: make space relative to mylen
-		// TODO: turn off food if space test does not pass
 		space := remap(float64(score.Space), 0.0, float64(score.Mylen), 0.0, 1.0)
+		// If you have twice your body length to work with, extra doesn't really matter
+		space = min(space, 2.0)
+		if ignoreSpace {
+			space = 0.0
+		}
 		score.result += space
 		if score.Space < score.Mylen {
-			noFood = true
+			ignoreFood = true
 		}
 
 		// Food
@@ -191,8 +206,8 @@ func (m Moves) Choice() string {
 		if !score.Food.LongEnough {
 			foodWeight = max(foodWeight+0.25, 1.0)
 		}
-		foodScore := food * foodWeight * space
-		if noFood {
+		foodScore := food * foodWeight * min(space, 1.0)
+		if ignoreFood {
 			foodScore = 0.0
 		}
 		score.result += foodScore
