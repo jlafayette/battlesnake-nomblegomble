@@ -7,24 +7,37 @@ type GridSquare struct {
 	visited map[int]int
 }
 
-func (g *GridSquare) clear() {
-	g.visited = make(map[int]int)
-	g.isFood = false
-}
-
 type GridSnake struct {
-	isMe  bool
-	index int     // the index of snake in *state
-	food  int     // how much food the snake may have eaten
-	body  []Coord // will update as turns go by and snake may eat food
+	isMe   bool
+	index  int     // the index of snake in *state
+	myfood int     // food eaten so far (this only works on my snake)
+	body   []Coord // will update as turns go by and snake may eat food
 }
 
 func (s *GridSnake) nom() {
-	s.food += 1
+	s.myfood += 1
 }
 
-func (s *GridSnake) length() int {
-	return len(s.body) + s.food
+func (s *GridSnake) myLength() int {
+	return len(s.body) + s.myfood
+}
+
+func (s *GridSnake) otherLength(p2 Coord, food *[]Coord) int {
+	// get all the food in the area between start and pos
+	p1 := s.body[0]
+
+	xMin := minInt(p1.X, p2.X)
+	xMax := maxInt(p1.X, p2.X)
+	yMin := minInt(p1.Y, p2.Y)
+	yMax := maxInt(p1.Y, p2.Y)
+
+	foodCount := 0
+	for _, f := range *food {
+		if f.X >= xMin && f.X <= xMax && f.Y >= yMin && f.Y <= yMax {
+			foodCount += 1
+		}
+	}
+	return len(s.body) + foodCount
 }
 
 func NewGridSnake(i int, b Battlesnake) *GridSnake {
@@ -52,7 +65,7 @@ type Grid struct {
 }
 
 func NewGrid(state *GameState) Grid {
-	v := make([][]GridSquare, state.Board.Height)
+	v := make([][]GridSquare, state.Board.Width)
 	for i := range v {
 		v[i] = make([]GridSquare, state.Board.Height)
 	}
@@ -77,11 +90,6 @@ func NewGrid(state *GameState) Grid {
 	return grid
 }
 
-func (g *Grid) Reset(state *GameState) {
-	g.Clear()
-	g.ResetSnakes(state)
-}
-
 func (g *Grid) ResetSnakes(state *GameState) {
 	g.snakes = map[int]*GridSnake{}
 	for i, srcSnake := range state.Board.Snakes {
@@ -89,14 +97,6 @@ func (g *Grid) ResetSnakes(state *GameState) {
 		if srcSnake.ID == state.You.ID {
 			g.snakes[i].isMe = true
 			g.myIndex = i
-		}
-	}
-}
-
-func (g *Grid) Clear() {
-	for x := range g.squares {
-		for y := range g.squares[x] {
-			g.squares[x][y].clear()
 		}
 	}
 }
@@ -118,10 +118,8 @@ func (g *Grid) pop() (QItem, bool) {
 	return item, false
 }
 
+// Use a flood-fill to determine the area after moving in the givin direction.
 func (g *Grid) Area(state *GameState, move string) int {
-	// super simple time
-	// for each move, find the area of connected cells
-	// for move in moves
 	myStartingCoord := newHead(state.You.Head, move)
 	if myStartingCoord.outOfBounds(state.Board.Width, state.Board.Height) {
 		return 0
@@ -131,7 +129,8 @@ func (g *Grid) Area(state *GameState, move string) int {
 		if snake.isMe {
 			continue
 		}
-		g.push(QItem{X: snake.body[0].X, Y: snake.body[0].Y, turn: 0}) // add starting coord for each other snake (you already moved once)
+		// add starting coord for each other snake (you already moved once)
+		g.push(QItem{X: snake.body[0].X, Y: snake.body[0].Y, turn: 0})
 		for {
 			// pop item
 			item, empty := g.pop()
@@ -150,13 +149,6 @@ func (g *Grid) Area(state *GameState, move string) int {
 			if g.squares[x][y].isFood {
 				snake.nom()
 			}
-
-			// need to record more info
-			// otherSnake has visited on turn x
-			// coord has food (distance)
-			// mySnake has visited on turn x
-			// if food, and orig = otherSnake, then other snake can grow
-			// each turn, the tail of each snake is no longer collidable (unless othersnake can grow=true for that turn)
 
 			// find neighbors
 			for _, n := range g.findNeighbors(state, item) {
@@ -177,6 +169,7 @@ func (g *Grid) Area(state *GameState, move string) int {
 		turn: 1, // (turn 1 since already moved once)
 	})
 	area := 0
+	lastOkTurn := 0
 	for {
 		// pop item
 		item, empty := g.pop()
@@ -195,12 +188,14 @@ func (g *Grid) Area(state *GameState, move string) int {
 			continue
 		}
 		isOk := true
-		for otherIdx := range g.snakes {
+		for otherIdx, otherSnake := range g.snakes {
 			otherTurn, visited := g.squares[x][y].visited[otherIdx]
 			if visited {
-				willDieInH2H := g.snakes[otherIdx].length() >= g.snakes[g.myIndex].length()
+				otherLen := otherSnake.otherLength(Coord{item.X, item.Y}, &state.Board.Food)
+				myLen := g.snakes[g.myIndex].myLength()
+				willDieInH2H := otherLen >= myLen
 				if otherTurn == item.turn && willDieInH2H {
-					// fmt.Println("turns are equal and will die in H2H")
+					// log.Printf("turns are equal and will die in H2H, %v Turns (us: %d, them: %d), Length (us: %d, them: %d)", item, item.turn, otherTurn, myLen, otherLen)
 					isOk = false
 				} else if otherTurn < item.turn {
 					// log.Printf("they got there first, %v us: %d, them: %d", item, item.turn, otherTurn)
@@ -208,9 +203,13 @@ func (g *Grid) Area(state *GameState, move string) int {
 				}
 			}
 		}
-		if isOk {
+		// you can't magically jump turns, each ok square must lead to the next one.
+		// (not sure if this is a perfect system, see TestGrid2)
+		if isOk && lastOkTurn >= item.turn-1 {
 			// record area
 			area += 1
+			lastOkTurn = item.turn
+			// log.Printf("area ok: %#v", item)
 		}
 
 		// mark as visited
@@ -219,16 +218,9 @@ func (g *Grid) Area(state *GameState, move string) int {
 			me, ok := g.snakes[g.myIndex]
 			if ok {
 				me.nom()
-				// fmt.Printf("I ate food and I'm %d long now\n", me.length())
+				// fmt.Printf("I ate food and I'm %d long now\n", me.myLength())
 			}
 		}
-
-		// need to record more info
-		// otherSnake has visited on turn x
-		// coord has food (distance)
-		// mySnake has visited on turn x
-		// if food, and orig = otherSnake, then other snake can grow
-		// each turn, the tail of each snake is no longer collidable (unless othersnake can grow=true for that turn)
 
 		// find neighbors
 		for _, n := range g.findNeighbors(state, item) {
@@ -268,11 +260,12 @@ func (g *Grid) findNeighbors(state *GameState, item QItem) []QItem {
 		// self and other snakes
 		breakAll := false
 		for _, gsnake := range g.snakes {
+			snakeLen := gsnake.otherLength(Coord{candidate.X, candidate.Y}, &state.Board.Food)
 			for i, bc := range gsnake.body {
 				// Subtract tails from body as turns go by
 				// (should account for eating)
-				if i > gsnake.length()-1-turn {
-					// fmt.Printf("break... because %d > %d\n", i, gsnake.length()-1-turn)
+				if i > snakeLen-1-turn {
+					// fmt.Printf("break... because %d > %d\n", i, snakeLen-1-turn)
 					break
 				}
 				if samePos(Coord{candidate.X, candidate.Y}, bc) {

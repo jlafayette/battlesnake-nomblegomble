@@ -1765,6 +1765,70 @@ func TestSpaceCutoff7(t *testing.T) {
 	}
 }
 
+// Just ate
+func TestSpaceCutoff8(t *testing.T) {
+	state := GameState{
+		Game: Game{
+			ID: "eca2463d-0fd7-43b7-aa6b-43dbb489da07",
+			Ruleset: Ruleset{
+				Name:    "standard",
+				Version: "v1.0.17",
+			},
+			Timeout: 500,
+		},
+		Turn: 50,
+		Board: Board{
+			Height: 11,
+			Width:  11,
+			Food:   []Coord{{4, 0}},
+			Snakes: []Battlesnake{
+				{
+					ID:      "gs_kpRwFYKwVjmj7JF6RTwdPHBB",
+					Name:    "nomblegomble",
+					Health:  99,
+					Head:    Coord{9, 7},
+					Body:    []Coord{{9, 7}, {9, 8}, {8, 8}, {7, 8}, {6, 8}, {6, 7}, {5, 7}, {4, 7}, {4, 6}},
+					Length:  9,
+					Latency: "22",
+					Shout:   "",
+				},
+				{
+					ID:      "gs_tC8WtyKcvjkvyQhVSB977YR9",
+					Name:    "The Very Hungry Caterpillar ≡ƒìè≡ƒìÅ≡ƒìæ≡ƒìÆ≡ƒìÄ≡ƒÉ¢",
+					Health:  95,
+					Head:    Coord{8, 6},
+					Body:    []Coord{{8, 6}, {9, 6}, {9, 5}, {9, 4}, {10, 4}, {10, 3}, {9, 3}},
+					Length:  7,
+					Latency: "40",
+					Shout:   "",
+				},
+			},
+		},
+		You: Battlesnake{
+			ID:      "gs_kpRwFYKwVjmj7JF6RTwdPHBB",
+			Name:    "nomblegomble",
+			Health:  99,
+			Head:    Coord{9, 7},
+			Body:    []Coord{{9, 7}, {9, 8}, {8, 8}, {7, 8}, {6, 8}, {6, 7}, {5, 7}, {4, 7}, {4, 6}},
+			Length:  9,
+			Latency: "22",
+			Shout:   "",
+		},
+	}
+
+	nextMove := move(state)
+
+	if nextMove.Move == "left" {
+		t.Errorf("snake moved into too small of space, %s (can be cut off)", nextMove.Move)
+	}
+	if nextMove.Move == "up" {
+		t.Errorf("snake moved into self, %s", nextMove.Move)
+	}
+	if nextMove.Move == "down" {
+		t.Errorf("snake moved into other snake's body, %s", nextMove.Move)
+	}
+}
+
 func TestAvoidBadHead2Head3(t *testing.T) {
 	state := GameState{
 		Game: Game{
