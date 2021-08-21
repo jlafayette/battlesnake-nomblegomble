@@ -211,6 +211,7 @@ func (m Moves) Choice() string {
 			foodScore = 0.0
 		}
 		score.result += foodScore
+		// log.Printf("%s food: %.2f, foodWeight: %.2f, foodScore: %.2f", score.Str, food, foodWeight, foodScore)
 
 		// log.Printf("%s scores | h2h: %.2f, area/space: %d/%.2f, food: %.2f", score.Str, h2h, score.Space, space, foodScore)
 	}

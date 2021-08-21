@@ -876,9 +876,6 @@ func TestHead2HeadBetterThanWall(t *testing.T) {
 	}
 }
 
-// seeing different results on live game from the server
-// is there different data?
-// need to log the actual data recieved on the server for comparison
 func TestSpaceAvoidTiedHead2Head1(t *testing.T) {
 	state := GameState{
 		Game: Game{
@@ -1765,7 +1762,6 @@ func TestSpaceCutoff7(t *testing.T) {
 	}
 }
 
-// Just ate
 func TestSpaceCutoff8(t *testing.T) {
 	state := GameState{
 		Game: Game{
@@ -1826,6 +1822,152 @@ func TestSpaceCutoff8(t *testing.T) {
 	}
 	if nextMove.Move == "down" {
 		t.Errorf("snake moved into other snake's body, %s", nextMove.Move)
+	}
+}
+
+func TestSpaceCutoff9(t *testing.T) {
+	state := GameState{
+		Game: Game{
+			ID: "dca928e2-57db-43b9-92c6-1e3ee092e6e0",
+			Ruleset: Ruleset{
+				Name:    "standard",
+				Version: "v1.0.20",
+			},
+			Timeout: 500,
+		},
+		Turn: 57,
+		Board: Board{
+			Height: 11,
+			Width:  11,
+			Food:   []Coord{{5, 2}},
+			Snakes: []Battlesnake{
+				{
+					ID:      "gs_DpHTVDMxKRKQ3JC7VSwwgRy8",
+					Name:    "Fairy Rust",
+					Health:  99,
+					Head:    Coord{2, 5},
+					Body:    []Coord{{2, 5}, {2, 6}, {2, 7}, {2, 8}, {2, 9}, {2, 10}, {3, 10}},
+					Length:  7,
+					Latency: "44",
+					Shout:   "",
+				},
+				{
+					ID:      "gs_hwCJPBfbgBXGYvwH3QyyWgGK",
+					Name:    "ΓÜ¢∩╕ÅΓ₧í∩╕ÅSnakeΓ¼å∩╕ÅΓÜ¢∩╕Å",
+					Health:  95,
+					Head:    Coord{5, 8},
+					Body:    []Coord{{5, 8}, {6, 8}, {6, 9}, {7, 9}, {7, 10}, {8, 10}, {8, 9}},
+					Length:  7,
+					Latency: "239",
+					Shout:   "",
+				},
+				{
+					ID:      "gs_dBr8MkRBCYPtkbrC3G6wqxvB",
+					Name:    "lars",
+					Health:  43,
+					Head:    Coord{4, 7},
+					Body:    []Coord{{4, 7}, {4, 8}, {4, 9}},
+					Length:  3,
+					Latency: "51",
+					Shout:   "",
+				},
+				{
+					ID:      "gs_qTBGjFXpFwgm6xSrv89jdpj9",
+					Name:    "nomblegomble",
+					Health:  96,
+					Head:    Coord{1, 6},
+					Body:    []Coord{{1, 6}, {0, 6}, {0, 5}, {0, 4}, {0, 3}, {1, 3}, {2, 3}, {3, 3}, {3, 2}},
+					Length:  9,
+					Latency: "23",
+					Shout:   "",
+				},
+			},
+		},
+		You: Battlesnake{
+			ID:      "gs_qTBGjFXpFwgm6xSrv89jdpj9",
+			Name:    "nomblegomble",
+			Health:  96,
+			Head:    Coord{1, 6},
+			Body:    []Coord{{1, 6}, {0, 6}, {0, 5}, {0, 4}, {0, 3}, {1, 3}, {2, 3}, {3, 3}, {3, 2}},
+			Length:  9,
+			Latency: "23",
+			Shout:   "",
+		},
+	}
+
+	nextMove := move(state)
+
+	if nextMove.Move == "down" {
+		t.Errorf("snake moved into too small of space, %s (can be cut off)", nextMove.Move)
+	}
+	if nextMove.Move == "left" {
+		t.Errorf("snake moved into self, %s", nextMove.Move)
+	}
+	if nextMove.Move == "right" {
+		t.Errorf("snake moved into other snake, %s", nextMove.Move)
+	}
+}
+
+func TestSpaceCutoff10(t *testing.T) {
+	state := GameState{
+		Game: Game{
+			ID: "099d4abb-ef21-41e3-b91b-8315e26672ee",
+			Ruleset: Ruleset{
+				Name:    "standard",
+				Version: "v1.0.20",
+			},
+			Timeout: 500,
+		},
+		Turn: 156,
+		Board: Board{
+			Height: 11,
+			Width:  11,
+			Food:   []Coord{{2, 10}},
+			Snakes: []Battlesnake{
+				{
+					ID:      "gs_qpFQRbcKWCV9vJ8fQDRfDB6B",
+					Name:    "Kuro",
+					Health:  95,
+					Head:    Coord{2, 8},
+					Body:    []Coord{{2, 8}, {3, 8}, {4, 8}, {5, 8}, {6, 8}, {7, 8}, {7, 7}, {7, 6}, {6, 6}, {5, 6}, {4, 6}, {3, 6}, {3, 7}, {2, 7}, {2, 6}, {2, 5}, {2, 4}, {1, 4}},
+					Length:  18,
+					Latency: "81",
+					Shout:   "",
+				},
+				{
+					ID:      "gs_XHxWgR7CXQQp4vTkrDy4bwCR",
+					Name:    "nomblegomble",
+					Health:  79,
+					Head:    Coord{8, 10},
+					Body:    []Coord{{8, 10}, {8, 9}, {8, 8}, {8, 7}, {8, 6}, {8, 5}, {8, 4}, {7, 4}, {6, 4}, {6, 3}, {5, 3}, {4, 3}, {4, 2}, {3, 2}, {3, 1}, {3, 0}, {2, 0}, {2, 1}, {2, 2}, {2, 3}, {3, 3}},
+					Length:  21,
+					Latency: "23",
+					Shout:   "",
+				},
+			},
+		},
+		You: Battlesnake{
+			ID:      "gs_XHxWgR7CXQQp4vTkrDy4bwCR",
+			Name:    "nomblegomble",
+			Health:  79,
+			Head:    Coord{8, 10},
+			Body:    []Coord{{8, 10}, {8, 9}, {8, 8}, {8, 7}, {8, 6}, {8, 5}, {8, 4}, {7, 4}, {6, 4}, {6, 3}, {5, 3}, {4, 3}, {4, 2}, {3, 2}, {3, 1}, {3, 0}, {2, 0}, {2, 1}, {2, 2}, {2, 3}, {3, 3}},
+			Length:  21,
+			Latency: "23",
+			Shout:   "",
+		},
+	}
+
+	nextMove := move(state)
+
+	if nextMove.Move == "left" {
+		t.Errorf("snake moved into too small of space, %s (can be cut off)", nextMove.Move)
+	}
+	if nextMove.Move == "down" {
+		t.Errorf("snake moved into self, %s", nextMove.Move)
+	}
+	if nextMove.Move == "up" {
+		t.Errorf("snake moved into wall, %s", nextMove.Move)
 	}
 }
 
