@@ -63,22 +63,31 @@ type FoodInfo struct {
 	LegacyScore float64
 }
 
+type SpaceInfo struct {
+	Area        int
+	Trapped     bool
+	TargetX     int
+	TargetY     int
+	EscapeScore float64
+	Food        int
+}
+
 type Score struct {
 	Death  bool
 	Mylen  int
-	Space  int
+	Space  SpaceInfo
 	H2h    H2H
-	food   int // food in the space
 	Food   FoodInfo
 	result float64
 	Str    string
 }
 
 type Moves struct {
-	Up    *Score
-	Down  *Score
-	Left  *Score
-	Right *Score
+	Trapped bool
+	Up      *Score
+	Down    *Score
+	Left    *Score
+	Right   *Score
 }
 
 func NewMoves(length int32) *Moves {
@@ -115,7 +124,7 @@ func (m *Moves) SafeCount() int {
 }
 
 func (m Moves) maxSpace() int {
-	return maxInt(0, maxInt(m.Up.Space, maxInt(m.Down.Space, maxInt(m.Left.Space, m.Right.Space))))
+	return maxInt(0, maxInt(m.Up.Space.Area, maxInt(m.Down.Space.Area, maxInt(m.Left.Space.Area, m.Right.Space.Area))))
 }
 
 func (m Moves) maxLegacyFood() float64 {
@@ -180,16 +189,24 @@ func (m Moves) Choice() string {
 		score.result += h2h
 
 		// Space
-		space := remap(float64(score.Space), 0.0, float64(score.Mylen), 0.0, 1.0)
+		space := remap(float64(score.Space.Area), 0.0, float64(score.Mylen), 0.0, 1.0)
 		// If you have twice your body length to work with, extra doesn't really matter
 		space = min(space, 2.0)
 		if ignoreSpace {
 			space = 0.0
 		}
 		score.result += space
-		if score.Space < score.Mylen {
+		if score.Space.Area < score.Mylen {
 			ignoreFood = true
 		}
+
+		// Escape plan
+		escapeScore := 0.0
+		if m.Trapped {
+			escapeScore = score.Space.EscapeScore
+			ignoreFood = true
+		}
+		score.result += (escapeScore * space)
 
 		// Food
 		// TODO: replace with calculation based on food in space
@@ -213,7 +230,7 @@ func (m Moves) Choice() string {
 		score.result += foodScore
 		// log.Printf("%s food: %.2f, foodWeight: %.2f, foodScore: %.2f", score.Str, food, foodWeight, foodScore)
 
-		// log.Printf("%s scores | h2h: %.2f, area/space: %d/%.2f, food: %.2f", score.Str, h2h, score.Space, space, foodScore)
+		log.Printf("%s scores | h2h: %.2f, area/space/escape: %d/%.2f/%.2f, food: %.2f", score.Str, h2h, score.Space.Area, space, escapeScore, foodScore)
 	}
 
 	// Pick move based on result value.

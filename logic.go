@@ -238,9 +238,14 @@ func gimmeSomeSpace(state *GameState, moves *score.Moves) {
 
 		// area 1 len 10  0.1
 		// area 11 len 10 1.1
-		move.Space = area
+		move.Space = score.SpaceInfo{Area: area.Space, Trapped: area.Trapped, TargetX: area.Target.X, TargetY: area.Target.Y}
 		// log.Printf("area: set %s weight to: %.2f", move, amount)
 	}
+	largestArea := 0
+	for _, move := range moves.SafeMoves() {
+		largestArea = maxInt(largestArea, move.Space.Area)
+	}
+	moves.Trapped = largestArea < len(state.You.Body)
 }
 
 // This function is called on every turn of a game. Use the provided GameState to decide
@@ -268,6 +273,9 @@ func move(state GameState) BattlesnakeMoveResponse {
 
 	// prefer larger areas (don't get boxed in)
 	gimmeSomeSpace(&state, moves)
+	if moves.Trapped {
+		Escape(&state, moves)
+	}
 
 	// seek food
 	foooood(&state, moves)

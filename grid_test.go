@@ -1,12 +1,10 @@
 package main
 
 import (
-	"fmt"
 	"testing"
 )
 
-func TestGrid(t *testing.T) {
-	fmt.Printf("starting")
+func TestGrid1(t *testing.T) {
 
 	you := Battlesnake{
 		Head: Coord{2, 0},
@@ -23,21 +21,18 @@ func TestGrid(t *testing.T) {
 		You: you,
 	}
 
-	grid := NewGrid(&state)
-	leftArea := grid.Area(&state, "left")
-	grid = NewGrid(&state)
-	rightArea := grid.Area(&state, "right")
+	leftArea := GetArea(&state, "left")
+	rightArea := GetArea(&state, "right")
 
-	if leftArea != 1 {
-		t.Errorf("expected 1, got %d", leftArea)
+	if leftArea.Space != 1 {
+		t.Errorf("expected 1, got %d", leftArea.Space)
 	}
-	if rightArea != 16 {
-		t.Errorf("expected 16, got %d", rightArea)
+	if rightArea.Space != 16 {
+		t.Errorf("expected 16, got %d", rightArea.Space)
 	}
 }
 
 func TestGrid2(t *testing.T) {
-	fmt.Println("starting TestGrid2")
 
 	state := GameState{
 		Game: Game{
@@ -84,11 +79,11 @@ func TestGrid2(t *testing.T) {
 	// doesn't work this way. That's because multiple neighbors are selected
 	// each turn, so the tail doesn't have as much time to shrink as it would
 	// in the real game.
-	if upArea != 18 {
-		t.Errorf("expected 18, got %d", upArea)
+	if upArea.Space != 18 {
+		t.Errorf("expected 18, got %d", upArea.Space)
 	}
-	if downArea != 15 {
-		t.Errorf("expected 15, got %d", downArea)
+	if downArea.Space != 15 {
+		t.Errorf("expected 15, got %d", downArea.Space)
 	}
 
 }
@@ -147,8 +142,8 @@ func TestGrid3(t *testing.T) {
 	rightArea := GetArea(&state, "right")
 
 	// Because the other snake can cut this off, should only count as 2
-	if rightArea != 2 {
-		t.Errorf("expected 2, got %d", rightArea)
+	if rightArea.Space != 2 {
+		t.Errorf("expected 2, got %d", rightArea.Space)
 	}
 
 }
@@ -218,12 +213,12 @@ func TestGrid4(t *testing.T) {
 	upArea := GetArea(&state, "up")
 
 	// Because we can beat the other snake in a H2H, this area should be fairly large
-	if downArea < 40 {
-		t.Errorf("expected 40 or more, got %d", downArea)
+	if downArea.Space < 29 {
+		t.Errorf("expected 29 or more, got %d", downArea.Space)
 	}
 
-	if upArea != 8 {
-		t.Errorf("expected 8, got %d", upArea)
+	if upArea.Space != 8 {
+		t.Errorf("expected 8, got %d", upArea.Space)
 	}
 
 }
@@ -281,7 +276,7 @@ func TestGrid5(t *testing.T) {
 	area := GetArea(&state, "left")
 
 	// Because the other snake can cut this off, should only count as 2
-	if area != 2 {
-		t.Errorf("expected 2, got %d", area)
+	if area.Space != 2 {
+		t.Errorf("expected 2, got %d", area.Space)
 	}
 }

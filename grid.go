@@ -49,9 +49,11 @@ func NewGridSnake(i int, b Battlesnake) *GridSnake {
 }
 
 type QItem struct {
-	X    int
-	Y    int
-	turn int
+	X       int
+	Y       int
+	turn    int
+	openIn  int // number of turns until this is open (for body collision squares)
+	collide bool
 }
 
 type Grid struct {
@@ -62,6 +64,12 @@ type Grid struct {
 	qlen    int
 	snakes  map[int]*GridSnake
 	squares [][]GridSquare
+}
+
+type Area struct {
+	Space   int
+	Trapped bool
+	Target  Coord
 }
 
 func NewGrid(state *GameState) Grid {
@@ -119,10 +127,10 @@ func (g *Grid) pop() (QItem, bool) {
 }
 
 // Use a flood-fill to determine the area after moving in the givin direction.
-func (g *Grid) Area(state *GameState, move string) int {
+func (g *Grid) Area(state *GameState, move string) Area {
 	myStartingCoord := newHead(state.You.Head, move)
 	if myStartingCoord.outOfBounds(state.Board.Width, state.Board.Height) {
-		return 0
+		return Area{Space: 0, Trapped: false}
 	}
 
 	for snakeIdx, snake := range g.snakes {
@@ -170,6 +178,8 @@ func (g *Grid) Area(state *GameState, move string) int {
 	})
 	area := 0
 	lastOkTurn := 0
+	escapeCoord := Coord{myStartingCoord.X, myStartingCoord.Y}
+	escapeOpenIn := 999
 	for {
 		// pop item
 		item, empty := g.pop()
@@ -226,13 +236,20 @@ func (g *Grid) Area(state *GameState, move string) int {
 		for _, n := range g.findNeighbors(state, item) {
 			// add neighbors to queue
 			_, iVisited := g.squares[n.X][n.Y].visited[g.myIndex]
-			if !iVisited {
+			if !iVisited && !n.collide {
 				g.push(n)
+			}
+			if n.collide {
+				// log.Printf("collide: %#v", n)
+				if escapeOpenIn > n.openIn {
+					escapeOpenIn = n.openIn
+					escapeCoord = Coord{n.X, n.Y}
+				}
 			}
 		}
 	}
-
-	return area
+	trapped := area < len(state.You.Body)
+	return Area{Space: area, Trapped: trapped, Target: escapeCoord}
 }
 
 func (g *Grid) findNeighbors(state *GameState, item QItem) []QItem {
@@ -240,10 +257,10 @@ func (g *Grid) findNeighbors(state *GameState, item QItem) []QItem {
 	n := []QItem{}
 	turn := item.turn + 1
 	for _, candidate := range []QItem{
-		{X: item.X - 1, Y: item.Y, turn: turn},
-		{X: item.X + 1, Y: item.Y, turn: turn},
-		{X: item.X, Y: item.Y - 1, turn: turn},
-		{X: item.X, Y: item.Y + 1, turn: turn},
+		{X: item.X - 1, Y: item.Y, turn: turn, openIn: 0},
+		{X: item.X + 1, Y: item.Y, turn: turn, openIn: 0},
+		{X: item.X, Y: item.Y - 1, turn: turn, openIn: 0},
+		{X: item.X, Y: item.Y + 1, turn: turn, openIn: 0},
 	} {
 		// walls
 		if candidate.X < 0 {
@@ -269,6 +286,8 @@ func (g *Grid) findNeighbors(state *GameState, item QItem) []QItem {
 					break
 				}
 				if samePos(Coord{candidate.X, candidate.Y}, bc) {
+					candidate.openIn = snakeLen - i
+					candidate.collide = true
 					breakAll = true
 					break
 				}
@@ -277,15 +296,15 @@ func (g *Grid) findNeighbors(state *GameState, item QItem) []QItem {
 				break
 			}
 		}
-		if breakAll {
-			continue
-		}
+		// if breakAll {
+		// 	continue
+		// }
 		n = append(n, candidate)
 	}
 	return n
 }
 
-func GetArea(state *GameState, move string) int {
+func GetArea(state *GameState, move string) Area {
 	grid := NewGrid(state)
 	return grid.Area(state, move)
 }
