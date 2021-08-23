@@ -280,6 +280,12 @@ func move(state GameState) BattlesnakeMoveResponse {
 	// seek food
 	foooood(&state, moves)
 
+	// Detect when moving to the edge of the board, this is often a bad move
+	// since it cuts the space in half and removes a possible escape route.
+	// Often it's better to turn one move before the edge, so if things go
+	// bad you can double back.
+	avoidEdges(&state, moves)
+
 	nextMove := moves.Choice()
 
 	log.Printf("%s MOVE %d: %s\n", state.Game.ID, state.Turn, nextMove)

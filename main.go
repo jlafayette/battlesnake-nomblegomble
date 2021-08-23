@@ -54,6 +54,10 @@ type Coord struct {
 	Y int `json:"y"`
 }
 
+func (c *Coord) onEdge(w, h int) bool {
+	return c.X == 0 || c.Y == 0 || c.X == w-1 || c.Y == h-1
+}
+
 // Response Structs
 
 type BattlesnakeInfoResponse struct {

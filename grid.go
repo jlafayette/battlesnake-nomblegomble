@@ -224,6 +224,8 @@ func (g *Grid) Area(state *GameState, move string) Area {
 
 		// mark as visited
 		g.squares[x][y].visited[g.myIndex] = item.turn
+
+		// track food eaten so far
 		if g.squares[x][y].isFood {
 			me, ok := g.snakes[g.myIndex]
 			if ok {

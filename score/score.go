@@ -80,6 +80,7 @@ type Score struct {
 	Food   FoodInfo
 	result float64
 	Str    string
+	ToEdge bool
 }
 
 type Moves struct {
@@ -230,7 +231,11 @@ func (m Moves) Choice() string {
 		score.result += foodScore
 		// log.Printf("%s food: %.2f, foodWeight: %.2f, foodScore: %.2f", score.Str, food, foodWeight, foodScore)
 
-		log.Printf("%s scores | h2h: %.2f, area/space/escape: %d/%.2f/%.2f, food: %.2f", score.Str, h2h, score.Space.Area, space, escapeScore, foodScore)
+		if score.ToEdge {
+			score.result -= 0.05 // small penalty to moving to the edge
+		}
+
+		log.Printf("%s scores | h2h: %.2f, area/space/escape: %d/%.2f/%.2f, food: %.2f, toEdge: %v", score.Str, h2h, score.Space.Area, space, escapeScore, foodScore, score.ToEdge)
 	}
 
 	// Pick move based on result value.
