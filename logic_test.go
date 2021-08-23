@@ -1216,6 +1216,71 @@ func TestKillerInstinctOtherTail4(t *testing.T) {
 	}
 }
 
+func TestProblemWithGridAreaAndEscape(t *testing.T) {
+	state := GameState{
+		Game: Game{
+			ID: "f266c441-92f1-4ac3-9e9b-7159696ded38",
+			Ruleset: Ruleset{
+				Name:    "standard",
+				Version: "v1.0.20",
+			},
+			Timeout: 500,
+		},
+		Turn: 303,
+		Board: Board{
+			Height: 11,
+			Width:  11,
+			Food:   []Coord{{5, 0}, {6, 1}, {10, 0}, {5, 3}, {10, 4}, {8, 9}},
+			Snakes: []Battlesnake{
+				{
+					ID:      "gs_W3B4hXPRB6CXyRmVv6xMT9mC",
+					Name:    "return of the rise of the last snake awakens",
+					Health:  83,
+					Head:    Coord{10, 5},
+					Body:    []Coord{{10, 5}, {10, 6}, {10, 7}, {10, 8}, {10, 9}, {10, 10}, {9, 10}, {9, 9}, {9, 8}, {8, 8}, {7, 8}, {7, 7}, {6, 7}, {6, 6}, {5, 6}, {5, 5}, {6, 5}, {7, 5}, {7, 4}, {6, 4}, {6, 3}, {6, 2}},
+					Length:  22,
+					Latency: "287",
+					Shout:   "",
+				},
+				{
+					ID:      "gs_9j8pkgxP8KfpTpcV3cqVhkw7",
+					Name:    "nomblegomble",
+					Health:  96,
+					Head:    Coord{6, 9},
+					Body:    []Coord{{6, 9}, {5, 9}, {4, 9}, {4, 10}, {3, 10}, {3, 9}, {2, 9}, {2, 8}, {3, 8}, {3, 7}, {3, 6}, {2, 6}, {2, 5}, {1, 5}, {1, 4}, {1, 3}, {1, 2}, {1, 1}, {1, 0}, {2, 0}, {3, 0}, {4, 0}, {4, 1}},
+					Length:  23,
+					Latency: "23",
+					Shout:   "",
+				},
+			},
+		},
+		You: Battlesnake{
+			ID:      "gs_9j8pkgxP8KfpTpcV3cqVhkw7",
+			Name:    "nomblegomble",
+			Health:  96,
+			Head:    Coord{6, 9},
+			Body:    []Coord{{6, 9}, {5, 9}, {4, 9}, {4, 10}, {3, 10}, {3, 9}, {2, 9}, {2, 8}, {3, 8}, {3, 7}, {3, 6}, {2, 6}, {2, 5}, {1, 5}, {1, 4}, {1, 3}, {1, 2}, {1, 1}, {1, 0}, {2, 0}, {3, 0}, {4, 0}, {4, 1}},
+			Length:  23,
+			Latency: "23",
+			Shout:   "",
+		},
+	}
+
+	nextMove := move(state)
+
+	t.Skip("This is unresolved, shouldn't be trapped when there is an opening with H2H")
+
+	if nextMove.Move == "up" {
+		t.Errorf("snake moved into too small of space, %s", nextMove.Move)
+	}
+	if nextMove.Move == "right" {
+		t.Errorf("snake moved into too small of space, %s", nextMove.Move)
+	}
+	if nextMove.Move == "left" {
+		t.Errorf("snake moved into self, %s", nextMove.Move)
+	}
+}
+
 func TestSpaceCornered1(t *testing.T) {
 
 	state := GameState{

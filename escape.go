@@ -69,6 +69,8 @@ func Escape(state *GameState, moves *score.Moves) {
 		head := state.You.Head
 		head2 := newHead(state.You.Head, move.Str)
 
+		// log.Printf("move: %s goal: %v", move.Str, goal)
+
 		prevDir := getEscapeDir(neck, head, goal)
 		newDir := getEscapeDir(head, head2, goal)
 
