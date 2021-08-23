@@ -1,5 +1,9 @@
 package main
 
+import (
+	"github.com/jlafayette/battlesnake-go/q"
+)
+
 type GridSquare struct {
 	x       int
 	y       int
@@ -48,20 +52,11 @@ func NewGridSnake(i int, b Battlesnake) *GridSnake {
 	return &gs
 }
 
-type QItem struct {
-	X       int
-	Y       int
-	turn    int
-	openIn  int // number of turns until this is open (for body collision squares)
-	collide bool
-}
-
 type Grid struct {
 	w       int
 	h       int
 	myIndex int
-	q       chan QItem
-	qlen    int
+	q       q.Fifo
 	snakes  map[int]*GridSnake
 	squares [][]GridSquare
 }
@@ -92,7 +87,7 @@ func NewGrid(state *GameState) Grid {
 			v[x][y].visited = make(map[int]int)
 		}
 	}
-	q := make(chan QItem, state.Board.Width*state.Board.Height)
+	q := q.NewFifo(state.Board.Width * state.Board.Height)
 	grid := Grid{w: state.Board.Width, h: state.Board.Height, q: q, squares: v}
 	grid.ResetSnakes(state)
 	return grid
@@ -109,23 +104,6 @@ func (g *Grid) ResetSnakes(state *GameState) {
 	}
 }
 
-func (g *Grid) push(item QItem) {
-	g.q <- item
-	// log.Printf("push %v", item)
-	g.qlen += 1
-}
-
-func (g *Grid) pop() (QItem, bool) {
-	if g.qlen <= 0 {
-		// log.Printf("pop empty")
-		return QItem{}, true
-	}
-	g.qlen -= 1
-	item := <-g.q
-	// log.Printf("pop %v", item)
-	return item, false
-}
-
 // Use a flood-fill to determine the area after moving in the givin direction.
 func (g *Grid) Area(state *GameState, move string) Area {
 	myStartingCoord := newHead(state.You.Head, move)
@@ -138,10 +116,10 @@ func (g *Grid) Area(state *GameState, move string) Area {
 			continue
 		}
 		// add starting coord for each other snake (you already moved once)
-		g.push(QItem{X: snake.body[0].X, Y: snake.body[0].Y, turn: 0})
+		g.q.Push(q.Item{X: snake.body[0].X, Y: snake.body[0].Y, Turn: 0})
 		for {
 			// pop item
-			item, empty := g.pop()
+			item, empty := g.q.Pop()
 			x := item.X
 			y := item.Y
 			if empty {
@@ -153,7 +131,7 @@ func (g *Grid) Area(state *GameState, move string) Area {
 			}
 
 			// mark as visited
-			g.squares[x][y].visited[snakeIdx] = item.turn
+			g.squares[x][y].visited[snakeIdx] = item.Turn
 			if g.squares[x][y].isFood {
 				snake.nom()
 			}
@@ -163,7 +141,7 @@ func (g *Grid) Area(state *GameState, move string) Area {
 				// add neighbors to queue
 				_, ok := g.squares[n.X][n.Y].visited[snakeIdx]
 				if !ok {
-					g.push(n)
+					g.q.Push(n)
 				}
 			}
 		}
@@ -171,10 +149,10 @@ func (g *Grid) Area(state *GameState, move string) Area {
 
 	// do a second pass to count up actual area for your snake
 	// add your starting coord
-	g.push(QItem{
+	g.q.Push(q.Item{
 		X:    myStartingCoord.X,
 		Y:    myStartingCoord.Y,
-		turn: 1, // (turn 1 since already moved once)
+		Turn: 1, // (turn 1 since already moved once)
 	})
 	area := 0
 	lastOkTurn := 0
@@ -182,7 +160,7 @@ func (g *Grid) Area(state *GameState, move string) Area {
 	escapeOpenIn := 999
 	for {
 		// pop item
-		item, empty := g.pop()
+		item, empty := g.q.Pop()
 		x := item.X
 		y := item.Y
 		if empty {
@@ -204,26 +182,26 @@ func (g *Grid) Area(state *GameState, move string) Area {
 				otherLen := otherSnake.otherLength(Coord{item.X, item.Y}, &state.Board.Food)
 				myLen := g.snakes[g.myIndex].myLength()
 				willDieInH2H := otherLen >= myLen
-				if otherTurn == item.turn && willDieInH2H {
+				if otherTurn == item.Turn && willDieInH2H {
 					// log.Printf("turns are equal and will die in H2H, %v Turns (us: %d, them: %d), Length (us: %d, them: %d)", item, item.turn, otherTurn, myLen, otherLen)
 					isOk = false
-				} else if otherTurn < item.turn {
-					// log.Printf("they got there first, %v us: %d, them: %d", item, item.turn, otherTurn)
+				} else if otherTurn < item.Turn {
+					// log.Printf("they got there first, {X:%d, Y:%d} us: %d, them: %d", item.X, item.Y, item.turn, otherTurn)
 					isOk = false
 				}
 			}
 		}
 		// you can't magically jump turns, each ok square must lead to the next one.
 		// (not sure if this is a perfect system, see TestGrid2)
-		if isOk && lastOkTurn >= item.turn-1 {
+		if isOk && lastOkTurn >= item.Turn-1 {
 			// record area
 			area += 1
-			lastOkTurn = item.turn
+			lastOkTurn = item.Turn
 			// log.Printf("area ok: %#v", item)
 		}
 
 		// mark as visited
-		g.squares[x][y].visited[g.myIndex] = item.turn
+		g.squares[x][y].visited[g.myIndex] = item.Turn
 
 		// track food eaten so far
 		if g.squares[x][y].isFood {
@@ -238,13 +216,13 @@ func (g *Grid) Area(state *GameState, move string) Area {
 		for _, n := range g.findNeighbors(state, item) {
 			// add neighbors to queue
 			_, iVisited := g.squares[n.X][n.Y].visited[g.myIndex]
-			if !iVisited && !n.collide {
-				g.push(n)
+			if !iVisited && !n.Collide {
+				g.q.Push(n)
 			}
-			if n.collide {
+			if n.Collide {
 				// log.Printf("collide: %#v", n)
-				if escapeOpenIn > n.openIn {
-					escapeOpenIn = n.openIn
+				if escapeOpenIn > n.OpenIn {
+					escapeOpenIn = n.OpenIn
 					escapeCoord = Coord{n.X, n.Y}
 				}
 			}
@@ -254,15 +232,15 @@ func (g *Grid) Area(state *GameState, move string) Area {
 	return Area{Space: area, Trapped: trapped, Target: escapeCoord}
 }
 
-func (g *Grid) findNeighbors(state *GameState, item QItem) []QItem {
+func (g *Grid) findNeighbors(state *GameState, item q.Item) []q.Item {
 	// fmt.Println("finding neighbors")
-	n := []QItem{}
-	turn := item.turn + 1
-	for _, candidate := range []QItem{
-		{X: item.X - 1, Y: item.Y, turn: turn, openIn: 0},
-		{X: item.X + 1, Y: item.Y, turn: turn, openIn: 0},
-		{X: item.X, Y: item.Y - 1, turn: turn, openIn: 0},
-		{X: item.X, Y: item.Y + 1, turn: turn, openIn: 0},
+	n := []q.Item{}
+	turn := item.Turn + 1
+	for _, candidate := range []q.Item{
+		{X: item.X - 1, Y: item.Y, Turn: turn, OpenIn: 0},
+		{X: item.X + 1, Y: item.Y, Turn: turn, OpenIn: 0},
+		{X: item.X, Y: item.Y - 1, Turn: turn, OpenIn: 0},
+		{X: item.X, Y: item.Y + 1, Turn: turn, OpenIn: 0},
 	} {
 		// walls
 		if candidate.X < 0 {
@@ -288,8 +266,8 @@ func (g *Grid) findNeighbors(state *GameState, item QItem) []QItem {
 					break
 				}
 				if samePos(Coord{candidate.X, candidate.Y}, bc) {
-					candidate.openIn = snakeLen - i
-					candidate.collide = true
+					candidate.OpenIn = snakeLen - i
+					candidate.Collide = true
 					breakAll = true
 					break
 				}
