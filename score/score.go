@@ -201,13 +201,16 @@ func (m Moves) Choice() string {
 			ignoreFood = true
 		}
 
+		// TODO: Fix escape... currently it kicks in when the board is wide open
+		//       seems to be faulty H2H + tail tracking that is not giving
+		//       an accurate space reading.
 		// Escape plan
-		escapeScore := 0.0
-		if m.Trapped {
-			escapeScore = score.Space.EscapeScore
-			ignoreFood = true
-		}
-		score.result += (escapeScore * space)
+		// escapeScore := 0.0
+		// if m.Trapped {
+		// 	escapeScore = score.Space.EscapeScore
+		// 	ignoreFood = true
+		// }
+		// score.result += (escapeScore * space)
 
 		// Food
 		// TODO: replace with calculation based on food in space
@@ -235,7 +238,7 @@ func (m Moves) Choice() string {
 			score.result -= 0.3 // penalty to moving to the edge
 		}
 
-		// log.Printf("%s scores | h2h: %.2f, area/space/escape: %d/%.2f/%.2f, food: %.2f, toEdge: %v", score.Str, h2h, score.Space.Area, space, escapeScore, foodScore, score.ToEdge)
+		log.Printf("%s scores | h2h: %.2f, area/space: %d/%.2f, food: %.2f, toEdge: %v", score.Str, h2h, score.Space.Area, space, foodScore, score.ToEdge)
 	}
 
 	// Pick move based on result value.

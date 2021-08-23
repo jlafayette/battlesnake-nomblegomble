@@ -1,444 +1,444 @@
 package main
 
-import "testing"
+// func TestEscape1_287(t *testing.T) {
+// 	state := GameState{
+// 		Game: Game{
+// 			ID: "9092a80c-02da-40c9-8531-25b7b4fe11ac",
+// 			Ruleset: Ruleset{
+// 				Name:    "standard",
+// 				Version: "v1.0.20",
+// 			},
+// 			Timeout: 500,
+// 		},
+// 		Turn: 287,
+// 		Board: Board{
+// 			Height: 11,
+// 			Width:  11,
+// 			Food:   []Coord{{1, 5}, {9, 1}},
+// 			Snakes: []Battlesnake{
+// 				{
+// 					ID:      "gs_8hbpfDWwhCCVYThYMjVgbPSR",
+// 					Name:    "nomblegomble",
+// 					Health:  98,
+// 					Head:    Coord{9, 0},
+// 					Body:    []Coord{{9, 0}, {10, 0}, {10, 1}, {10, 2}, {10, 3}, {10, 4}, {9, 4}, {9, 5}, {9, 6}, {8, 6}, {7, 6}, {7, 5}, {6, 5}, {5, 5}, {5, 4}, {5, 3}, {5, 2}, {5, 1}, {5, 0}, {4, 0}, {3, 0}, {2, 0}, {1, 0}, {0, 0}, {0, 1}, {1, 1}, {2, 1}, {3, 1}, {4, 1}, {4, 2}, {4, 3}, {4, 4}, {4, 5}},
+// 					Length:  33,
+// 					Latency: "21",
+// 					Shout:   "",
+// 				},
+// 				{
+// 					ID:      "gs_C7gqcRgkjJk47ywFhRTbmH34",
+// 					Name:    "Untimely Neglected Wearable",
+// 					Health:  90,
+// 					Head:    Coord{5, 8},
+// 					Body:    []Coord{{5, 8}, {6, 8}, {7, 8}, {8, 8}, {8, 9}, {9, 9}, {10, 9}, {10, 10}, {9, 10}, {8, 10}, {7, 10}, {6, 10}, {6, 9}, {5, 9}, {4, 9}, {3, 9}, {3, 8}, {3, 7}, {3, 6}, {4, 6}, {5, 6}, {6, 6}, {6, 7}, {5, 7}},
+// 					Length:  24,
+// 					Latency: "87",
+// 					Shout:   "",
+// 				},
+// 			},
+// 		},
+// 		You: Battlesnake{
+// 			ID:      "gs_8hbpfDWwhCCVYThYMjVgbPSR",
+// 			Name:    "nomblegomble",
+// 			Health:  98,
+// 			Head:    Coord{9, 0},
+// 			Body:    []Coord{{9, 0}, {10, 0}, {10, 1}, {10, 2}, {10, 3}, {10, 4}, {9, 4}, {9, 5}, {9, 6}, {8, 6}, {7, 6}, {7, 5}, {6, 5}, {5, 5}, {5, 4}, {5, 3}, {5, 2}, {5, 1}, {5, 0}, {4, 0}, {3, 0}, {2, 0}, {1, 0}, {0, 0}, {0, 1}, {1, 1}, {2, 1}, {3, 1}, {4, 1}, {4, 2}, {4, 3}, {4, 4}, {4, 5}},
+// 			Length:  33,
+// 			Latency: "21",
+// 			Shout:   "",
+// 		},
+// 	}
 
-func TestEscape1_287(t *testing.T) {
-	state := GameState{
-		Game: Game{
-			ID: "9092a80c-02da-40c9-8531-25b7b4fe11ac",
-			Ruleset: Ruleset{
-				Name:    "standard",
-				Version: "v1.0.20",
-			},
-			Timeout: 500,
-		},
-		Turn: 287,
-		Board: Board{
-			Height: 11,
-			Width:  11,
-			Food:   []Coord{{1, 5}, {9, 1}},
-			Snakes: []Battlesnake{
-				{
-					ID:      "gs_8hbpfDWwhCCVYThYMjVgbPSR",
-					Name:    "nomblegomble",
-					Health:  98,
-					Head:    Coord{9, 0},
-					Body:    []Coord{{9, 0}, {10, 0}, {10, 1}, {10, 2}, {10, 3}, {10, 4}, {9, 4}, {9, 5}, {9, 6}, {8, 6}, {7, 6}, {7, 5}, {6, 5}, {5, 5}, {5, 4}, {5, 3}, {5, 2}, {5, 1}, {5, 0}, {4, 0}, {3, 0}, {2, 0}, {1, 0}, {0, 0}, {0, 1}, {1, 1}, {2, 1}, {3, 1}, {4, 1}, {4, 2}, {4, 3}, {4, 4}, {4, 5}},
-					Length:  33,
-					Latency: "21",
-					Shout:   "",
-				},
-				{
-					ID:      "gs_C7gqcRgkjJk47ywFhRTbmH34",
-					Name:    "Untimely Neglected Wearable",
-					Health:  90,
-					Head:    Coord{5, 8},
-					Body:    []Coord{{5, 8}, {6, 8}, {7, 8}, {8, 8}, {8, 9}, {9, 9}, {10, 9}, {10, 10}, {9, 10}, {8, 10}, {7, 10}, {6, 10}, {6, 9}, {5, 9}, {4, 9}, {3, 9}, {3, 8}, {3, 7}, {3, 6}, {4, 6}, {5, 6}, {6, 6}, {6, 7}, {5, 7}},
-					Length:  24,
-					Latency: "87",
-					Shout:   "",
-				},
-			},
-		},
-		You: Battlesnake{
-			ID:      "gs_8hbpfDWwhCCVYThYMjVgbPSR",
-			Name:    "nomblegomble",
-			Health:  98,
-			Head:    Coord{9, 0},
-			Body:    []Coord{{9, 0}, {10, 0}, {10, 1}, {10, 2}, {10, 3}, {10, 4}, {9, 4}, {9, 5}, {9, 6}, {8, 6}, {7, 6}, {7, 5}, {6, 5}, {5, 5}, {5, 4}, {5, 3}, {5, 2}, {5, 1}, {5, 0}, {4, 0}, {3, 0}, {2, 0}, {1, 0}, {0, 0}, {0, 1}, {1, 1}, {2, 1}, {3, 1}, {4, 1}, {4, 2}, {4, 3}, {4, 4}, {4, 5}},
-			Length:  33,
-			Latency: "21",
-			Shout:   "",
-		},
-	}
+// 	nextMove := move(state)
 
-	nextMove := move(state)
+// 	if nextMove.Move == "down" {
+// 		t.Errorf("snake moved into wall, %s", nextMove.Move)
+// 	}
+// 	if nextMove.Move == "left" {
+// 		t.Errorf("snake is wasting space, %s", nextMove.Move)
+// 	}
+// 	if nextMove.Move == "right" {
+// 		t.Errorf("snake moved into self, %s", nextMove.Move)
+// 	}
+// }
 
-	if nextMove.Move == "down" {
-		t.Errorf("snake moved into wall, %s", nextMove.Move)
-	}
-	if nextMove.Move == "left" {
-		t.Errorf("snake is wasting space, %s", nextMove.Move)
-	}
-	if nextMove.Move == "right" {
-		t.Errorf("snake moved into self, %s", nextMove.Move)
-	}
-}
+// func TestEscape1_288(t *testing.T) {
+// 	state := GameState{
+// 		Game: Game{
+// 			ID: "9092a80c-02da-40c9-8531-25b7b4fe11ac",
+// 			Ruleset: Ruleset{
+// 				Name:    "standard",
+// 				Version: "v1.0.20",
+// 			},
+// 			Timeout: 500,
+// 		},
+// 		Turn: 288,
+// 		Board: Board{
+// 			Height: 11,
+// 			Width:  11,
+// 			Food:   []Coord{{1, 5}},
+// 			Snakes: []Battlesnake{
+// 				{
+// 					ID:      "gs_8hbpfDWwhCCVYThYMjVgbPSR",
+// 					Name:    "nomblegomble",
+// 					Health:  100,
+// 					Head:    Coord{9, 1},
+// 					Body:    []Coord{{9, 1}, {9, 0}, {10, 0}, {10, 1}, {10, 2}, {10, 3}, {10, 4}, {9, 4}, {9, 5}, {9, 6}, {8, 6}, {7, 6}, {7, 5}, {6, 5}, {5, 5}, {5, 4}, {5, 3}, {5, 2}, {5, 1}, {5, 0}, {4, 0}, {3, 0}, {2, 0}, {1, 0}, {0, 0}, {0, 1}, {1, 1}, {2, 1}, {3, 1}, {4, 1}, {4, 2}, {4, 3}, {4, 4}, {4, 4}},
+// 					Length:  34,
+// 					Latency: "21",
+// 					Shout:   "",
+// 				},
+// 				{
+// 					ID:      "gs_C7gqcRgkjJk47ywFhRTbmH34",
+// 					Name:    "Untimely Neglected Wearable",
+// 					Health:  89,
+// 					Head:    Coord{5, 7},
+// 					Body:    []Coord{{5, 7}, {5, 8}, {6, 8}, {7, 8}, {8, 8}, {8, 9}, {9, 9}, {10, 9}, {10, 10}, {9, 10}, {8, 10}, {7, 10}, {6, 10}, {6, 9}, {5, 9}, {4, 9}, {3, 9}, {3, 8}, {3, 7}, {3, 6}, {4, 6}, {5, 6}, {6, 6}, {6, 7}},
+// 					Length:  24,
+// 					Latency: "89",
+// 					Shout:   "",
+// 				},
+// 			},
+// 		},
+// 		You: Battlesnake{
+// 			ID:      "gs_8hbpfDWwhCCVYThYMjVgbPSR",
+// 			Name:    "nomblegomble",
+// 			Health:  100,
+// 			Head:    Coord{9, 1},
+// 			Body:    []Coord{{9, 1}, {9, 0}, {10, 0}, {10, 1}, {10, 2}, {10, 3}, {10, 4}, {9, 4}, {9, 5}, {9, 6}, {8, 6}, {7, 6}, {7, 5}, {6, 5}, {5, 5}, {5, 4}, {5, 3}, {5, 2}, {5, 1}, {5, 0}, {4, 0}, {3, 0}, {2, 0}, {1, 0}, {0, 0}, {0, 1}, {1, 1}, {2, 1}, {3, 1}, {4, 1}, {4, 2}, {4, 3}, {4, 4}, {4, 4}},
+// 			Length:  34,
+// 			Latency: "21",
+// 			Shout:   "",
+// 		},
+// 	}
 
-func TestEscape1_288(t *testing.T) {
-	state := GameState{
-		Game: Game{
-			ID: "9092a80c-02da-40c9-8531-25b7b4fe11ac",
-			Ruleset: Ruleset{
-				Name:    "standard",
-				Version: "v1.0.20",
-			},
-			Timeout: 500,
-		},
-		Turn: 288,
-		Board: Board{
-			Height: 11,
-			Width:  11,
-			Food:   []Coord{{1, 5}},
-			Snakes: []Battlesnake{
-				{
-					ID:      "gs_8hbpfDWwhCCVYThYMjVgbPSR",
-					Name:    "nomblegomble",
-					Health:  100,
-					Head:    Coord{9, 1},
-					Body:    []Coord{{9, 1}, {9, 0}, {10, 0}, {10, 1}, {10, 2}, {10, 3}, {10, 4}, {9, 4}, {9, 5}, {9, 6}, {8, 6}, {7, 6}, {7, 5}, {6, 5}, {5, 5}, {5, 4}, {5, 3}, {5, 2}, {5, 1}, {5, 0}, {4, 0}, {3, 0}, {2, 0}, {1, 0}, {0, 0}, {0, 1}, {1, 1}, {2, 1}, {3, 1}, {4, 1}, {4, 2}, {4, 3}, {4, 4}, {4, 4}},
-					Length:  34,
-					Latency: "21",
-					Shout:   "",
-				},
-				{
-					ID:      "gs_C7gqcRgkjJk47ywFhRTbmH34",
-					Name:    "Untimely Neglected Wearable",
-					Health:  89,
-					Head:    Coord{5, 7},
-					Body:    []Coord{{5, 7}, {5, 8}, {6, 8}, {7, 8}, {8, 8}, {8, 9}, {9, 9}, {10, 9}, {10, 10}, {9, 10}, {8, 10}, {7, 10}, {6, 10}, {6, 9}, {5, 9}, {4, 9}, {3, 9}, {3, 8}, {3, 7}, {3, 6}, {4, 6}, {5, 6}, {6, 6}, {6, 7}},
-					Length:  24,
-					Latency: "89",
-					Shout:   "",
-				},
-			},
-		},
-		You: Battlesnake{
-			ID:      "gs_8hbpfDWwhCCVYThYMjVgbPSR",
-			Name:    "nomblegomble",
-			Health:  100,
-			Head:    Coord{9, 1},
-			Body:    []Coord{{9, 1}, {9, 0}, {10, 0}, {10, 1}, {10, 2}, {10, 3}, {10, 4}, {9, 4}, {9, 5}, {9, 6}, {8, 6}, {7, 6}, {7, 5}, {6, 5}, {5, 5}, {5, 4}, {5, 3}, {5, 2}, {5, 1}, {5, 0}, {4, 0}, {3, 0}, {2, 0}, {1, 0}, {0, 0}, {0, 1}, {1, 1}, {2, 1}, {3, 1}, {4, 1}, {4, 2}, {4, 3}, {4, 4}, {4, 4}},
-			Length:  34,
-			Latency: "21",
-			Shout:   "",
-		},
-	}
+// 	nextMove := move(state)
 
-	nextMove := move(state)
+// 	if nextMove.Move == "down" {
+// 		t.Errorf("snake moved into self, %s", nextMove.Move)
+// 	}
+// 	if nextMove.Move == "left" {
+// 		t.Errorf("snake is wasting space, %s", nextMove.Move)
+// 	}
+// 	if nextMove.Move == "right" {
+// 		t.Errorf("snake moved into self, %s", nextMove.Move)
+// 	}
+// }
 
-	if nextMove.Move == "down" {
-		t.Errorf("snake moved into self, %s", nextMove.Move)
-	}
-	if nextMove.Move == "left" {
-		t.Errorf("snake is wasting space, %s", nextMove.Move)
-	}
-	if nextMove.Move == "right" {
-		t.Errorf("snake moved into self, %s", nextMove.Move)
-	}
-}
+// func TestEscape1_289(t *testing.T) {
+// 	state := GameState{
+// 		Game: Game{
+// 			ID: "9092a80c-02da-40c9-8531-25b7b4fe11ac",
+// 			Ruleset: Ruleset{
+// 				Name:    "standard",
+// 				Version: "v1.0.20",
+// 			},
+// 			Timeout: 500,
+// 		},
+// 		Turn: 289,
+// 		Board: Board{
+// 			Height: 11,
+// 			Width:  11,
+// 			Food:   []Coord{{1, 5}},
+// 			Snakes: []Battlesnake{
+// 				{
+// 					ID:      "gs_8hbpfDWwhCCVYThYMjVgbPSR",
+// 					Name:    "nomblegomble",
+// 					Health:  99,
+// 					Head:    Coord{9, 2},
+// 					Body:    []Coord{{9, 2}, {9, 1}, {9, 0}, {10, 0}, {10, 1}, {10, 2}, {10, 3}, {10, 4}, {9, 4}, {9, 5}, {9, 6}, {8, 6}, {7, 6}, {7, 5}, {6, 5}, {5, 5}, {5, 4}, {5, 3}, {5, 2}, {5, 1}, {5, 0}, {4, 0}, {3, 0}, {2, 0}, {1, 0}, {0, 0}, {0, 1}, {1, 1}, {2, 1}, {3, 1}, {4, 1}, {4, 2}, {4, 3}, {4, 4}},
+// 					Length:  34,
+// 					Latency: "21",
+// 					Shout:   "",
+// 				},
+// 				{
+// 					ID:      "gs_C7gqcRgkjJk47ywFhRTbmH34",
+// 					Name:    "Untimely Neglected Wearable",
+// 					Health:  88,
+// 					Head:    Coord{6, 7},
+// 					Body:    []Coord{{6, 7}, {5, 7}, {5, 8}, {6, 8}, {7, 8}, {8, 8}, {8, 9}, {9, 9}, {10, 9}, {10, 10}, {9, 10}, {8, 10}, {7, 10}, {6, 10}, {6, 9}, {5, 9}, {4, 9}, {3, 9}, {3, 8}, {3, 7}, {3, 6}, {4, 6}, {5, 6}, {6, 6}},
+// 					Length:  24,
+// 					Latency: "85",
+// 					Shout:   "",
+// 				},
+// 			},
+// 		},
+// 		You: Battlesnake{
+// 			ID:      "gs_8hbpfDWwhCCVYThYMjVgbPSR",
+// 			Name:    "nomblegomble",
+// 			Health:  99,
+// 			Head:    Coord{9, 2},
+// 			Body:    []Coord{{9, 2}, {9, 1}, {9, 0}, {10, 0}, {10, 1}, {10, 2}, {10, 3}, {10, 4}, {9, 4}, {9, 5}, {9, 6}, {8, 6}, {7, 6}, {7, 5}, {6, 5}, {5, 5}, {5, 4}, {5, 3}, {5, 2}, {5, 1}, {5, 0}, {4, 0}, {3, 0}, {2, 0}, {1, 0}, {0, 0}, {0, 1}, {1, 1}, {2, 1}, {3, 1}, {4, 1}, {4, 2}, {4, 3}, {4, 4}},
+// 			Length:  34,
+// 			Latency: "21",
+// 			Shout:   "",
+// 		},
+// 	}
 
-func TestEscape1_289(t *testing.T) {
-	state := GameState{
-		Game: Game{
-			ID: "9092a80c-02da-40c9-8531-25b7b4fe11ac",
-			Ruleset: Ruleset{
-				Name:    "standard",
-				Version: "v1.0.20",
-			},
-			Timeout: 500,
-		},
-		Turn: 289,
-		Board: Board{
-			Height: 11,
-			Width:  11,
-			Food:   []Coord{{1, 5}},
-			Snakes: []Battlesnake{
-				{
-					ID:      "gs_8hbpfDWwhCCVYThYMjVgbPSR",
-					Name:    "nomblegomble",
-					Health:  99,
-					Head:    Coord{9, 2},
-					Body:    []Coord{{9, 2}, {9, 1}, {9, 0}, {10, 0}, {10, 1}, {10, 2}, {10, 3}, {10, 4}, {9, 4}, {9, 5}, {9, 6}, {8, 6}, {7, 6}, {7, 5}, {6, 5}, {5, 5}, {5, 4}, {5, 3}, {5, 2}, {5, 1}, {5, 0}, {4, 0}, {3, 0}, {2, 0}, {1, 0}, {0, 0}, {0, 1}, {1, 1}, {2, 1}, {3, 1}, {4, 1}, {4, 2}, {4, 3}, {4, 4}},
-					Length:  34,
-					Latency: "21",
-					Shout:   "",
-				},
-				{
-					ID:      "gs_C7gqcRgkjJk47ywFhRTbmH34",
-					Name:    "Untimely Neglected Wearable",
-					Health:  88,
-					Head:    Coord{6, 7},
-					Body:    []Coord{{6, 7}, {5, 7}, {5, 8}, {6, 8}, {7, 8}, {8, 8}, {8, 9}, {9, 9}, {10, 9}, {10, 10}, {9, 10}, {8, 10}, {7, 10}, {6, 10}, {6, 9}, {5, 9}, {4, 9}, {3, 9}, {3, 8}, {3, 7}, {3, 6}, {4, 6}, {5, 6}, {6, 6}},
-					Length:  24,
-					Latency: "85",
-					Shout:   "",
-				},
-			},
-		},
-		You: Battlesnake{
-			ID:      "gs_8hbpfDWwhCCVYThYMjVgbPSR",
-			Name:    "nomblegomble",
-			Health:  99,
-			Head:    Coord{9, 2},
-			Body:    []Coord{{9, 2}, {9, 1}, {9, 0}, {10, 0}, {10, 1}, {10, 2}, {10, 3}, {10, 4}, {9, 4}, {9, 5}, {9, 6}, {8, 6}, {7, 6}, {7, 5}, {6, 5}, {5, 5}, {5, 4}, {5, 3}, {5, 2}, {5, 1}, {5, 0}, {4, 0}, {3, 0}, {2, 0}, {1, 0}, {0, 0}, {0, 1}, {1, 1}, {2, 1}, {3, 1}, {4, 1}, {4, 2}, {4, 3}, {4, 4}},
-			Length:  34,
-			Latency: "21",
-			Shout:   "",
-		},
-	}
+// 	nextMove := move(state)
 
-	nextMove := move(state)
+// 	if nextMove.Move == "down" {
+// 		t.Errorf("snake moved into self, %s", nextMove.Move)
+// 	}
+// 	if nextMove.Move == "left" {
+// 		t.Errorf("snake is wasting space, %s", nextMove.Move)
+// 	}
+// 	if nextMove.Move == "right" {
+// 		t.Errorf("snake moved into self, %s", nextMove.Move)
+// 	}
+// }
 
-	if nextMove.Move == "down" {
-		t.Errorf("snake moved into self, %s", nextMove.Move)
-	}
-	if nextMove.Move == "left" {
-		t.Errorf("snake is wasting space, %s", nextMove.Move)
-	}
-	if nextMove.Move == "right" {
-		t.Errorf("snake moved into self, %s", nextMove.Move)
-	}
-}
+// func TestEscape1_290(t *testing.T) {
+// 	state := GameState{
+// 		Game: Game{
+// 			ID: "9092a80c-02da-40c9-8531-25b7b4fe11ac",
+// 			Ruleset: Ruleset{
+// 				Name:    "standard",
+// 				Version: "v1.0.20",
+// 			},
+// 			Timeout: 500,
+// 		},
+// 		Turn: 290,
+// 		Board: Board{
+// 			Height: 11,
+// 			Width:  11,
+// 			Food:   []Coord{{1, 5}},
+// 			Snakes: []Battlesnake{
+// 				{
+// 					ID:      "gs_8hbpfDWwhCCVYThYMjVgbPSR",
+// 					Name:    "nomblegomble",
+// 					Health:  98,
+// 					Head:    Coord{9, 3},
+// 					Body:    []Coord{{9, 3}, {9, 2}, {9, 1}, {9, 0}, {10, 0}, {10, 1}, {10, 2}, {10, 3}, {10, 4}, {9, 4}, {9, 5}, {9, 6}, {8, 6}, {7, 6}, {7, 5}, {6, 5}, {5, 5}, {5, 4}, {5, 3}, {5, 2}, {5, 1}, {5, 0}, {4, 0}, {3, 0}, {2, 0}, {1, 0}, {0, 0}, {0, 1}, {1, 1}, {2, 1}, {3, 1}, {4, 1}, {4, 2}, {4, 3}},
+// 					Length:  34,
+// 					Latency: "21",
+// 					Shout:   "",
+// 				},
+// 				{
+// 					ID:      "gs_C7gqcRgkjJk47ywFhRTbmH34",
+// 					Name:    "Untimely Neglected Wearable",
+// 					Health:  87,
+// 					Head:    Coord{6, 6},
+// 					Body:    []Coord{{6, 6}, {6, 7}, {5, 7}, {5, 8}, {6, 8}, {7, 8}, {8, 8}, {8, 9}, {9, 9}, {10, 9}, {10, 10}, {9, 10}, {8, 10}, {7, 10}, {6, 10}, {6, 9}, {5, 9}, {4, 9}, {3, 9}, {3, 8}, {3, 7}, {3, 6}, {4, 6}, {5, 6}},
+// 					Length:  24,
+// 					Latency: "89",
+// 					Shout:   "",
+// 				},
+// 			},
+// 		},
+// 		You: Battlesnake{
+// 			ID:      "gs_8hbpfDWwhCCVYThYMjVgbPSR",
+// 			Name:    "nomblegomble",
+// 			Health:  98,
+// 			Head:    Coord{9, 3},
+// 			Body:    []Coord{{9, 3}, {9, 2}, {9, 1}, {9, 0}, {10, 0}, {10, 1}, {10, 2}, {10, 3}, {10, 4}, {9, 4}, {9, 5}, {9, 6}, {8, 6}, {7, 6}, {7, 5}, {6, 5}, {5, 5}, {5, 4}, {5, 3}, {5, 2}, {5, 1}, {5, 0}, {4, 0}, {3, 0}, {2, 0}, {1, 0}, {0, 0}, {0, 1}, {1, 1}, {2, 1}, {3, 1}, {4, 1}, {4, 2}, {4, 3}},
+// 			Length:  34,
+// 			Latency: "21",
+// 			Shout:   "",
+// 		},
+// 	}
 
-func TestEscape1_290(t *testing.T) {
-	state := GameState{
-		Game: Game{
-			ID: "9092a80c-02da-40c9-8531-25b7b4fe11ac",
-			Ruleset: Ruleset{
-				Name:    "standard",
-				Version: "v1.0.20",
-			},
-			Timeout: 500,
-		},
-		Turn: 290,
-		Board: Board{
-			Height: 11,
-			Width:  11,
-			Food:   []Coord{{1, 5}},
-			Snakes: []Battlesnake{
-				{
-					ID:      "gs_8hbpfDWwhCCVYThYMjVgbPSR",
-					Name:    "nomblegomble",
-					Health:  98,
-					Head:    Coord{9, 3},
-					Body:    []Coord{{9, 3}, {9, 2}, {9, 1}, {9, 0}, {10, 0}, {10, 1}, {10, 2}, {10, 3}, {10, 4}, {9, 4}, {9, 5}, {9, 6}, {8, 6}, {7, 6}, {7, 5}, {6, 5}, {5, 5}, {5, 4}, {5, 3}, {5, 2}, {5, 1}, {5, 0}, {4, 0}, {3, 0}, {2, 0}, {1, 0}, {0, 0}, {0, 1}, {1, 1}, {2, 1}, {3, 1}, {4, 1}, {4, 2}, {4, 3}},
-					Length:  34,
-					Latency: "21",
-					Shout:   "",
-				},
-				{
-					ID:      "gs_C7gqcRgkjJk47ywFhRTbmH34",
-					Name:    "Untimely Neglected Wearable",
-					Health:  87,
-					Head:    Coord{6, 6},
-					Body:    []Coord{{6, 6}, {6, 7}, {5, 7}, {5, 8}, {6, 8}, {7, 8}, {8, 8}, {8, 9}, {9, 9}, {10, 9}, {10, 10}, {9, 10}, {8, 10}, {7, 10}, {6, 10}, {6, 9}, {5, 9}, {4, 9}, {3, 9}, {3, 8}, {3, 7}, {3, 6}, {4, 6}, {5, 6}},
-					Length:  24,
-					Latency: "89",
-					Shout:   "",
-				},
-			},
-		},
-		You: Battlesnake{
-			ID:      "gs_8hbpfDWwhCCVYThYMjVgbPSR",
-			Name:    "nomblegomble",
-			Health:  98,
-			Head:    Coord{9, 3},
-			Body:    []Coord{{9, 3}, {9, 2}, {9, 1}, {9, 0}, {10, 0}, {10, 1}, {10, 2}, {10, 3}, {10, 4}, {9, 4}, {9, 5}, {9, 6}, {8, 6}, {7, 6}, {7, 5}, {6, 5}, {5, 5}, {5, 4}, {5, 3}, {5, 2}, {5, 1}, {5, 0}, {4, 0}, {3, 0}, {2, 0}, {1, 0}, {0, 0}, {0, 1}, {1, 1}, {2, 1}, {3, 1}, {4, 1}, {4, 2}, {4, 3}},
-			Length:  34,
-			Latency: "21",
-			Shout:   "",
-		},
-	}
+// 	nextMove := move(state)
 
-	nextMove := move(state)
+// 	if nextMove.Move == "down" {
+// 		t.Errorf("snake moved into self, %s", nextMove.Move)
+// 	}
+// 	if nextMove.Move == "right" {
+// 		t.Errorf("snake moved into self, %s", nextMove.Move)
+// 	}
+// 	if nextMove.Move == "up" {
+// 		t.Errorf("snake moved into self, %s", nextMove.Move)
+// 	}
+// }
 
-	if nextMove.Move == "down" {
-		t.Errorf("snake moved into self, %s", nextMove.Move)
-	}
-	if nextMove.Move == "right" {
-		t.Errorf("snake moved into self, %s", nextMove.Move)
-	}
-	if nextMove.Move == "up" {
-		t.Errorf("snake moved into self, %s", nextMove.Move)
-	}
-}
+// func TestEscape1_291(t *testing.T) {
+// 	state := GameState{
+// 		Game: Game{
+// 			ID: "9092a80c-02da-40c9-8531-25b7b4fe11ac",
+// 			Ruleset: Ruleset{
+// 				Name:    "standard",
+// 				Version: "v1.0.20",
+// 			},
+// 			Timeout: 500,
+// 		},
+// 		Turn: 291,
+// 		Board: Board{
+// 			Height: 11,
+// 			Width:  11,
+// 			Food:   []Coord{{1, 5}},
+// 			Snakes: []Battlesnake{
+// 				{
+// 					ID:      "gs_8hbpfDWwhCCVYThYMjVgbPSR",
+// 					Name:    "nomblegomble",
+// 					Health:  97,
+// 					Head:    Coord{8, 3},
+// 					Body:    []Coord{{8, 3}, {9, 3}, {9, 2}, {9, 1}, {9, 0}, {10, 0}, {10, 1}, {10, 2}, {10, 3}, {10, 4}, {9, 4}, {9, 5}, {9, 6}, {8, 6}, {7, 6}, {7, 5}, {6, 5}, {5, 5}, {5, 4}, {5, 3}, {5, 2}, {5, 1}, {5, 0}, {4, 0}, {3, 0}, {2, 0}, {1, 0}, {0, 0}, {0, 1}, {1, 1}, {2, 1}, {3, 1}, {4, 1}, {4, 2}},
+// 					Length:  34,
+// 					Latency: "21",
+// 					Shout:   "",
+// 				},
+// 				{
+// 					ID:      "gs_C7gqcRgkjJk47ywFhRTbmH34",
+// 					Name:    "Untimely Neglected Wearable",
+// 					Health:  86,
+// 					Head:    Coord{5, 6},
+// 					Body:    []Coord{{5, 6}, {6, 6}, {6, 7}, {5, 7}, {5, 8}, {6, 8}, {7, 8}, {8, 8}, {8, 9}, {9, 9}, {10, 9}, {10, 10}, {9, 10}, {8, 10}, {7, 10}, {6, 10}, {6, 9}, {5, 9}, {4, 9}, {3, 9}, {3, 8}, {3, 7}, {3, 6}, {4, 6}},
+// 					Length:  24,
+// 					Latency: "89",
+// 					Shout:   "",
+// 				},
+// 			},
+// 		},
+// 		You: Battlesnake{
+// 			ID:      "gs_8hbpfDWwhCCVYThYMjVgbPSR",
+// 			Name:    "nomblegomble",
+// 			Health:  97,
+// 			Head:    Coord{8, 3},
+// 			Body:    []Coord{{8, 3}, {9, 3}, {9, 2}, {9, 1}, {9, 0}, {10, 0}, {10, 1}, {10, 2}, {10, 3}, {10, 4}, {9, 4}, {9, 5}, {9, 6}, {8, 6}, {7, 6}, {7, 5}, {6, 5}, {5, 5}, {5, 4}, {5, 3}, {5, 2}, {5, 1}, {5, 0}, {4, 0}, {3, 0}, {2, 0}, {1, 0}, {0, 0}, {0, 1}, {1, 1}, {2, 1}, {3, 1}, {4, 1}, {4, 2}},
+// 			Length:  34,
+// 			Latency: "21",
+// 			Shout:   "",
+// 		},
+// 	}
 
-func TestEscape1_291(t *testing.T) {
-	state := GameState{
-		Game: Game{
-			ID: "9092a80c-02da-40c9-8531-25b7b4fe11ac",
-			Ruleset: Ruleset{
-				Name:    "standard",
-				Version: "v1.0.20",
-			},
-			Timeout: 500,
-		},
-		Turn: 291,
-		Board: Board{
-			Height: 11,
-			Width:  11,
-			Food:   []Coord{{1, 5}},
-			Snakes: []Battlesnake{
-				{
-					ID:      "gs_8hbpfDWwhCCVYThYMjVgbPSR",
-					Name:    "nomblegomble",
-					Health:  97,
-					Head:    Coord{8, 3},
-					Body:    []Coord{{8, 3}, {9, 3}, {9, 2}, {9, 1}, {9, 0}, {10, 0}, {10, 1}, {10, 2}, {10, 3}, {10, 4}, {9, 4}, {9, 5}, {9, 6}, {8, 6}, {7, 6}, {7, 5}, {6, 5}, {5, 5}, {5, 4}, {5, 3}, {5, 2}, {5, 1}, {5, 0}, {4, 0}, {3, 0}, {2, 0}, {1, 0}, {0, 0}, {0, 1}, {1, 1}, {2, 1}, {3, 1}, {4, 1}, {4, 2}},
-					Length:  34,
-					Latency: "21",
-					Shout:   "",
-				},
-				{
-					ID:      "gs_C7gqcRgkjJk47ywFhRTbmH34",
-					Name:    "Untimely Neglected Wearable",
-					Health:  86,
-					Head:    Coord{5, 6},
-					Body:    []Coord{{5, 6}, {6, 6}, {6, 7}, {5, 7}, {5, 8}, {6, 8}, {7, 8}, {8, 8}, {8, 9}, {9, 9}, {10, 9}, {10, 10}, {9, 10}, {8, 10}, {7, 10}, {6, 10}, {6, 9}, {5, 9}, {4, 9}, {3, 9}, {3, 8}, {3, 7}, {3, 6}, {4, 6}},
-					Length:  24,
-					Latency: "89",
-					Shout:   "",
-				},
-			},
-		},
-		You: Battlesnake{
-			ID:      "gs_8hbpfDWwhCCVYThYMjVgbPSR",
-			Name:    "nomblegomble",
-			Health:  97,
-			Head:    Coord{8, 3},
-			Body:    []Coord{{8, 3}, {9, 3}, {9, 2}, {9, 1}, {9, 0}, {10, 0}, {10, 1}, {10, 2}, {10, 3}, {10, 4}, {9, 4}, {9, 5}, {9, 6}, {8, 6}, {7, 6}, {7, 5}, {6, 5}, {5, 5}, {5, 4}, {5, 3}, {5, 2}, {5, 1}, {5, 0}, {4, 0}, {3, 0}, {2, 0}, {1, 0}, {0, 0}, {0, 1}, {1, 1}, {2, 1}, {3, 1}, {4, 1}, {4, 2}},
-			Length:  34,
-			Latency: "21",
-			Shout:   "",
-		},
-	}
+// 	nextMove := move(state)
 
-	nextMove := move(state)
+// 	if nextMove.Move == "left" {
+// 		t.Errorf("snake is wasting space, %s", nextMove.Move)
+// 	}
+// 	if nextMove.Move == "right" {
+// 		t.Errorf("snake moved into self, %s", nextMove.Move)
+// 	}
+// }
 
-	if nextMove.Move == "left" {
-		t.Errorf("snake is wasting space, %s", nextMove.Move)
-	}
-	if nextMove.Move == "right" {
-		t.Errorf("snake moved into self, %s", nextMove.Move)
-	}
-}
+// func TestEscape1_292(t *testing.T) {
+// 	state := GameState{
+// 		Game: Game{
+// 			ID: "9092a80c-02da-40c9-8531-25b7b4fe11ac",
+// 			Ruleset: Ruleset{
+// 				Name:    "standard",
+// 				Version: "v1.0.20",
+// 			},
+// 			Timeout: 500,
+// 		},
+// 		Turn: 292,
+// 		Board: Board{
+// 			Height: 11,
+// 			Width:  11,
+// 			Food:   []Coord{{1, 5}},
+// 			Snakes: []Battlesnake{
+// 				{
+// 					ID:      "gs_8hbpfDWwhCCVYThYMjVgbPSR",
+// 					Name:    "nomblegomble",
+// 					Health:  96,
+// 					Head:    Coord{8, 4},
+// 					Body:    []Coord{{8, 4}, {8, 3}, {9, 3}, {9, 2}, {9, 1}, {9, 0}, {10, 0}, {10, 1}, {10, 2}, {10, 3}, {10, 4}, {9, 4}, {9, 5}, {9, 6}, {8, 6}, {7, 6}, {7, 5}, {6, 5}, {5, 5}, {5, 4}, {5, 3}, {5, 2}, {5, 1}, {5, 0}, {4, 0}, {3, 0}, {2, 0}, {1, 0}, {0, 0}, {0, 1}, {1, 1}, {2, 1}, {3, 1}, {4, 1}},
+// 					Length:  34,
+// 					Latency: "21",
+// 					Shout:   "",
+// 				},
+// 				{
+// 					ID:      "gs_C7gqcRgkjJk47ywFhRTbmH34",
+// 					Name:    "Untimely Neglected Wearable",
+// 					Health:  85,
+// 					Head:    Coord{4, 6},
+// 					Body:    []Coord{{4, 6}, {5, 6}, {6, 6}, {6, 7}, {5, 7}, {5, 8}, {6, 8}, {7, 8}, {8, 8}, {8, 9}, {9, 9}, {10, 9}, {10, 10}, {9, 10}, {8, 10}, {7, 10}, {6, 10}, {6, 9}, {5, 9}, {4, 9}, {3, 9}, {3, 8}, {3, 7}, {3, 6}},
+// 					Length:  24,
+// 					Latency: "83",
+// 					Shout:   "",
+// 				},
+// 			},
+// 		},
+// 		You: Battlesnake{
+// 			ID:      "gs_8hbpfDWwhCCVYThYMjVgbPSR",
+// 			Name:    "nomblegomble",
+// 			Health:  96,
+// 			Head:    Coord{8, 4},
+// 			Body:    []Coord{{8, 4}, {8, 3}, {9, 3}, {9, 2}, {9, 1}, {9, 0}, {10, 0}, {10, 1}, {10, 2}, {10, 3}, {10, 4}, {9, 4}, {9, 5}, {9, 6}, {8, 6}, {7, 6}, {7, 5}, {6, 5}, {5, 5}, {5, 4}, {5, 3}, {5, 2}, {5, 1}, {5, 0}, {4, 0}, {3, 0}, {2, 0}, {1, 0}, {0, 0}, {0, 1}, {1, 1}, {2, 1}, {3, 1}, {4, 1}},
+// 			Length:  34,
+// 			Latency: "21",
+// 			Shout:   "",
+// 		},
+// 	}
 
-func TestEscape1_292(t *testing.T) {
-	state := GameState{
-		Game: Game{
-			ID: "9092a80c-02da-40c9-8531-25b7b4fe11ac",
-			Ruleset: Ruleset{
-				Name:    "standard",
-				Version: "v1.0.20",
-			},
-			Timeout: 500,
-		},
-		Turn: 292,
-		Board: Board{
-			Height: 11,
-			Width:  11,
-			Food:   []Coord{{1, 5}},
-			Snakes: []Battlesnake{
-				{
-					ID:      "gs_8hbpfDWwhCCVYThYMjVgbPSR",
-					Name:    "nomblegomble",
-					Health:  96,
-					Head:    Coord{8, 4},
-					Body:    []Coord{{8, 4}, {8, 3}, {9, 3}, {9, 2}, {9, 1}, {9, 0}, {10, 0}, {10, 1}, {10, 2}, {10, 3}, {10, 4}, {9, 4}, {9, 5}, {9, 6}, {8, 6}, {7, 6}, {7, 5}, {6, 5}, {5, 5}, {5, 4}, {5, 3}, {5, 2}, {5, 1}, {5, 0}, {4, 0}, {3, 0}, {2, 0}, {1, 0}, {0, 0}, {0, 1}, {1, 1}, {2, 1}, {3, 1}, {4, 1}},
-					Length:  34,
-					Latency: "21",
-					Shout:   "",
-				},
-				{
-					ID:      "gs_C7gqcRgkjJk47ywFhRTbmH34",
-					Name:    "Untimely Neglected Wearable",
-					Health:  85,
-					Head:    Coord{4, 6},
-					Body:    []Coord{{4, 6}, {5, 6}, {6, 6}, {6, 7}, {5, 7}, {5, 8}, {6, 8}, {7, 8}, {8, 8}, {8, 9}, {9, 9}, {10, 9}, {10, 10}, {9, 10}, {8, 10}, {7, 10}, {6, 10}, {6, 9}, {5, 9}, {4, 9}, {3, 9}, {3, 8}, {3, 7}, {3, 6}},
-					Length:  24,
-					Latency: "83",
-					Shout:   "",
-				},
-			},
-		},
-		You: Battlesnake{
-			ID:      "gs_8hbpfDWwhCCVYThYMjVgbPSR",
-			Name:    "nomblegomble",
-			Health:  96,
-			Head:    Coord{8, 4},
-			Body:    []Coord{{8, 4}, {8, 3}, {9, 3}, {9, 2}, {9, 1}, {9, 0}, {10, 0}, {10, 1}, {10, 2}, {10, 3}, {10, 4}, {9, 4}, {9, 5}, {9, 6}, {8, 6}, {7, 6}, {7, 5}, {6, 5}, {5, 5}, {5, 4}, {5, 3}, {5, 2}, {5, 1}, {5, 0}, {4, 0}, {3, 0}, {2, 0}, {1, 0}, {0, 0}, {0, 1}, {1, 1}, {2, 1}, {3, 1}, {4, 1}},
-			Length:  34,
-			Latency: "21",
-			Shout:   "",
-		},
-	}
+// 	nextMove := move(state)
 
-	nextMove := move(state)
+// 	if nextMove.Move == "up" {
+// 		t.Errorf("snake moved into too small of space, %s (no escape)", nextMove.Move)
+// 	}
+// 	if nextMove.Move == "down" {
+// 		t.Errorf("snake moved into self, %s", nextMove.Move)
+// 	}
+// 	if nextMove.Move == "right" {
+// 		t.Errorf("snake moved into self, %s", nextMove.Move)
+// 	}
+// }
 
-	if nextMove.Move == "up" {
-		t.Errorf("snake moved into too small of space, %s (no escape)", nextMove.Move)
-	}
-	if nextMove.Move == "down" {
-		t.Errorf("snake moved into self, %s", nextMove.Move)
-	}
-	if nextMove.Move == "right" {
-		t.Errorf("snake moved into self, %s", nextMove.Move)
-	}
-}
+// func TestEscape1_293(t *testing.T) {
+// 	state := GameState{
+// 		Game: Game{
+// 			ID: "9092a80c-02da-40c9-8531-25b7b4fe11ac",
+// 			Ruleset: Ruleset{
+// 				Name:    "standard",
+// 				Version: "v1.0.20",
+// 			},
+// 			Timeout: 500,
+// 		},
+// 		Turn: 293,
+// 		Board: Board{
+// 			Height: 11,
+// 			Width:  11,
+// 			Food:   []Coord{{1, 5}, {1, 3}},
+// 			Snakes: []Battlesnake{
+// 				{
+// 					ID:      "gs_8hbpfDWwhCCVYThYMjVgbPSR",
+// 					Name:    "nomblegomble",
+// 					Health:  95,
+// 					Head:    Coord{7, 4},
+// 					Body:    []Coord{{7, 4}, {8, 4}, {8, 3}, {9, 3}, {9, 2}, {9, 1}, {9, 0}, {10, 0}, {10, 1}, {10, 2}, {10, 3}, {10, 4}, {9, 4}, {9, 5}, {9, 6}, {8, 6}, {7, 6}, {7, 5}, {6, 5}, {5, 5}, {5, 4}, {5, 3}, {5, 2}, {5, 1}, {5, 0}, {4, 0}, {3, 0}, {2, 0}, {1, 0}, {0, 0}, {0, 1}, {1, 1}, {2, 1}, {3, 1}},
+// 					Length:  34,
+// 					Latency: "22",
+// 					Shout:   "",
+// 				},
+// 				{
+// 					ID:      "gs_C7gqcRgkjJk47ywFhRTbmH34",
+// 					Name:    "Untimely Neglected Wearable",
+// 					Health:  84,
+// 					Head:    Coord{3, 6},
+// 					Body:    []Coord{{3, 6}, {4, 6}, {5, 6}, {6, 6}, {6, 7}, {5, 7}, {5, 8}, {6, 8}, {7, 8}, {8, 8}, {8, 9}, {9, 9}, {10, 9}, {10, 10}, {9, 10}, {8, 10}, {7, 10}, {6, 10}, {6, 9}, {5, 9}, {4, 9}, {3, 9}, {3, 8}, {3, 7}},
+// 					Length:  24,
+// 					Latency: "99",
+// 					Shout:   "",
+// 				},
+// 			},
+// 		},
+// 		You: Battlesnake{
+// 			ID:      "gs_8hbpfDWwhCCVYThYMjVgbPSR",
+// 			Name:    "nomblegomble",
+// 			Health:  95,
+// 			Head:    Coord{7, 4},
+// 			Body:    []Coord{{7, 4}, {8, 4}, {8, 3}, {9, 3}, {9, 2}, {9, 1}, {9, 0}, {10, 0}, {10, 1}, {10, 2}, {10, 3}, {10, 4}, {9, 4}, {9, 5}, {9, 6}, {8, 6}, {7, 6}, {7, 5}, {6, 5}, {5, 5}, {5, 4}, {5, 3}, {5, 2}, {5, 1}, {5, 0}, {4, 0}, {3, 0}, {2, 0}, {1, 0}, {0, 0}, {0, 1}, {1, 1}, {2, 1}, {3, 1}},
+// 			Length:  34,
+// 			Latency: "22",
+// 			Shout:   "",
+// 		},
+// 	}
 
-func TestEscape1_293(t *testing.T) {
-	state := GameState{
-		Game: Game{
-			ID: "9092a80c-02da-40c9-8531-25b7b4fe11ac",
-			Ruleset: Ruleset{
-				Name:    "standard",
-				Version: "v1.0.20",
-			},
-			Timeout: 500,
-		},
-		Turn: 293,
-		Board: Board{
-			Height: 11,
-			Width:  11,
-			Food:   []Coord{{1, 5}, {1, 3}},
-			Snakes: []Battlesnake{
-				{
-					ID:      "gs_8hbpfDWwhCCVYThYMjVgbPSR",
-					Name:    "nomblegomble",
-					Health:  95,
-					Head:    Coord{7, 4},
-					Body:    []Coord{{7, 4}, {8, 4}, {8, 3}, {9, 3}, {9, 2}, {9, 1}, {9, 0}, {10, 0}, {10, 1}, {10, 2}, {10, 3}, {10, 4}, {9, 4}, {9, 5}, {9, 6}, {8, 6}, {7, 6}, {7, 5}, {6, 5}, {5, 5}, {5, 4}, {5, 3}, {5, 2}, {5, 1}, {5, 0}, {4, 0}, {3, 0}, {2, 0}, {1, 0}, {0, 0}, {0, 1}, {1, 1}, {2, 1}, {3, 1}},
-					Length:  34,
-					Latency: "22",
-					Shout:   "",
-				},
-				{
-					ID:      "gs_C7gqcRgkjJk47ywFhRTbmH34",
-					Name:    "Untimely Neglected Wearable",
-					Health:  84,
-					Head:    Coord{3, 6},
-					Body:    []Coord{{3, 6}, {4, 6}, {5, 6}, {6, 6}, {6, 7}, {5, 7}, {5, 8}, {6, 8}, {7, 8}, {8, 8}, {8, 9}, {9, 9}, {10, 9}, {10, 10}, {9, 10}, {8, 10}, {7, 10}, {6, 10}, {6, 9}, {5, 9}, {4, 9}, {3, 9}, {3, 8}, {3, 7}},
-					Length:  24,
-					Latency: "99",
-					Shout:   "",
-				},
-			},
-		},
-		You: Battlesnake{
-			ID:      "gs_8hbpfDWwhCCVYThYMjVgbPSR",
-			Name:    "nomblegomble",
-			Health:  95,
-			Head:    Coord{7, 4},
-			Body:    []Coord{{7, 4}, {8, 4}, {8, 3}, {9, 3}, {9, 2}, {9, 1}, {9, 0}, {10, 0}, {10, 1}, {10, 2}, {10, 3}, {10, 4}, {9, 4}, {9, 5}, {9, 6}, {8, 6}, {7, 6}, {7, 5}, {6, 5}, {5, 5}, {5, 4}, {5, 3}, {5, 2}, {5, 1}, {5, 0}, {4, 0}, {3, 0}, {2, 0}, {1, 0}, {0, 0}, {0, 1}, {1, 1}, {2, 1}, {3, 1}},
-			Length:  34,
-			Latency: "22",
-			Shout:   "",
-		},
-	}
+// 	nextMove := move(state)
 
-	nextMove := move(state)
+// 	if nextMove.Move == "down" {
+// 		t.Errorf("snake is wasting space, %s", nextMove.Move)
+// 	}
+// 	if nextMove.Move == "up" {
+// 		t.Errorf("snake moved into self, %s", nextMove.Move)
+// 	}
+// 	if nextMove.Move == "right" {
+// 		t.Errorf("snake moved into self, %s", nextMove.Move)
+// 	}
+// }
 
-	if nextMove.Move == "down" {
-		t.Errorf("snake is wasting space, %s", nextMove.Move)
-	}
-	if nextMove.Move == "up" {
-		t.Errorf("snake moved into self, %s", nextMove.Move)
-	}
-	if nextMove.Move == "right" {
-		t.Errorf("snake moved into self, %s", nextMove.Move)
-	}
-}
+// 'correct' moves are not set after this point
 
 // func TestEscape1_294(t *testing.T) {
 // 	state := GameState{

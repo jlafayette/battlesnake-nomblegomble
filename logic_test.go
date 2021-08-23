@@ -2036,6 +2036,69 @@ func TestSpaceCutoff10(t *testing.T) {
 	}
 }
 
+func TestSpaceCutoff11(t *testing.T) {
+	state := GameState{
+		Game: Game{
+			ID: "f33135ff-e07b-4a81-9a1b-2397ead3c8c9",
+			Ruleset: Ruleset{
+				Name:    "standard",
+				Version: "v1.0.20",
+			},
+			Timeout: 500,
+		},
+		Turn: 229,
+		Board: Board{
+			Height: 11,
+			Width:  11,
+			Food:   []Coord{{0, 10}, {3, 10}},
+			Snakes: []Battlesnake{
+				{
+					ID:      "gs_pKTqbxbGQYBtdd8ytQGBKmX7",
+					Name:    "Try not to die!",
+					Health:  97,
+					Head:    Coord{4, 9},
+					Body:    []Coord{{4, 9}, {4, 8}, {4, 7}, {4, 6}, {5, 6}, {5, 5}, {4, 5}, {3, 5}, {2, 5}, {2, 6}, {3, 6}, {3, 7}, {2, 7}},
+					Length:  13,
+					Latency: "356",
+					Shout:   "",
+				},
+				{
+					ID:      "gs_r9M4G8DS4Sj6w8pXtmBhHdcQ",
+					Name:    "nomblegomble",
+					Health:  98,
+					Head:    Coord{0, 1},
+					Body:    []Coord{{0, 1}, {1, 1}, {1, 2}, {2, 2}, {3, 2}, {4, 2}, {5, 2}, {6, 2}, {7, 2}, {7, 1}, {8, 1}, {9, 1}, {9, 2}, {9, 3}, {10, 3}, {10, 4}, {10, 5}, {10, 6}, {10, 7}, {10, 8}, {10, 9}, {10, 10}, {9, 10}, {8, 10}, {7, 10}, {7, 9}, {7, 8}, {6, 8}, {5, 8}, {5, 7}, {6, 7}, {7, 7}, {8, 7}},
+					Length:  33,
+					Latency: "22",
+					Shout:   "",
+				},
+			},
+		},
+		You: Battlesnake{
+			ID:      "gs_r9M4G8DS4Sj6w8pXtmBhHdcQ",
+			Name:    "nomblegomble",
+			Health:  98,
+			Head:    Coord{0, 1},
+			Body:    []Coord{{0, 1}, {1, 1}, {1, 2}, {2, 2}, {3, 2}, {4, 2}, {5, 2}, {6, 2}, {7, 2}, {7, 1}, {8, 1}, {9, 1}, {9, 2}, {9, 3}, {10, 3}, {10, 4}, {10, 5}, {10, 6}, {10, 7}, {10, 8}, {10, 9}, {10, 10}, {9, 10}, {8, 10}, {7, 10}, {7, 9}, {7, 8}, {6, 8}, {5, 8}, {5, 7}, {6, 7}, {7, 7}, {8, 7}},
+			Length:  33,
+			Latency: "22",
+			Shout:   "",
+		},
+	}
+
+	nextMove := move(state)
+
+	if nextMove.Move == "down" {
+		t.Errorf("snake moved into too small of space, %s (no escape)", nextMove.Move)
+	}
+	if nextMove.Move == "left" {
+		t.Errorf("snake moved into wall, %s", nextMove.Move)
+	}
+	if nextMove.Move == "right" {
+		t.Errorf("snake moved into self, %s", nextMove.Move)
+	}
+}
+
 func TestAvoidBadHead2Head3(t *testing.T) {
 	state := GameState{
 		Game: Game{
@@ -2159,7 +2222,7 @@ func TestSpaceOkToTailChase1(t *testing.T) {
 	}
 }
 
-func Test__NAME__(t *testing.T) {
+func TestAvoidEdge1(t *testing.T) {
 	state := GameState{
 		Game: Game{
 			ID: "0ba77727-c282-4f4c-9938-71e50d884002",
