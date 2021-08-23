@@ -6,8 +6,13 @@
 
 ## TODO List
 
-* Pass value reference if not changing the struct (like state)
-* Pass pointer reference if modifying
+* Figure out how to switch on space-filling/escape properly
+* In space calculation, try to account for other snake not being able to block everything. It must
+  make a desicion at some point, so if the h2h squares are too far apart, it can't cover the whole
+  border.
+* Add debug view of grid spaces
+* Add more info to space report (food, number of tails, heads), see if this can help the scoring
+* Prefer moves that take away space from other snakes (esp in 1v1)
 
 ## Running Tests
 

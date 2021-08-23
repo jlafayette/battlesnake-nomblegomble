@@ -148,6 +148,7 @@ func (m Moves) Choice() string {
 	// This is useful to try and avoid food in this case.
 	h2hDeathCount := m.h2hDeathCount()
 	// log.Printf("h2hDeathCount: %d", h2hDeathCount)
+	maxSpace := m.maxSpace()
 
 	for _, score := range m.Iter() {
 		// Death
@@ -234,11 +235,16 @@ func (m Moves) Choice() string {
 		score.result += foodScore
 		// log.Printf("%s food: %.2f, foodWeight: %.2f, foodScore: %.2f", score.Str, food, foodWeight, foodScore)
 
+		// penalize moving to the edge
+		edgePenalty := 0.0
 		if score.ToEdge {
-			score.result -= 0.3 // penalty to moving to the edge
+			// make it relative to max space, so max space gets no penalty.
+			x := 1.0 - remap(float64(score.Space.Area), 0.0, float64(maxSpace), 0.0, 1.0)
+			edgePenalty = (x * 0.3) + 0.05
+			score.result -= edgePenalty
 		}
 
-		log.Printf("%s scores | h2h: %.2f, area/space: %d/%.2f, food: %.2f, toEdge: %v", score.Str, h2h, score.Space.Area, space, foodScore, score.ToEdge)
+		log.Printf("%s scores | h2h: %.2f, area/space: %d/%.2f, food: %.2f, edgePenalty: %.2f", score.Str, h2h, score.Space.Area, space, foodScore, edgePenalty)
 	}
 
 	// Pick move based on result value.
