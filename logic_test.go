@@ -2159,6 +2159,66 @@ func TestSpaceOkToTailChase1(t *testing.T) {
 	}
 }
 
+func Test__NAME__(t *testing.T) {
+	state := GameState{
+		Game: Game{
+			ID: "0ba77727-c282-4f4c-9938-71e50d884002",
+			Ruleset: Ruleset{
+				Name:    "standard",
+				Version: "v1.0.17",
+			},
+			Timeout: 500,
+		},
+		Turn: 203,
+		Board: Board{
+			Height: 11,
+			Width:  11,
+			Food:   []Coord{{10, 1}},
+			Snakes: []Battlesnake{
+				{
+					ID:      "gs_7Wxmq93bWkSKCyjB6XFq6J6T",
+					Name:    "hhhotdaysssnake",
+					Health:  95,
+					Head:    Coord{7, 6},
+					Body:    []Coord{{7, 6}, {8, 6}, {9, 6}, {10, 6}, {10, 5}, {10, 4}, {10, 3}, {9, 3}, {8, 3}, {7, 3}, {7, 4}, {8, 4}, {9, 4}},
+					Length:  13,
+					Latency: "77",
+					Shout:   "Do it",
+				},
+				{
+					ID:      "gs_cBcpfgvbFGbMxmDYSVh4CthC",
+					Name:    "nomblegomble",
+					Health:  96,
+					Head:    Coord{6, 1},
+					Body:    []Coord{{6, 1}, {6, 2}, {6, 3}, {6, 4}, {5, 4}, {5, 3}, {5, 2}, {4, 2}, {3, 2}, {2, 2}, {1, 2}, {0, 2}, {0, 3}, {0, 4}, {0, 5}, {0, 6}, {0, 7}, {0, 8}, {1, 8}, {2, 8}, {3, 8}, {4, 8}, {4, 9}, {5, 9}, {6, 9}, {6, 8}, {5, 8}},
+					Length:  27,
+					Latency: "22",
+					Shout:   "",
+				},
+			},
+		},
+		You: Battlesnake{
+			ID:      "gs_cBcpfgvbFGbMxmDYSVh4CthC",
+			Name:    "nomblegomble",
+			Health:  96,
+			Head:    Coord{6, 1},
+			Body:    []Coord{{6, 1}, {6, 2}, {6, 3}, {6, 4}, {5, 4}, {5, 3}, {5, 2}, {4, 2}, {3, 2}, {2, 2}, {1, 2}, {0, 2}, {0, 3}, {0, 4}, {0, 5}, {0, 6}, {0, 7}, {0, 8}, {1, 8}, {2, 8}, {3, 8}, {4, 8}, {4, 9}, {5, 9}, {6, 9}, {6, 8}, {5, 8}},
+			Length:  27,
+			Latency: "22",
+			Shout:   "",
+		},
+	}
+
+	nextMove := move(state)
+
+	if nextMove.Move == "down" {
+		t.Errorf("snake moved to edge, %s (cuts space in half)", nextMove.Move)
+	}
+	if nextMove.Move == "up" {
+		t.Errorf("snake moved into self, %s", nextMove.Move)
+	}
+}
+
 func TestFoodStart0(t *testing.T) {
 	state := GameState{
 		Game: Game{
