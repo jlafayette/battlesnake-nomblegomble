@@ -6,6 +6,7 @@ import (
 	"log"
 
 	"github.com/jlafayette/battlesnake-go/score"
+	"github.com/jlafayette/battlesnake-go/t"
 )
 
 // This function is called when you register your Battlesnake on play.battlesnake.com
@@ -13,9 +14,9 @@ import (
 // It controls your Battlesnake appearance and author permissions.
 // For customization options, see https://docs.battlesnake.com/references/personalization
 // TIP: If you open your Battlesnake URL in browser you should see this data.
-func info() BattlesnakeInfoResponse {
+func info() t.BattlesnakeInfoResponse {
 	log.Println("INFO")
-	return BattlesnakeInfoResponse{
+	return t.BattlesnakeInfoResponse{
 		APIVersion: "1",
 		Author:     "jlafayette",
 		Color:      "#6ad7e5",
@@ -27,49 +28,20 @@ func info() BattlesnakeInfoResponse {
 // This function is called everytime your Battlesnake is entered into a game.
 // The provided GameState contains information about the game that's about to be played.
 // It's purely for informational purposes, you don't have to make any decisions here.
-func start(state GameState) {
+func start(state t.GameState) {
 	log.Printf("%s START\n", state.Game.ID)
 }
 
 // This function is called when a game your Battlesnake was in has ended.
 // It's purely for informational purposes, you don't have to make any decisions here.
-func end(state GameState) {
+func end(state t.GameState) {
 	log.Printf("%s END\n\n", state.Game.ID)
 }
 
-func newHead(head Coord, move string) Coord {
-	switch move {
-	case "up":
-		return Coord{head.X, head.Y + 1}
-	case "down":
-		return Coord{head.X, head.Y - 1}
-	case "left":
-		return Coord{head.X - 1, head.Y}
-	case "right":
-		return Coord{head.X + 1, head.Y}
-	}
-	panic("invalid move")
-	// return Coord{head.X, head.Y} // invalid move - shouldn't happen
-}
-
-func (c Coord) outOfBounds(width, height int) bool {
-	if c.X < 0 {
-		return true
-	} else if c.X > width-1 {
-		return true
-	}
-	if c.Y < 0 {
-		return true
-	} else if c.Y > height-1 {
-		return true
-	}
-	return false
-}
-
 // Don't let your Battlesnake collide with itself (tail chasing ok though)
-func avoidSelf(state *GameState, moves *score.Moves) {
+func avoidSelf(state *t.GameState, moves *score.Moves) {
 	for _, move := range moves.Iter() {
-		nextHeadPos := newHead(state.You.Head, move.Str)
+		nextHeadPos := state.You.Head.Moved(move.Str)
 		for i, coord := range state.You.Body {
 
 			// it's ok to tail chase, but not just after eating
@@ -78,7 +50,7 @@ func avoidSelf(state *GameState, moves *score.Moves) {
 				continue
 			}
 
-			if samePos(nextHeadPos, coord) {
+			if nextHeadPos.SamePos(coord) {
 				move.Death = true
 				break
 			}
@@ -87,7 +59,7 @@ func avoidSelf(state *GameState, moves *score.Moves) {
 }
 
 // Don't hit walls.
-func avoidWalls(state *GameState, head Coord, moves *score.Moves) {
+func avoidWalls(state *t.GameState, head t.Coord, moves *score.Moves) {
 	if head.X == 0 {
 		moves.Left.Death = true
 	} else if head.X == state.Board.Width-1 {
@@ -101,9 +73,9 @@ func avoidWalls(state *GameState, head Coord, moves *score.Moves) {
 }
 
 // Avoid moves that collide with others snakes.
-func avoidOthers(state *GameState, moves *score.Moves) {
+func avoidOthers(state *t.GameState, moves *score.Moves) {
 	for _, move := range moves.SafeMoves() {
-		nextHeadPos := newHead(state.You.Head, move.Str)
+		nextHeadPos := state.You.Head.Moved(move.Str)
 		for _, other := range state.Board.Snakes {
 			// if state.You.ID == other.ID {
 			// 	continue
@@ -115,7 +87,7 @@ func avoidOthers(state *GameState, moves *score.Moves) {
 					continue
 				}
 
-				if samePos(nextHeadPos, coord) {
+				if nextHeadPos.SamePos(coord) {
 					move.Death = true
 					break
 				}
@@ -125,12 +97,12 @@ func avoidOthers(state *GameState, moves *score.Moves) {
 }
 
 // Score moves based on exciting head2head possibilities
-func h2h(state *GameState, moves *score.Moves) {
+func h2h(state *t.GameState, moves *score.Moves) {
 
 	// Avoid head to head
 	allMoves := []string{"up", "down", "left", "right"}
 	for _, move := range moves.SafeMoves() {
-		nextHeadPos := newHead(state.You.Head, move.Str)
+		nextHeadPos := state.You.Head.Moved(move.Str)
 		for _, other := range state.Board.Snakes {
 			if state.You.ID == other.ID {
 				continue
@@ -144,11 +116,11 @@ func h2h(state *GameState, moves *score.Moves) {
 
 			// avoid head to head
 			for _, otherMove := range allMoves {
-				otherHeadPos := newHead(other.Head, otherMove)
-				if samePos(nextHeadPos, otherHeadPos) {
+				otherHeadPos := other.Head.Moved(otherMove)
+				if nextHeadPos.SamePos(otherHeadPos) {
 					// Check for food on this square
 					for _, f := range state.Board.Food {
-						if samePos(nextHeadPos, f) {
+						if nextHeadPos.SamePos(f) {
 							move.H2h.IsFood = true
 						}
 					}
@@ -188,17 +160,17 @@ func h2h(state *GameState, moves *score.Moves) {
 }
 
 // Find food.
-func foooood(state *GameState, moves *score.Moves) {
+func foooood(state *t.GameState, moves *score.Moves) {
 	for _, move := range moves.SafeMoves() {
-		pos := newHead(state.You.Head, move.Str)
+		pos := state.You.Head.Moved(move.Str)
 		for _, food := range state.Board.Food {
-			if samePos(pos, food) {
+			if pos.SamePos(food) {
 				move.Food.LegacyScore += 1.0
 				// log.Printf("food: increased %s weight by: %f", move, 1.0)
 				break
 			}
-			d1 := distance(state.You.Head, food)
-			d2 := distance(pos, food)
+			d1 := state.You.Head.Distance(food)
+			d2 := pos.Distance(food)
 
 			if d2 < d1 {
 				amount := 0.0
@@ -223,7 +195,7 @@ func foooood(state *GameState, moves *score.Moves) {
 	}
 }
 
-func gimmeSomeSpace(state *GameState, moves *score.Moves) {
+func gimmeSomeSpace(state *t.GameState, moves *score.Moves) {
 	// Seek out larger spaces
 	// From the head of each snake, do a breadth first search of possible moves
 	// grid := NewGrid(state)
@@ -250,7 +222,7 @@ func gimmeSomeSpace(state *GameState, moves *score.Moves) {
 
 // This function is called on every turn of a game. Use the provided GameState to decide
 // where to move -- valid moves are "up", "down", "left", or "right".
-func move(state GameState) BattlesnakeMoveResponse {
+func move(state t.GameState) t.BattlesnakeMoveResponse {
 
 	// 4 possible moves
 	// Each computation stage will add information to the score.Moves struct.
@@ -289,7 +261,7 @@ func move(state GameState) BattlesnakeMoveResponse {
 	nextMove := moves.Choice()
 
 	log.Printf("%s MOVE %d: %s\n", state.Game.ID, state.Turn, nextMove)
-	return BattlesnakeMoveResponse{
+	return t.BattlesnakeMoveResponse{
 		Move: nextMove,
 	}
 }

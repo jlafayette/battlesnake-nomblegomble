@@ -2,6 +2,7 @@ package main
 
 import (
 	"github.com/jlafayette/battlesnake-go/q"
+	"github.com/jlafayette/battlesnake-go/t"
 )
 
 type GridSquare struct {
@@ -13,9 +14,9 @@ type GridSquare struct {
 
 type GridSnake struct {
 	isMe   bool
-	index  int     // the index of snake in *state
-	myfood int     // food eaten so far (this only works on my snake)
-	body   []Coord // will update as turns go by and snake may eat food
+	index  int       // the index of snake in *state
+	myfood int       // food eaten so far (this only works on my snake)
+	body   []t.Coord // will update as turns go by and snake may eat food
 }
 
 func (s *GridSnake) nom() {
@@ -26,7 +27,7 @@ func (s *GridSnake) myLength() int {
 	return len(s.body) + s.myfood
 }
 
-func (s *GridSnake) otherLength(p2 Coord, food *[]Coord) int {
+func (s *GridSnake) otherLength(p2 t.Coord, food *[]t.Coord) int {
 	// get all the food in the area between start and pos
 	p1 := s.body[0]
 
@@ -44,10 +45,10 @@ func (s *GridSnake) otherLength(p2 Coord, food *[]Coord) int {
 	return len(s.body) + foodCount
 }
 
-func NewGridSnake(i int, b Battlesnake) *GridSnake {
+func NewGridSnake(i int, b t.Battlesnake) *GridSnake {
 	gs := GridSnake{index: i}
 	for _, c := range b.Body {
-		gs.body = append(gs.body, Coord{c.X, c.Y})
+		gs.body = append(gs.body, t.Coord{c.X, c.Y})
 	}
 	return &gs
 }
@@ -64,10 +65,10 @@ type Grid struct {
 type Area struct {
 	Space   int
 	Trapped bool
-	Target  Coord
+	Target  t.Coord
 }
 
-func NewGrid(state *GameState) Grid {
+func NewGrid(state *t.GameState) Grid {
 	v := make([][]GridSquare, state.Board.Width)
 	for i := range v {
 		v[i] = make([]GridSquare, state.Board.Height)
@@ -76,7 +77,7 @@ func NewGrid(state *GameState) Grid {
 		for y := range v[x] {
 			isFood := false
 			for _, food := range state.Board.Food {
-				if samePos(Coord{x, y}, food) {
+				if food.SamePos(t.Coord{X: x, Y: y}) {
 					isFood = true
 					break
 				}
@@ -93,7 +94,7 @@ func NewGrid(state *GameState) Grid {
 	return grid
 }
 
-func (g *Grid) ResetSnakes(state *GameState) {
+func (g *Grid) ResetSnakes(state *t.GameState) {
 	g.snakes = map[int]*GridSnake{}
 	for i, srcSnake := range state.Board.Snakes {
 		g.snakes[i] = NewGridSnake(i, srcSnake)
@@ -105,9 +106,9 @@ func (g *Grid) ResetSnakes(state *GameState) {
 }
 
 // Use a flood-fill to determine the area after moving in the givin direction.
-func (g *Grid) Area(state *GameState, move string) Area {
-	myStartingCoord := newHead(state.You.Head, move)
-	if myStartingCoord.outOfBounds(state.Board.Width, state.Board.Height) {
+func (g *Grid) Area(state *t.GameState, move string) Area {
+	myStartingCoord := state.You.Head.Moved(move)
+	if myStartingCoord.OutOfBounds(state.Board.Width, state.Board.Height) {
 		return Area{Space: 0, Trapped: false}
 	}
 
@@ -156,7 +157,7 @@ func (g *Grid) Area(state *GameState, move string) Area {
 	})
 	area := 0
 	lastOkTurn := 0
-	escapeCoord := Coord{myStartingCoord.X, myStartingCoord.Y}
+	escapeCoord := t.Coord{myStartingCoord.X, myStartingCoord.Y}
 	escapeOpenIn := 999
 	for {
 		// pop item
@@ -179,7 +180,7 @@ func (g *Grid) Area(state *GameState, move string) Area {
 		for otherIdx, otherSnake := range g.snakes {
 			otherTurn, visited := g.squares[x][y].visited[otherIdx]
 			if visited {
-				otherLen := otherSnake.otherLength(Coord{item.X, item.Y}, &state.Board.Food)
+				otherLen := otherSnake.otherLength(t.Coord{item.X, item.Y}, &state.Board.Food)
 				myLen := g.snakes[g.myIndex].myLength()
 				willDieInH2H := otherLen >= myLen
 				if otherTurn == item.Turn && willDieInH2H {
@@ -223,7 +224,7 @@ func (g *Grid) Area(state *GameState, move string) Area {
 				// log.Printf("collide: %#v", n)
 				if escapeOpenIn > n.OpenIn {
 					escapeOpenIn = n.OpenIn
-					escapeCoord = Coord{n.X, n.Y}
+					escapeCoord = t.Coord{n.X, n.Y}
 				}
 			}
 		}
@@ -232,7 +233,7 @@ func (g *Grid) Area(state *GameState, move string) Area {
 	return Area{Space: area, Trapped: trapped, Target: escapeCoord}
 }
 
-func (g *Grid) findNeighbors(state *GameState, item q.Item) []q.Item {
+func (g *Grid) findNeighbors(state *t.GameState, item q.Item) []q.Item {
 	// fmt.Println("finding neighbors")
 	n := []q.Item{}
 	turn := item.Turn + 1
@@ -257,7 +258,7 @@ func (g *Grid) findNeighbors(state *GameState, item q.Item) []q.Item {
 		// self and other snakes
 		breakAll := false
 		for _, gsnake := range g.snakes {
-			snakeLen := gsnake.otherLength(Coord{candidate.X, candidate.Y}, &state.Board.Food)
+			snakeLen := gsnake.otherLength(t.Coord{candidate.X, candidate.Y}, &state.Board.Food)
 			for i, bc := range gsnake.body {
 				// Subtract tails from body as turns go by
 				// (should account for eating)
@@ -265,7 +266,7 @@ func (g *Grid) findNeighbors(state *GameState, item q.Item) []q.Item {
 					// fmt.Printf("break... because %d > %d\n", i, snakeLen-1-turn)
 					break
 				}
-				if samePos(Coord{candidate.X, candidate.Y}, bc) {
+				if bc.SamePos(t.Coord{candidate.X, candidate.Y}) {
 					candidate.OpenIn = snakeLen - i
 					candidate.Collide = true
 					breakAll = true
@@ -284,7 +285,7 @@ func (g *Grid) findNeighbors(state *GameState, item q.Item) []q.Item {
 	return n
 }
 
-func GetArea(state *GameState, move string) Area {
+func GetArea(state *t.GameState, move string) Area {
 	grid := NewGrid(state)
 	return grid.Area(state, move)
 }

@@ -2,6 +2,7 @@ package main
 
 import (
 	"github.com/jlafayette/battlesnake-go/score"
+	"github.com/jlafayette/battlesnake-go/t"
 )
 
 // Define enum
@@ -31,9 +32,9 @@ func (e *EscapeDir) MovingTowards() bool {
 	return e.Dir == TowardsV || e.Dir == TowardsH
 }
 
-func getEscapeDir(c1, c2, goal Coord) EscapeDir {
-	d1 := distance(c1, goal)
-	d2 := distance(c2, goal)
+func getEscapeDir(c1, c2, goal t.Coord) EscapeDir {
+	d1 := c1.Distance(goal)
+	d2 := c2.Distance(goal)
 	away := d2 > d1
 	horizontal := c1.X == c2.X
 	if horizontal {
@@ -53,7 +54,7 @@ func getEscapeDir(c1, c2, goal Coord) EscapeDir {
 	}
 }
 
-func Escape(state *GameState, moves *score.Moves) {
+func Escape(state *t.GameState, moves *score.Moves) {
 	if !moves.Trapped {
 		return
 	}
@@ -64,10 +65,10 @@ func Escape(state *GameState, moves *score.Moves) {
 			move.Space.EscapeScore = 1.0 // ? not sure if this would ever happen ?
 			continue
 		}
-		goal := Coord{move.Space.TargetX, move.Space.TargetY}
+		goal := t.Coord{move.Space.TargetX, move.Space.TargetY}
 		neck := state.You.Body[1]
 		head := state.You.Head
-		head2 := newHead(state.You.Head, move.Str)
+		head2 := state.You.Head.Moved(move.Str)
 
 		// log.Printf("move: %s goal: %v", move.Str, goal)
 

@@ -1,16 +1,19 @@
 package main
 
-import "github.com/jlafayette/battlesnake-go/score"
+import (
+	"github.com/jlafayette/battlesnake-go/score"
+	"github.com/jlafayette/battlesnake-go/t"
+)
 
-func avoidEdges(state *GameState, moves *score.Moves) {
-	alreadyOnEdge := state.You.Head.onEdge(state.Board.Width, state.Board.Height)
+func avoidEdges(state *t.GameState, moves *score.Moves) {
+	alreadyOnEdge := state.You.Head.OnEdge(state.Board.Width, state.Board.Height)
 	if alreadyOnEdge {
 		return
 	}
 
 	for _, move := range moves.SafeMoves() {
-		newCoord := newHead(state.You.Head, move.Str)
-		if newCoord.onEdge(state.Board.Width, state.Board.Height) {
+		newCoord := state.You.Head.Moved(move.Str)
+		if newCoord.OnEdge(state.Board.Width, state.Board.Height) {
 			move.ToEdge = true
 		}
 	}
