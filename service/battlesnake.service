@@ -1,0 +1,15 @@
+[Unit]
+Description=battlesnake service
+ConditionPathExists=/root/bin/battlesnake-go
+After=network.target
+
+[Service]
+Restart=on-failure
+RestartSec=10
+StartLimitInterval=60
+
+WorkingDirectory=/root
+ExecStart=/root/bin/battlesnake-go
+
+[Install]
+WantedBy=multi-user.target

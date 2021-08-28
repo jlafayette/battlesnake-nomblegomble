@@ -7,5 +7,6 @@ venv/
 *.ppk
 *.exe
 main
+battlesnake-go
 gamelogs/
 aaastuff/
