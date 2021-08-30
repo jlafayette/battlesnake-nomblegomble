@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"testing"
 
 	tt "github.com/jlafayette/battlesnake-go/t"
@@ -43,7 +42,6 @@ func TestFloodFill01(t *testing.T) {
 
 	board := NewBoard(&state)
 	result := board.Fill()
-	fmt.Printf("%s\n", board.String())
 
 	r, ok := result[0]
 	if !ok {

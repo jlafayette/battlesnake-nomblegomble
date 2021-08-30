@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"strconv"
 	"strings"
 
 	"github.com/jlafayette/battlesnake-go/t"
@@ -29,10 +30,9 @@ type Cell struct {
 	// The body of other snakes
 	X         int
 	Y         int
-	snakeId   SnakeIndex          // index of current snake
-	snakeIds  map[SnakeIndex]bool // index of snake(s)
-	bodyIndex BodyIndex           // 0 is head len(body)-1 is the tail
-	contents  Contents            // head,body,tail, empty, food
+	snakeId   SnakeIndex // index of current snake
+	bodyIndex BodyIndex  // 0 is head len(body)-1 is the tail
+	contents  Contents   // head,body,tail, empty, food
 
 	prevContents Contents
 
@@ -42,13 +42,11 @@ type Cell struct {
 }
 
 func NewCell(x, y int) *Cell {
-	ids := make(map[SnakeIndex]bool)
 	visited := make(map[SnakeIndex]Turn)
 	h2h := make(map[Turn]SnakeIndex)
 	return &Cell{
 		X:        x,
 		Y:        y,
-		snakeIds: ids,
 		contents: Empty,
 		visited:  visited,
 		h2h:      h2h,
@@ -81,10 +79,12 @@ func (c *Cell) UpdateSnake(ate bool, length int32) {
 		c.contents = Body
 	case Body:
 		// check if we are the tail now...
-		if c.bodyIndex == BodyIndex(length)-1 {
-			if ate {
+		if ate {
+			if c.bodyIndex == BodyIndex(length-2) {
 				c.contents = DoubleTail
-			} else {
+			}
+		} else {
+			if c.bodyIndex == BodyIndex(length-1) {
 				c.contents = Tail
 			}
 		}
@@ -118,7 +118,6 @@ func (c *Cell) SetSnake(snakeIndex SnakeIndex, bodyIndex BodyIndex, length int32
 
 	c.bodyIndex = bodyIndex
 	c.snakeId = snakeIndex
-	c.snakeIds[snakeIndex] = true
 	c.visited[snakeIndex] = turn
 }
 
@@ -127,18 +126,9 @@ func (c *Cell) SetFood() {
 }
 
 func (c *Cell) NewHeadFrom(nc *Cell, turn Turn) {
-
-	// stop from visiting twice (but shouldn't it still count for space?)
-	_, ok := c.visited[c.snakeId]
-	if ok {
-		fmt.Printf("X:%d,Y:%d is already visited by %d\n", c.X, c.Y, c.snakeId)
-		return
-	}
-
 	c.contents = Head
 	c.snakeId = nc.snakeId
 	c.bodyIndex = 0
-	c.snakeIds[c.snakeId] = true
 	c.visited[c.snakeId] = turn
 }
 
@@ -146,40 +136,24 @@ func (c *Cell) NewTurn() {
 	c.prevContents = c.contents
 }
 
-func (c *Cell) Score() SnakeIndex {
-	// return snakeId + food
-	var winner SnakeIndex = -1
-	var lowestTurn Turn = 9999
-	for id, turn := range c.visited {
-		if turn == 0 {
-			continue
-		}
-		if turn < lowestTurn {
-			lowestTurn = turn
-			winner = id
-		}
-	}
-	return winner
-}
-
 func (c *Cell) String() string {
 	switch c.prevContents {
 	case Food:
-		return " f "
+		return "  fff"
 	case Head:
-		return " H "
+		return "  H" + strconv.Itoa(int(c.snakeId)) + strconv.Itoa(int(c.bodyIndex))
 	case Body:
-		return " B "
+		return "  B" + strconv.Itoa(int(c.snakeId)) + strconv.Itoa(int(c.bodyIndex))
 	case Tail:
-		return " T "
+		return "  T" + strconv.Itoa(int(c.snakeId)) + strconv.Itoa(int(c.bodyIndex))
 	case DoubleTail:
-		return " D "
+		return "  D" + strconv.Itoa(int(c.snakeId)) + strconv.Itoa(int(c.bodyIndex))
 	case H2H:
-		return " X "
+		return "  XXX"
 	case Empty:
-		return " . "
+		return "  [ ]"
 	}
-	return "   "
+	return "     "
 }
 
 type Board struct {
@@ -189,6 +163,7 @@ type Board struct {
 	Cells    []*Cell
 	lengths1 map[SnakeIndex]int32
 	lengths  map[SnakeIndex]int32
+	areas    map[SnakeIndex]int32
 	ate      map[SnakeIndex]bool
 }
 
@@ -200,10 +175,6 @@ func (b *Board) getCell(x, y int) (*Cell, bool) {
 		return nil, false
 	}
 	index := x + y*b.Width
-	if index < 0 || index > len(b.Cells)-1 {
-		fmt.Printf("{X:%d,Y:%d} -> out of bounds\n", x, y)
-		return nil, false
-	}
 	return b.Cells[index], true
 }
 
@@ -215,6 +186,7 @@ func NewBoard(state *t.GameState) *Board {
 	lengths := make(map[SnakeIndex]int32, snakeNumber)
 	lengths1 := make(map[SnakeIndex]int32, snakeNumber)
 	ate := make(map[SnakeIndex]bool, snakeNumber)
+	areas := make(map[SnakeIndex]int32, snakeNumber)
 	b := &Board{
 		Width:    w,
 		Height:   h,
@@ -222,6 +194,7 @@ func NewBoard(state *t.GameState) *Board {
 		Cells:    cells,
 		lengths:  lengths,
 		lengths1: lengths1,
+		areas:    areas,
 		ate:      ate,
 	}
 
@@ -280,34 +253,42 @@ func (b *Board) Update() bool {
 			// Check for nearby heads
 			nCell, ok := b.getCell(x-1, y)
 			if ok && nCell.IsHead() {
+				id := nCell.SnakeId()
 				cell.NewHeadFrom(nCell, b.Turn)
 				if cell.IsFood() {
-					b.ate[nCell.SnakeId()] = true
+					b.ate[id] = true
 				}
+				b.areas[id] += 1
 				done = false
 			}
 			nCell, ok = b.getCell(x+1, y)
 			if ok && nCell.IsHead() {
+				id := nCell.SnakeId()
 				cell.NewHeadFrom(nCell, b.Turn)
 				if cell.IsFood() {
-					b.ate[nCell.SnakeId()] = true
+					b.ate[id] = true
 				}
+				b.areas[id] += 1
 				done = false
 			}
 			nCell, ok = b.getCell(x, y+1)
 			if ok && nCell.IsHead() {
+				id := nCell.SnakeId()
 				cell.NewHeadFrom(nCell, b.Turn)
 				if cell.IsFood() {
-					b.ate[nCell.SnakeId()] = true
+					b.ate[id] = true
 				}
+				b.areas[id] += 1
 				done = false
 			}
 			nCell, ok = b.getCell(x, y-1)
 			if ok && nCell.IsHead() {
+				id := nCell.SnakeId()
 				cell.NewHeadFrom(nCell, b.Turn)
 				if cell.IsFood() {
-					b.ate[nCell.SnakeId()] = true
+					b.ate[id] = true
 				}
+				b.areas[id] += 1
 				done = false
 			}
 		}
@@ -335,6 +316,8 @@ func (b *Board) Update() bool {
 	}
 
 	// Update H2H
+	// Because space is already awarded, this should take away space from the smaller snake
+	// or from both if they both die
 
 	// Resolve the turn for each cell
 	for x := 0; x < b.Width; x++ {
@@ -367,37 +350,21 @@ func (b *Board) Fill() map[SnakeIndex]*FloodFillResult {
 	for !done {
 		fmt.Println(b.String())
 		done = b.Update()
+		if int(b.Turn) >= b.Width*b.Height {
+			done = true
+		}
 	}
+	fmt.Printf("Ended updates at turn: %d\n", b.Turn)
+	fmt.Println(b.String())
 
 	// Go over the board and get all the results
-	for x := 0; x < b.Width; x++ {
-		for y := 0; y < b.Height; y++ {
-			cell, ok := b.getCell(x, y)
-			if !ok {
-				continue
-			}
-			// if snake visited it first
-			winner := cell.Score()
-			if winner != -1 {
-				r, ok := results[winner]
-				if ok {
-					r.Area += 1
-				}
-			}
-		}
+	for id, area := range b.areas {
+		results[id].Area = int(area)
 	}
 	for snakeIndex, length := range b.lengths {
-		origLen, ok := b.lengths1[snakeIndex]
-		if !ok {
-			continue
-		}
-		var food int32 = 0
-		food = length - origLen
-		r, ok := results[snakeIndex]
-		if !ok {
-			continue
-		}
-		r.Food = int(food)
+		origLen := b.lengths1[snakeIndex]
+		food := length - origLen
+		results[snakeIndex].Food = int(food)
 	}
 	return results
 }
@@ -423,8 +390,4 @@ func (b *Board) String() string {
 type FloodFillResult struct {
 	Area int
 	Food int
-}
-
-func Score(b Board) float64 {
-	return 0.0
 }
