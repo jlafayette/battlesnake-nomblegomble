@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"strconv"
 	"strings"
 
@@ -61,6 +60,10 @@ func (c *Cell) IsHead() bool {
 	return c.prevContents == Head
 }
 
+func (c *Cell) IsTail() bool {
+	return c.prevContents == Tail
+}
+
 func (c *Cell) IsFood() bool {
 	return c.prevContents == Food
 }
@@ -89,8 +92,14 @@ func (c *Cell) UpdateSnake(ate bool, length int32) {
 			}
 		}
 	case Tail:
-		c.bodyIndex = -1
-		c.contents = Empty
+		// New head updates happen already before updating the rest of the snake
+		// So check if the contents have been switch to head
+		if c.contents == Head {
+			c.bodyIndex = 0
+		} else {
+			c.bodyIndex = -1
+			c.contents = Empty
+		}
 	case DoubleTail:
 		if ate {
 			c.contents = DoubleTail
@@ -348,14 +357,14 @@ func (b *Board) Fill() map[SnakeIndex]*FloodFillResult {
 	//       option2: check every update for some terminating condition
 	done := false
 	for !done {
-		fmt.Println(b.String())
+		// fmt.Println(b.String())
 		done = b.Update()
 		if int(b.Turn) >= b.Width*b.Height {
 			done = true
 		}
 	}
-	fmt.Printf("Ended updates at turn: %d\n", b.Turn)
-	fmt.Println(b.String())
+	// fmt.Printf("Ended updates at turn: %d\n", b.Turn)
+	// fmt.Println(b.String())
 
 	// Go over the board and get all the results
 	for id, area := range b.areas {
