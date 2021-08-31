@@ -29,6 +29,7 @@ type Cell struct {
 	// The body of other snakes
 	X         int
 	Y         int
+	length    int32      // for heads
 	snakeId   SnakeIndex // index of current snake
 	bodyIndex BodyIndex  // 0 is head len(body)-1 is the tail
 	contents  Contents   // head,body,tail, empty, food
@@ -118,6 +119,7 @@ func (c *Cell) SetSnake(snakeIndex SnakeIndex, bodyIndex BodyIndex, length int32
 	isTail := int32(bodyIndex) == length-1
 	if isHead {
 		c.contents = Head
+		c.length = length
 	} else if isTail {
 		c.contents = Tail
 	} else {
@@ -135,7 +137,47 @@ func (c *Cell) SetFood() {
 }
 
 func (c *Cell) NewHeadFrom(nc *Cell, turn Turn) {
+	if c.contents == Head {
+		// resolve H2H
+		if c.snakeId == nc.snakeId {
+			// ignore h2h if it's the same snake, the first one can take the cell
+			return
+		}
+		// if they have the same length, they both die
+		if c.length == nc.length {
+			c.contents = H2H
+			c.bodyIndex = -1
+			c.visited[c.snakeId] = turn
+			c.visited[nc.snakeId] = turn
+			c.snakeId = -1
+			c.h2h[turn] = -1
+		} else if c.length > nc.length {
+			// the head that was marked here earlier won, so prev info can stay
+			c.visited[c.snakeId] = turn
+			c.visited[nc.snakeId] = turn
+			c.h2h[turn] = c.snakeId
+		} else {
+			// new nc head wins
+			c.contents = Head
+			c.length = nc.length
+			c.visited[c.snakeId] = turn
+			c.visited[nc.snakeId] = turn
+			c.snakeId = nc.snakeId
+			c.bodyIndex = 0
+			c.h2h[turn] = nc.snakeId
+			if c.prevContents == Food {
+				c.length += 1
+			}
+		}
+		return
+	}
+
+	// Default (no h2h)
 	c.contents = Head
+	c.length = nc.length
+	if c.prevContents == Food {
+		c.length += 1
+	}
 	c.snakeId = nc.snakeId
 	c.bodyIndex = 0
 	c.visited[c.snakeId] = turn
@@ -143,6 +185,10 @@ func (c *Cell) NewHeadFrom(nc *Cell, turn Turn) {
 
 func (c *Cell) NewTurn() {
 	c.prevContents = c.contents
+	if c.prevContents != Head {
+		// Non-heads don't need length, so zero it out to help with debugging if things get screwed up
+		c.length = 0
+	}
 }
 
 func (c *Cell) String() string {
@@ -150,15 +196,15 @@ func (c *Cell) String() string {
 	case Food:
 		return "  fff"
 	case Head:
-		return "  H" + strconv.Itoa(int(c.snakeId)) + strconv.Itoa(int(c.bodyIndex))
+		return "  " + strconv.Itoa(int(c.snakeId)) + "H" + strconv.Itoa(int(c.bodyIndex))
 	case Body:
-		return "  B" + strconv.Itoa(int(c.snakeId)) + strconv.Itoa(int(c.bodyIndex))
+		return "  " + strconv.Itoa(int(c.snakeId)) + "B" + strconv.Itoa(int(c.bodyIndex))
 	case Tail:
-		return "  T" + strconv.Itoa(int(c.snakeId)) + strconv.Itoa(int(c.bodyIndex))
+		return "  " + strconv.Itoa(int(c.snakeId)) + "T" + strconv.Itoa(int(c.bodyIndex))
 	case DoubleTail:
-		return "  D" + strconv.Itoa(int(c.snakeId)) + strconv.Itoa(int(c.bodyIndex))
+		return "  " + strconv.Itoa(int(c.snakeId)) + "D" + strconv.Itoa(int(c.bodyIndex))
 	case H2H:
-		return "  XXX"
+		return "  xXx"
 	case Empty:
 		return "  [ ]"
 	}
@@ -375,6 +421,10 @@ func (b *Board) Fill() map[SnakeIndex]*FloodFillResult {
 		food := length - origLen
 		results[snakeIndex].Food = int(food)
 	}
+	// for k, v := range results {
+	// 	fmt.Printf("Snake %d Area: %d\n", k, v.Area)
+	// 	fmt.Printf("Snake %d Food: %d\n", k, v.Food)
+	// }
 	return results
 }
 
