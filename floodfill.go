@@ -35,21 +35,13 @@ type Cell struct {
 	contents  Contents   // head,body,tail, empty, food
 
 	prevContents Contents
-
-	// Keeping track of when snakes visited
-	visited map[SnakeIndex]Turn // key is index of snake, value is turn visited on
-	h2h     map[Turn]SnakeIndex // key is turn H2H occurs on, value is snake index that won (-1 for both die)
 }
 
 func NewCell(x, y int) *Cell {
-	visited := make(map[SnakeIndex]Turn)
-	h2h := make(map[Turn]SnakeIndex)
 	return &Cell{
 		X:        x,
 		Y:        y,
 		contents: Empty,
-		visited:  visited,
-		h2h:      h2h,
 	}
 }
 
@@ -129,7 +121,6 @@ func (c *Cell) SetSnake(snakeIndex SnakeIndex, bodyIndex BodyIndex, length int32
 
 	c.bodyIndex = bodyIndex
 	c.snakeId = snakeIndex
-	c.visited[snakeIndex] = turn
 }
 
 func (c *Cell) SetFood() {
@@ -147,24 +138,15 @@ func (c *Cell) NewHeadFrom(nc *Cell, turn Turn) {
 		if c.length == nc.length {
 			c.contents = H2H
 			c.bodyIndex = -1
-			c.visited[c.snakeId] = turn
-			c.visited[nc.snakeId] = turn
 			c.snakeId = -1
-			c.h2h[turn] = -1
 		} else if c.length > nc.length {
 			// the head that was marked here earlier won, so prev info can stay
-			c.visited[c.snakeId] = turn
-			c.visited[nc.snakeId] = turn
-			c.h2h[turn] = c.snakeId
 		} else {
 			// new nc head wins
 			c.contents = Head
 			c.length = nc.length
-			c.visited[c.snakeId] = turn
-			c.visited[nc.snakeId] = turn
 			c.snakeId = nc.snakeId
 			c.bodyIndex = 0
-			c.h2h[turn] = nc.snakeId
 			if c.prevContents == Food {
 				c.length += 1
 			}
@@ -180,7 +162,6 @@ func (c *Cell) NewHeadFrom(nc *Cell, turn Turn) {
 	}
 	c.snakeId = nc.snakeId
 	c.bodyIndex = 0
-	c.visited[c.snakeId] = turn
 }
 
 func (c *Cell) NewTurn() {
