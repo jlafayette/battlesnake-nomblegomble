@@ -27,8 +27,6 @@ type Cell struct {
 	// Keeping track of state.
 	// State is a bit weird since snakes can overlap on h2h. But... they can't go through
 	// The body of other snakes
-	X         int
-	Y         int
 	length    int32      // for heads
 	snakeId   SnakeIndex // index of current snake
 	bodyIndex BodyIndex  // 0 is head len(body)-1 is the tail
@@ -37,10 +35,8 @@ type Cell struct {
 	prevContents Contents
 }
 
-func NewCell(x, y int) *Cell {
+func NewCell() *Cell {
 	return &Cell{
-		X:        x,
-		Y:        y,
 		contents: Empty,
 	}
 }
@@ -236,7 +232,7 @@ func NewBoard(state *t.GameState) *Board {
 
 	for x := 0; x < b.Width; x++ {
 		for y := 0; y < b.Height; y++ {
-			b.Cells = append(b.Cells, NewCell(x, y))
+			b.Cells = append(b.Cells, NewCell())
 		}
 	}
 	for snakeIndex, snake := range state.Board.Snakes {
