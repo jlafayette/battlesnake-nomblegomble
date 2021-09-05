@@ -252,6 +252,9 @@ func move(state t.GameState) t.BattlesnakeMoveResponse {
 	// seek food
 	foooood(&state, moves)
 
+	// maximin calculation (should eventually replace space, food, H2H... maybe everything)
+	Maximin(&state, moves)
+
 	// Detect when moving to the edge of the board, this is often a bad move
 	// since it cuts the space in half and removes a possible escape route.
 	// Often it's better to turn one move before the edge, so if things go

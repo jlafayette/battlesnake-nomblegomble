@@ -72,15 +72,21 @@ type SpaceInfo struct {
 	Food        int
 }
 
+type SpaceInfo2 struct {
+	Area int
+	Food int
+}
+
 type Score struct {
-	Death  bool
-	Mylen  int
-	Space  SpaceInfo
-	H2h    H2H
-	Food   FoodInfo
-	result float64
-	Str    string
-	ToEdge bool
+	Death   bool
+	Mylen   int
+	Space   SpaceInfo
+	Maximin float64
+	H2h     H2H
+	Food    FoodInfo
+	result  float64
+	Str     string
+	ToEdge  bool
 }
 
 type Moves struct {
@@ -148,7 +154,7 @@ func (m Moves) Choice() string {
 	// This is useful to try and avoid food in this case.
 	h2hDeathCount := m.h2hDeathCount()
 	// log.Printf("h2hDeathCount: %d", h2hDeathCount)
-	maxSpace := m.maxSpace()
+	// maxSpace := m.maxSpace()
 
 	for _, score := range m.Iter() {
 		// Death
@@ -160,8 +166,8 @@ func (m Moves) Choice() string {
 
 		// H2H
 		var h2h float64
-		ignoreFood := false
-		ignoreSpace := false
+		// ignoreFood := false
+		// ignoreSpace := false
 		switch score.H2h.Outcome {
 		case Na:
 			h2h = 0.0
@@ -174,7 +180,7 @@ func (m Moves) Choice() string {
 			if h2hDeathCount > 1 {
 				if score.H2h.IsFood {
 					h2h = 0.05
-					ignoreFood = true // don't go for the food!
+					// ignoreFood = true // don't go for the food!
 				} else {
 					h2h = 0.4 // prefer the non food (mostly to overcome possible area difference)
 				}
@@ -183,68 +189,73 @@ func (m Moves) Choice() string {
 			}
 		case Lose:
 			h2h = 0.01
-			ignoreFood = true
+			// ignoreFood = true
 			// Area has a bug where since you move first, a losing h2h is skipped
 			// over, resulting in way too much space where is should be zero.
-			ignoreSpace = true
+			// ignoreSpace = true
 		}
 		score.result += h2h
 
-		// Space
-		space := remap(float64(score.Space.Area), 0.0, float64(score.Mylen), 0.0, 1.0)
-		// If you have twice your body length to work with, extra doesn't really matter
-		space = min(space, 2.0)
-		if ignoreSpace {
-			space = 0.0
-		}
-		score.result += space
-		if score.Space.Area < score.Mylen {
-			ignoreFood = true
-		}
+		// Maximin
+		score.result += score.Maximin
+		log.Printf("%s scores | h2h: %.2f, maximin: %.2f", score.Str, h2h, score.Maximin)
 
-		// TODO: Fix escape... currently it kicks in when the board is wide open
-		//       seems to be faulty H2H + tail tracking that is not giving
-		//       an accurate space reading.
-		// Escape plan
-		// escapeScore := 0.0
-		// if m.Trapped {
-		// 	escapeScore = score.Space.EscapeScore
+		// // Space
+		// space := remap(float64(score.Space.Area), 0.0, float64(score.Mylen), 0.0, 1.0)
+		// // If you have twice your body length to work with, extra doesn't really matter
+		// space = min(space, 2.0)
+		// if ignoreSpace {
+		// 	space = 0.0
+		// }
+		// score.result += space
+		// if score.Space.Area < score.Mylen {
 		// 	ignoreFood = true
 		// }
-		// score.result += (escapeScore * space)
 
-		// Food
-		// TODO: replace with calculation based on food in space
-		food := remap(score.Food.LegacyScore, 0.0, m.maxLegacyFood(), 0.0, 1.0)
-		foodWeight := 0.0
-		if score.Food.Health < 50 {
-			foodWeight = 0.5
-		}
-		if score.Food.Health < 25 {
-			foodWeight = 0.75
-		} else if score.Food.Health < 10 {
-			foodWeight = 1.0
-		}
-		if !score.Food.LongEnough {
-			foodWeight = max(foodWeight+0.25, 1.0)
-		}
-		foodScore := food * foodWeight * min(space, 1.0)
-		if ignoreFood {
-			foodScore = 0.0
-		}
-		score.result += foodScore
+		// // TODO: Fix escape... currently it kicks in when the board is wide open
+		// //       seems to be faulty H2H + tail tracking that is not giving
+		// //       an accurate space reading.
+		// // Escape plan
+		// // escapeScore := 0.0
+		// // if m.Trapped {
+		// // 	escapeScore = score.Space.EscapeScore
+		// // 	ignoreFood = true
+		// // }
+		// // score.result += (escapeScore * space)
+
+		// // Food
+		// // TODO: replace with calculation based on food in space
+		// food := remap(score.Food.LegacyScore, 0.0, m.maxLegacyFood(), 0.0, 1.0)
+		// foodWeight := 0.0
+		// if score.Food.Health < 50 {
+		// 	foodWeight = 0.5
+		// }
+		// if score.Food.Health < 25 {
+		// 	foodWeight = 0.75
+		// } else if score.Food.Health < 10 {
+		// 	foodWeight = 1.0
+		// }
+		// if !score.Food.LongEnough {
+		// 	foodWeight = max(foodWeight+0.25, 1.0)
+		// }
+		// foodScore := food * foodWeight * min(space, 1.0)
+		// if ignoreFood {
+		// 	foodScore = 0.0
+		// }
+		// score.result += foodScore
 		// log.Printf("%s food: %.2f, foodWeight: %.2f, foodScore: %.2f", score.Str, food, foodWeight, foodScore)
 
-		// penalize moving to the edge
-		edgePenalty := 0.0
-		if score.ToEdge {
-			// make it relative to max space, so max space gets no penalty.
-			x := 1.0 - remap(float64(score.Space.Area), 0.0, float64(maxSpace), 0.0, 1.0)
-			edgePenalty = (x * 0.3) + 0.05
-			score.result -= edgePenalty
-		}
+		// // penalize moving to the edge
+		// edgePenalty := 0.0
+		// if score.ToEdge {
+		// 	// make it relative to max space, so max space gets no penalty.
+		// 	x := 1.0 - remap(float64(score.Space.Area), 0.0, float64(maxSpace), 0.0, 1.0)
+		// 	edgePenalty = (x * 0.3) + 0.05
+		// 	score.result -= edgePenalty
+		// }
 
-		log.Printf("%s scores | h2h: %.2f, area/space: %d/%.2f, food: %.2f, edgePenalty: %.2f", score.Str, h2h, score.Space.Area, space, foodScore, edgePenalty)
+		// log.Printf("%s scores | h2h: %.2f, area/space: %d/%.2f, food: %.2f, edgePenalty: %.2f", score.Str, h2h, score.Space.Area, space, foodScore, edgePenalty)
+
 	}
 
 	// Pick move based on result value.

@@ -41,6 +41,14 @@ func NewCell() *Cell {
 	}
 }
 
+func (c1 *Cell) CopyTo(c2 *Cell) {
+	c2.length = c1.length
+	c2.snakeId = c1.snakeId
+	c2.bodyIndex = c1.bodyIndex
+	c2.contents = c1.contents
+	c2.prevContents = c1.prevContents
+}
+
 func (c *Cell) Blocked() bool {
 	return c.prevContents == Head || c.prevContents == Body || c.prevContents == DoubleTail
 }
@@ -188,13 +196,52 @@ func (c *Cell) String() string {
 	return "     "
 }
 
+type Move uint8
+
+const (
+	Left Move = iota
+	Right
+	Up
+	Down
+)
+
+func (m Move) String() string {
+	return []string{"left", "right", "up", "down"}[m]
+}
+
+func NewMove(s string) Move {
+	switch s {
+	case "left":
+		return Left
+	case "right":
+		return Right
+	case "up":
+		return Up
+	case "down":
+		return Down
+	default:
+		panic("invalid move string")
+	}
+}
+
+type MinMove struct {
+	You   SnakeMove
+	Other [][]SnakeMove
+}
+
+type SnakeMove struct {
+	Index SnakeIndex
+	Move  Move
+}
+
 type Board struct {
 	Width    int
 	Height   int
 	Turn     Turn
 	Cells    []*Cell
-	lengths1 map[SnakeIndex]int32
-	lengths  map[SnakeIndex]int32
+	swpCells []*Cell
+	lengths1 map[SnakeIndex]int32 // original lengths
+	lengths  map[SnakeIndex]int32 // current lengths
 	areas    map[SnakeIndex]int32
 	ate      map[SnakeIndex]bool
 }
@@ -210,11 +257,23 @@ func (b *Board) getCell(x, y int) (*Cell, bool) {
 	return b.Cells[index], true
 }
 
+func (b *Board) getSwpCell(x, y int) (*Cell, bool) {
+	if x < 0 || x > b.Width-1 {
+		return nil, false
+	}
+	if y < 0 || y > b.Height-1 {
+		return nil, false
+	}
+	index := x + y*b.Width
+	return b.swpCells[index], true
+}
+
 func NewBoard(state *t.GameState) *Board {
 	w := state.Board.Width
 	h := state.Board.Height
 	snakeNumber := len(state.Board.Snakes)
 	cells := make([]*Cell, 0, w*h)
+	swpcells := make([]*Cell, 0, w*h)
 	lengths := make(map[SnakeIndex]int32, snakeNumber)
 	lengths1 := make(map[SnakeIndex]int32, snakeNumber)
 	ate := make(map[SnakeIndex]bool, snakeNumber)
@@ -224,6 +283,7 @@ func NewBoard(state *t.GameState) *Board {
 		Height:   h,
 		Turn:     0,
 		Cells:    cells,
+		swpCells: swpcells,
 		lengths:  lengths,
 		lengths1: lengths1,
 		areas:    areas,
@@ -233,6 +293,7 @@ func NewBoard(state *t.GameState) *Board {
 	for x := 0; x < b.Width; x++ {
 		for y := 0; y < b.Height; y++ {
 			b.Cells = append(b.Cells, NewCell())
+			b.swpCells = append(b.Cells, NewCell())
 		}
 	}
 	for snakeIndex, snake := range state.Board.Snakes {
@@ -253,8 +314,110 @@ func NewBoard(state *t.GameState) *Board {
 			cell.NewTurn()
 		}
 	}
+	// Backup the original position so that we can simulate floodfill and then reset back to the
+	// original position. This will allow us to reuse the same board for calculating the floodfill
+	// of a series of positions
+	for x := 0; x < b.Width; x++ {
+		for y := 0; y < b.Height; y++ {
+			cell, _ := b.getCell(x, y)
+			swpcell, _ := b.getSwpCell(x, y)
+			cell.CopyTo(swpcell)
+		}
+	}
 
 	return b
+}
+
+func (b *Board) Restore() {
+	for x := 0; x < b.Width; x++ {
+		for y := 0; y < b.Height; y++ {
+			cell, _ := b.getCell(x, y)
+			swpcell, _ := b.getSwpCell(x, y)
+			swpcell.CopyTo(cell)
+		}
+	}
+}
+
+func (b *Board) Moves(youIndex SnakeIndex) []MinMove {
+	// Figure out all the move combinations
+	// Assumes board is restored (not multi-head)
+
+	// You L
+	// LLL LLR LRL LRR RLL RLR RRL RRR
+	// You R
+	// LLL LLR LRL LRR RLL RLR RRL RRR
+
+	// Read the board, determine what options you should consider (not instant death)
+	// If all are instant death, return empty list or error
+
+	// Read the board, for each snake, determine what option they will take
+	// Safe moves if any (not instant death)
+	// but if all moves are instant death, then must consider all moves that
+	// have a different outcome (mainly tied H2H)
+
+	var myMoves []SnakeMove
+	other := make([][]SnakeMove, 0)
+
+	for x := 0; x < b.Width; x++ {
+		for y := 0; y < b.Height; y++ {
+			cell, _ := b.getCell(x, y)
+			if cell.IsHead() {
+				// fmt.Printf("found head! {%d, %d} index: %d\n", x, y, cell.SnakeId())
+				moves := make([]SnakeMove, 0, 3)
+				// allDeath := true
+				// Check for possible moves
+				nCell, ok := b.getCell(x-1, y)
+				if ok && (!nCell.Blocked() || nCell.IsHead()) {
+					// fmt.Printf("found a potential move! {%d, %d}\n", x-1, y)
+					// currently we are considering all H2H (even losing ones)
+					moves = append(moves, SnakeMove{Index: cell.SnakeId(), Move: Left})
+					// allDeath = false // TODO: consider length for H2H losses as death
+				}
+				nCell, ok = b.getCell(x+1, y)
+				if ok && (!nCell.Blocked() || nCell.IsHead()) {
+					// fmt.Printf("found a potential move! {%d, %d}\n", x+1, y)
+					// currently we are considering all H2H (even losing ones)
+					moves = append(moves, SnakeMove{Index: cell.SnakeId(), Move: Right})
+					// allDeath = false // TODO: consider length for H2H losses as death
+				}
+				nCell, ok = b.getCell(x, y-1)
+				if ok && (!nCell.Blocked() || nCell.IsHead()) {
+					// fmt.Printf("found a potential move! {%d, %d}\n", x, y-1)
+					// currently we are considering all H2H (even losing ones)
+					moves = append(moves, SnakeMove{Index: cell.SnakeId(), Move: Down})
+					// allDeath = false // TODO: consider length for H2H losses as death
+				}
+				nCell, ok = b.getCell(x, y+1)
+				if ok && (!nCell.Blocked() || nCell.IsHead()) {
+					// fmt.Printf("found a potential move! {%d, %d}\n", x, y+1)
+					// currently we are considering all H2H (even losing ones)
+					moves = append(moves, SnakeMove{Index: cell.SnakeId(), Move: Up})
+					// allDeath = false // TODO: consider length for H2H losses as death
+				}
+
+				// append to other moves
+				if cell.SnakeId() == youIndex {
+					myMoves = moves
+				} else {
+					other = append(other, moves)
+				}
+			}
+		}
+	}
+	// fmt.Printf("myMoves: %v\n", myMoves)
+	result := make([]MinMove, 0, len(myMoves))
+	for _, myMove := range myMoves {
+		result = append(result, MinMove{You: myMove, Other: other})
+	}
+	return result
+}
+
+func (b *Board) Push(move SnakeMove, moves []SnakeMove) {
+
+}
+
+func (b *Board) Pop(move SnakeMove, moves []SnakeMove) {
+
 }
 
 func (b *Board) Update() bool {
@@ -367,8 +530,12 @@ func (b *Board) Update() bool {
 
 func (b *Board) Fill() map[SnakeIndex]*FloodFillResult {
 	results := make(map[SnakeIndex]*FloodFillResult)
-	for snakeIndex := range b.lengths {
+	var longest int32 = 0
+	for snakeIndex, l := range b.lengths {
 		results[snakeIndex] = &FloodFillResult{}
+		if l > longest {
+			longest = l
+		}
 	}
 
 	// Loop until end condition is set
@@ -382,14 +549,15 @@ func (b *Board) Fill() map[SnakeIndex]*FloodFillResult {
 	for !done {
 		// fmt.Println(b.String())
 		done = b.Update()
-		if int(b.Turn) >= b.Width*b.Height {
+		if (int(b.Turn) >= b.Width*b.Height) || (int32(b.Turn) >= longest*2) {
+			// if int(b.Turn) >= b.Width*b.Height {
 			done = true
 		}
 	}
 	// fmt.Printf("Ended updates at turn: %d\n", b.Turn)
 	// fmt.Println(b.String())
 
-	// Go over the board and get all the results
+	// Collect the results
 	for id, area := range b.areas {
 		results[id].Area = int(area)
 	}

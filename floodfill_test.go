@@ -24,12 +24,12 @@ func BenchmarkMap1(b *testing.B) {
 		},
 		You: you,
 	}
-
+	board := NewBoard(&state)
 	b.ResetTimer()
 
 	for i := 0; i < b.N; i++ {
-		board := NewBoard(&state)
 		result = board.Fill()
+		board.Restore()
 	}
 }
 
