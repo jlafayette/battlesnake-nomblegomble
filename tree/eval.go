@@ -377,11 +377,11 @@ func (b *Board) Eval(index SnakeIndex) float64 {
 	if aliveCount > 0 {
 		rawArea = myArea - (othersArea / aliveCount)
 	}
-	areaClamped := clamp(rawArea, 0, myLength*3)
+	areaClamped := clamp(rawArea, min(0, rawArea), myLength*3)
 	areaScore := remap(float64(areaClamped), 0, float64(myLength*3), -100, 100)
 	score += areaScore
 
-	// fmt.Printf("score: %.1f iDead: %.1f othersDead: %.1f health: %.1f length: %.1f area: %d/%.1f\n", score, iDeadScore, othersDeadScore, healthScore, longestScore, rawArea, areaScore)
+	// fmt.Printf("score: %.1f iDead: %.1f othersDead: %.1f health: %.1f length: %.1f area raw/score: %d/%.1f\n", score, iDeadScore, othersDeadScore, healthScore, longestScore, rawArea, areaScore)
 
 	return score
 }
