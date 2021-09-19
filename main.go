@@ -6,7 +6,7 @@ import (
 	"net/http"
 	"os"
 
-	"github.com/jlafayette/battlesnake-go/t"
+	"github.com/jlafayette/battlesnake-go/wire"
 )
 
 // HTTP Handlers
@@ -22,7 +22,7 @@ func HandleIndex(w http.ResponseWriter, r *http.Request) {
 }
 
 func HandleStart(w http.ResponseWriter, r *http.Request) {
-	state := t.GameState{}
+	state := wire.GameState{}
 	err := json.NewDecoder(r.Body).Decode(&state)
 	if err != nil {
 		log.Printf("ERROR: Failed to decode start json, %s", err)
@@ -37,7 +37,7 @@ func HandleStart(w http.ResponseWriter, r *http.Request) {
 }
 
 func HandleMove(w http.ResponseWriter, r *http.Request) {
-	state := t.GameState{}
+	state := wire.GameState{}
 	err := json.NewDecoder(r.Body).Decode(&state)
 	if err != nil {
 		log.Printf("ERROR: Failed to decode move json, %s", err)
@@ -59,7 +59,7 @@ func HandleMove(w http.ResponseWriter, r *http.Request) {
 }
 
 func HandleEnd(w http.ResponseWriter, r *http.Request) {
-	state := t.GameState{}
+	state := wire.GameState{}
 	err := json.NewDecoder(r.Body).Decode(&state)
 	if err != nil {
 		log.Printf("ERROR: Failed to decode end json, %s", err)

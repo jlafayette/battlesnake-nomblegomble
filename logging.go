@@ -8,7 +8,7 @@ import (
 	"path"
 	"sync"
 
-	"github.com/jlafayette/battlesnake-go/t"
+	"github.com/jlafayette/battlesnake-go/wire"
 )
 
 var (
@@ -125,7 +125,7 @@ func close_game_log(id string) {
 	logger.removeGame(id)
 }
 
-func log_move(state *t.GameState) {
+func log_move(state *wire.GameState) {
 	data, err := json.Marshal(state)
 	if err != nil {
 		log.Printf("ERROR: Failed to marshal game state for logs, %s", err)
@@ -133,7 +133,7 @@ func log_move(state *t.GameState) {
 	logger.log(state.Game.ID, data)
 }
 
-func log_move_response(id string, response *t.BattlesnakeMoveResponse) {
+func log_move_response(id string, response *wire.BattlesnakeMoveResponse) {
 	data, err := json.Marshal(response)
 	if err != nil {
 		log.Printf("ERROR: Failed to marshal respone state for logs, %s", err)
