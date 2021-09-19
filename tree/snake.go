@@ -62,6 +62,8 @@ func NewSnake(index, health int, coords []Coord, turn, depth int) *Snake {
 }
 
 func (s *Snake) Move(m Move, food, die bool) error {
+	// fmt.Printf("%d %d move: %v, food %v, die %v\n", s.Index, s.turn+1, m, food, die)
+
 	// Eating normally mutates the previous tail into a duplicate of the new tail,
 	// forming a "double tail"
 	// But since this destroys some of the history, we intead record the new length

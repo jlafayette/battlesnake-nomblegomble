@@ -228,7 +228,11 @@ func (s *State) moves(index int) []snakeMove {
 	upCollide := false
 	downCollide := false
 	for _, snake := range s.Snakes {
-		for _, c := range snake.Body {
+		for ci, c := range snake.Body {
+			// Skipping tail
+			if ci == len(snake.Body)-1 && !snake.ateLastTurn {
+				continue
+			}
 			if leftHead.Equals(c) {
 				leftCollide = true
 			} else if rightHead.Equals(c) {
@@ -256,7 +260,6 @@ func (s *State) moves(index int) []snakeMove {
 		// fmt.Printf("All moves end in death for %d\n", index)
 		m = append(m, snakeMove{snakeIndex: index, move: Left})
 	}
-	// TODO: check for all death (empty move slice)
 	// fmt.Printf("moves for snake %d: %v\n", index, m)
 	return m
 }
@@ -444,11 +447,6 @@ func (s *State) PrevSibling() {
 	s.currentDepth += 1
 	// Then, apply the move
 	s.ApplyMove()
-}
-
-// Load current state into the eval board so it can be scored
-func (s *State) loadEval() {
-	s.evalBoard.Load(s.Snakes, s.Food, s.Hazards)
 }
 
 // Score sets node score from the current position loaded into eval.Board
