@@ -482,6 +482,7 @@ func (s *State) FindBestMove(verbose bool) Move {
 				// if node is not scored and depth is max
 				// score the current node
 				if !s.node.scored && (s.currentDepth >= s.maxDepth) {
+					// fmt.Printf("%v\n", s.node.moves)
 					s.evalBoard.Load(s.Snakes, s.Food, s.Hazards)
 					score := s.evalBoard.Eval(SnakeIndex(s.MyIndex))
 					s.node.score = score

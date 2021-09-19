@@ -6,16 +6,17 @@ import (
 )
 
 type Board struct {
-	Width    int
-	Height   int
-	Turn     Turn
-	Cells    []*Cell
-	lengths1 map[SnakeIndex]int // original lengths
-	lengths  map[SnakeIndex]int // current lengths
-	areas    map[SnakeIndex]int
-	ate      map[SnakeIndex]bool
-	dead     map[SnakeIndex]bool
-	health   map[SnakeIndex]int
+	Width       int
+	Height      int
+	Turn        Turn
+	Cells       []*Cell
+	lengths1    map[SnakeIndex]int // original lengths
+	lengths     map[SnakeIndex]int // current lengths
+	areas       map[SnakeIndex]int
+	foodTracker *foodTracker // foods in area weighted by distance
+	ate         map[SnakeIndex]bool
+	dead        map[SnakeIndex]bool
+	health      map[SnakeIndex]int
 }
 
 func (b *Board) getCell(x, y int) (*Cell, bool) {
@@ -41,16 +42,17 @@ func NewBoard(width, height int, snakes []*Snake, foods, hazards []Coord) *Board
 	dead := make(map[SnakeIndex]bool, snakeNumber)
 	health := make(map[SnakeIndex]int, snakeNumber)
 	b := &Board{
-		Width:    w,
-		Height:   h,
-		Turn:     0,
-		Cells:    cells,
-		lengths:  lengths,
-		lengths1: lengths1,
-		areas:    areas,
-		ate:      ate,
-		dead:     dead,
-		health:   health,
+		Width:       w,
+		Height:      h,
+		Turn:        0,
+		Cells:       cells,
+		lengths:     lengths,
+		lengths1:    lengths1,
+		areas:       areas,
+		foodTracker: newFoodTracker(),
+		ate:         ate,
+		dead:        dead,
+		health:      health,
 	}
 	for x := 0; x < b.Width; x++ {
 		for y := 0; y < b.Height; y++ {
@@ -72,6 +74,8 @@ func (b *Board) Load(snakes []*Snake, foods, hazards []Coord) {
 	for i := range b.ate {
 		b.ate[i] = false
 	}
+	// clear food tracker
+	b.foodTracker.reset()
 	// clear cells
 	for _, cell := range b.Cells {
 		cell.Clear()
@@ -106,7 +110,7 @@ func (b *Board) Load(snakes []*Snake, foods, hazards []Coord) {
 	}
 }
 
-func (b *Board) Update() bool {
+func (b *Board) Update(myIndex SnakeIndex) bool {
 	done := true
 	b.Turn += 1
 
@@ -138,6 +142,9 @@ func (b *Board) Update() bool {
 				cell.NewHeadFrom(nCell, b.Turn)
 				if cell.IsFood() {
 					b.ate[id] = true
+					if id == myIndex {
+						b.foodTracker.add(Coord{x, y}, b.Turn)
+					}
 				}
 				b.areas[id] += 1
 				done = false
@@ -148,6 +155,9 @@ func (b *Board) Update() bool {
 				cell.NewHeadFrom(nCell, b.Turn)
 				if cell.IsFood() {
 					b.ate[id] = true
+					if id == myIndex {
+						b.foodTracker.add(Coord{x, y}, b.Turn)
+					}
 				}
 				b.areas[id] += 1
 				done = false
@@ -158,6 +168,9 @@ func (b *Board) Update() bool {
 				cell.NewHeadFrom(nCell, b.Turn)
 				if cell.IsFood() {
 					b.ate[id] = true
+					if id == myIndex {
+						b.foodTracker.add(Coord{x, y}, b.Turn)
+					}
 				}
 				b.areas[id] += 1
 				done = false
@@ -168,6 +181,9 @@ func (b *Board) Update() bool {
 				cell.NewHeadFrom(nCell, b.Turn)
 				if cell.IsFood() {
 					b.ate[id] = true
+					if id == myIndex {
+						b.foodTracker.add(Coord{x, y}, b.Turn)
+					}
 				}
 				b.areas[id] += 1
 				done = false
@@ -214,7 +230,7 @@ func (b *Board) Update() bool {
 	return done
 }
 
-func (b *Board) fill() map[SnakeIndex]*EvalResult {
+func (b *Board) fill(myIndex SnakeIndex) map[SnakeIndex]*EvalResult {
 	results := make(map[SnakeIndex]*EvalResult)
 	var longest int = 0
 	for snakeIndex, l := range b.lengths {
@@ -235,7 +251,7 @@ func (b *Board) fill() map[SnakeIndex]*EvalResult {
 	done := false
 	for !done {
 		// fmt.Println(b.String())
-		done = b.Update()
+		done = b.Update(myIndex)
 		if (int(b.Turn) >= b.Width*b.Height) || (int(b.Turn) >= longest*2) {
 			// if int(b.Turn) >= b.Width*b.Height {
 			done = true
@@ -248,11 +264,13 @@ func (b *Board) fill() map[SnakeIndex]*EvalResult {
 	for id, area := range b.areas {
 		results[id].Area = int(area)
 	}
-	for snakeIndex, length := range b.lengths {
-		origLen := b.lengths1[snakeIndex]
-		food := length - origLen
-		results[snakeIndex].Food = int(food)
-	}
+	// for snakeIndex, length := range b.lengths {
+	// 	origLen := b.lengths1[snakeIndex]
+	// 	food := length - origLen
+	// 	results[snakeIndex].Food = int(food)
+	// }
+	results[myIndex].Food = b.foodTracker.score
+
 	// for k, v := range results {
 	// 	fmt.Printf("Snake %d Area: %d\n", k, v.Area)
 	// 	fmt.Printf("Snake %d Food: %d\n", k, v.Food)
@@ -280,12 +298,12 @@ func (b *Board) String() string {
 // Per snake result
 type EvalResult struct {
 	Area int
-	Food int
+	Food float64
 	// TODO: health cost to nearest food (acount for hazards)
 }
 
 func (e EvalResult) String() string {
-	return fmt.Sprintf("area: %d, food: %d", e.Area, e.Food)
+	return fmt.Sprintf("area: %d, food: %.1f", e.Area, e.Food)
 }
 
 // For debugging
@@ -364,28 +382,29 @@ func (b *Board) Eval(index SnakeIndex) float64 {
 	// how much space do we have relative to other snakes?
 	// mySpace - (otherSpace / number of opponents)
 	// -100,100
-	results := b.fill()
-	myArea := 0
-	// myFood := 0
-	othersArea := 0
-	othersFood := 0
+	results := b.fill(index)
+	myArea := 0.0
+	othersArea := 0.0
 	for k, v := range results {
 		if k == index {
-			myArea = min(v.Area/myLength, 3)
-			// myFood = v.Food
+			myArea = minf(float64(v.Area)/float64(myLength), 3)
 		} else {
-			othersArea += min(v.Area/b.lengths[k], 3)
-			othersFood += v.Food
+			othersArea += minf(float64(v.Area)/float64(b.lengths[k]), 3)
 		}
 	}
 	rawArea := myArea
 	if aliveCount > 0 {
-		rawArea = myArea - (othersArea / aliveCount)
+		rawArea = myArea - (othersArea / float64(aliveCount))
 	}
 	areaScore := remap(float64(rawArea), -3, 3, -100, 100)
 	score += areaScore
 
-	// fmt.Printf("score: %.1f iDead: %.1f othersDead: %.1f health: %.1f length: %.1f area me/others/raw/score: %d/%d/%d/%.1f\n", score, iDeadScore, othersDeadScore, healthScore, longestScore, myArea, othersArea, rawArea, areaScore)
+	// Food
+	// this is all calculated in the foodTracker struct for my snake
+	foodScore := float64(results[index].Food)
+	score += foodScore
+
+	// fmt.Printf("score: %.1f iDead: %.1f othersDead: %.1f health: %.1f food: %.1f length: %.1f area me/others/raw/score: %.1f/%.1f/%.1f/%.1f\n", score, iDeadScore, othersDeadScore, healthScore, foodScore, longestScore, myArea, othersArea, rawArea, areaScore)
 
 	return score
 }

@@ -121,7 +121,7 @@ func TestFood1(t *testing.T) {
 		},
 	}
 
-	treeState := NewState(&state, 2)
+	treeState := NewState(&state, 1)
 	move := treeState.FindBestMove(true)
 	fmt.Printf("got move: %v\n", move)
 
@@ -194,5 +194,69 @@ func TestTailOk01(t *testing.T) {
 	}
 	if move == Right {
 		t.Errorf("snake moved into other snake, %v", move)
+	}
+}
+
+func TestFood2(t *testing.T) {
+	state := wire.GameState{
+		Game: wire.Game{
+			ID: "aca4534f-c894-4e02-8aa3-a006cb1f4a54",
+			Ruleset: wire.Ruleset{
+				Name:    "standard",
+				Version: "v1.0.22",
+			},
+			Timeout: 500,
+		},
+		Turn: 251,
+		Board: wire.Board{
+			Height: 11,
+			Width:  11,
+			Food:   []wire.Coord{{6, 0}, {10, 2}, {5, 7}},
+			Snakes: []wire.Battlesnake{
+				{
+					ID:      "gs_Wkf6xBfg7MDgMRPXPqKDkgDB",
+					Name:    "Wild Heart ≡ƒºí",
+					Health:  89,
+					Head:    wire.Coord{5, 0},
+					Body:    []wire.Coord{{5, 0}, {5, 1}, {5, 2}, {5, 3}, {5, 4}, {4, 4}, {4, 3}, {4, 2}, {3, 2}, {3, 3}, {3, 4}, {3, 5}, {4, 5}, {4, 6}, {4, 7}, {3, 7}, {2, 7}, {2, 6}, {2, 5}, {1, 5}, {1, 4}, {2, 4}, {2, 3}, {2, 2}, {2, 1}, {2, 0}},
+					Length:  26,
+					Latency: "103",
+					Shout:   "≡ƒºí",
+				},
+				{
+					ID:      "gs_4chD3GwkVwFdQbvK9tqMwb3V",
+					Name:    "nomblegomble",
+					Health:  7,
+					Head:    wire.Coord{5, 10},
+					Body:    []wire.Coord{{5, 10}, {4, 10}, {3, 10}, {2, 10}, {1, 10}, {0, 10}, {0, 9}},
+					Length:  7,
+					Latency: "57",
+					Shout:   "",
+				},
+			},
+		},
+		You: wire.Battlesnake{
+			ID:      "gs_4chD3GwkVwFdQbvK9tqMwb3V",
+			Name:    "nomblegomble",
+			Health:  7,
+			Head:    wire.Coord{5, 10},
+			Body:    []wire.Coord{{5, 10}, {4, 10}, {3, 10}, {2, 10}, {1, 10}, {0, 10}, {0, 9}},
+			Length:  7,
+			Latency: "57",
+			Shout:   "",
+		},
+	}
+
+	treeState := NewState(&state, 1)
+	move := treeState.FindBestMove(true)
+
+	if move == Right {
+		t.Errorf("snake moved away from food, %v", move)
+	}
+	if move == Left {
+		t.Errorf("snake moved into self, %v", move)
+	}
+	if move == Up {
+		t.Errorf("snake moved into wall, %v", move)
 	}
 }
