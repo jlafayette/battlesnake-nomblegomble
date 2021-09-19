@@ -79,8 +79,10 @@ func (b *Board) Load(snakes []*Snake, foods, hazards []Coord) {
 	for _, snake := range snakes {
 		b.dead[SnakeIndex(snake.Index)] = snake.Dead
 		if snake.Dead {
-			b.lengths[SnakeIndex(snake.Index)] = 0
-			b.lengths1[SnakeIndex(snake.Index)] = 0
+			// Lengths shouldn't ever be zero in case we need to divide by them
+			// besides, 3 is the smallest a snake can be
+			b.lengths[SnakeIndex(snake.Index)] = 3
+			b.lengths1[SnakeIndex(snake.Index)] = 3
 			b.health[SnakeIndex(snake.Index)] = 0
 			continue
 		}
@@ -346,6 +348,9 @@ func (b *Board) Eval(index SnakeIndex) float64 {
 	if !ok {
 		panic("no length!")
 	}
+	if myLength <= 0 {
+		panic("my length is less than or equal to zero!")
+	}
 	otherLongest := 0
 	for i, l := range b.lengths {
 		if i == index {
@@ -366,10 +371,10 @@ func (b *Board) Eval(index SnakeIndex) float64 {
 	othersFood := 0
 	for k, v := range results {
 		if k == index {
-			myArea = v.Area
+			myArea = min(v.Area/myLength, 3)
 			// myFood = v.Food
 		} else {
-			othersArea += v.Area
+			othersArea += min(v.Area/b.lengths[k], 3)
 			othersFood += v.Food
 		}
 	}
@@ -377,11 +382,10 @@ func (b *Board) Eval(index SnakeIndex) float64 {
 	if aliveCount > 0 {
 		rawArea = myArea - (othersArea / aliveCount)
 	}
-	areaClamped := clamp(rawArea, min(0, rawArea), myLength*3)
-	areaScore := remap(float64(areaClamped), 0, float64(myLength*3), -100, 100)
+	areaScore := remap(float64(rawArea), -3, 3, -100, 100)
 	score += areaScore
 
-	// fmt.Printf("score: %.1f iDead: %.1f othersDead: %.1f health: %.1f length: %.1f area raw/score: %d/%.1f\n", score, iDeadScore, othersDeadScore, healthScore, longestScore, rawArea, areaScore)
+	// fmt.Printf("score: %.1f iDead: %.1f othersDead: %.1f health: %.1f length: %.1f area me/others/raw/score: %d/%d/%d/%.1f\n", score, iDeadScore, othersDeadScore, healthScore, longestScore, myArea, othersArea, rawArea, areaScore)
 
 	return score
 }

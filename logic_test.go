@@ -157,82 +157,82 @@ func TestWallAvoidance(t *testing.T) {
 	}
 }
 
-func TestSelfAvoidance(t *testing.T) {
-	tests := []struct {
-		name     string
-		input    wire.Battlesnake
-		intoSelf []string
-		intoWall []string
-	}{
-		{
-			name: "body check",
-			input: wire.Battlesnake{
-				ID:     "my-id",
-				Length: 7,
-				Health: 90,
-				Head:   wire.Coord{X: 5, Y: 5},
-				Body:   []wire.Coord{{X: 5, Y: 5}, {X: 5, Y: 4}, {X: 6, Y: 4}, {X: 6, Y: 5}, {X: 6, Y: 6}, {X: 5, Y: 6}, {X: 4, Y: 6}},
-			},
-			intoSelf: []string{"up", "right", "down"},
-		},
-		// tail is ok if not at full health
-		{
-			name: "tail chase ok 1",
-			input: wire.Battlesnake{
-				ID:     "my-id",
-				Length: 4,
-				Health: 99,
-				Head:   wire.Coord{X: 11, Y: 0},
-				Body:   []wire.Coord{{X: 11, Y: 0}, {X: 10, Y: 0}, {X: 10, Y: 1}, {X: 11, Y: 1}},
-			},
-			intoSelf: []string{"left"},
-			intoWall: []string{"down", "right"},
-		},
-		{
-			name: "tail chase ok 2",
-			input: wire.Battlesnake{
-				ID:     "my-id",
-				Length: 4,
-				Health: 99,
-				Head:   wire.Coord{X: 0, Y: 11},
-				Body:   []wire.Coord{{X: 0, Y: 11}, {X: 1, Y: 11}, {X: 1, Y: 10}, {X: 0, Y: 10}},
-			},
-			intoSelf: []string{"right"},
-			intoWall: []string{"up", "left"},
-		},
-		{
-			name: "tail chase not ok (just eaten)",
-			input: wire.Battlesnake{
-				ID:     "my-id",
-				Length: 6,
-				Health: 100,
-				Head:   wire.Coord{X: 1, Y: 1},
-				Body:   []wire.Coord{{X: 1, Y: 1}, {X: 1, Y: 2}, {X: 2, Y: 2}, {X: 2, Y: 1}, {X: 2, Y: 0}, {X: 1, Y: 0}},
-			},
-			intoSelf: []string{"up", "right", "down"},
-		},
-	}
+// func TestSelfAvoidance(t *testing.T) {
+// 	tests := []struct {
+// 		name     string
+// 		input    wire.Battlesnake
+// 		intoSelf []string
+// 		intoWall []string
+// 	}{
+// 		{
+// 			name: "body check",
+// 			input: wire.Battlesnake{
+// 				ID:     "my-id",
+// 				Length: 7,
+// 				Health: 90,
+// 				Head:   wire.Coord{X: 5, Y: 5},
+// 				Body:   []wire.Coord{{X: 5, Y: 5}, {X: 5, Y: 4}, {X: 6, Y: 4}, {X: 6, Y: 5}, {X: 6, Y: 6}, {X: 5, Y: 6}, {X: 4, Y: 6}},
+// 			},
+// 			intoSelf: []string{"up", "right", "down"},
+// 		},
+// 		// tail is ok if not at full health
+// 		{
+// 			name: "tail chase ok 1",
+// 			input: wire.Battlesnake{
+// 				ID:     "my-id",
+// 				Length: 4,
+// 				Health: 99,
+// 				Head:   wire.Coord{X: 11, Y: 0},
+// 				Body:   []wire.Coord{{X: 11, Y: 0}, {X: 10, Y: 0}, {X: 10, Y: 1}, {X: 11, Y: 1}},
+// 			},
+// 			intoSelf: []string{"left"},
+// 			intoWall: []string{"down", "right"},
+// 		},
+// 		{
+// 			name: "tail chase ok 2",
+// 			input: wire.Battlesnake{
+// 				ID:     "my-id",
+// 				Length: 4,
+// 				Health: 99,
+// 				Head:   wire.Coord{X: 0, Y: 11},
+// 				Body:   []wire.Coord{{X: 0, Y: 11}, {X: 1, Y: 11}, {X: 1, Y: 10}, {X: 0, Y: 10}},
+// 			},
+// 			intoSelf: []string{"right"},
+// 			intoWall: []string{"up", "left"},
+// 		},
+// 		{
+// 			name: "tail chase not ok (just eaten)",
+// 			input: wire.Battlesnake{
+// 				ID:     "my-id",
+// 				Length: 6,
+// 				Health: 100,
+// 				Head:   wire.Coord{X: 1, Y: 1},
+// 				Body:   []wire.Coord{{X: 1, Y: 1}, {X: 1, Y: 2}, {X: 2, Y: 2}, {X: 2, Y: 1}, {X: 2, Y: 0}, {X: 1, Y: 0}},
+// 			},
+// 			intoSelf: []string{"up", "right", "down"},
+// 		},
+// 	}
 
-	for _, tc := range tests {
-		state := wire.GameState{
-			Board: wire.Board{
-				Width:  12,
-				Height: 12,
-				Snakes: []wire.Battlesnake{tc.input},
-			},
-			You: tc.input,
-		}
+// 	for _, tc := range tests {
+// 		state := wire.GameState{
+// 			Board: wire.Board{
+// 				Width:  12,
+// 				Height: 12,
+// 				Snakes: []wire.Battlesnake{tc.input},
+// 			},
+// 			You: tc.input,
+// 		}
 
-		nextMove := move(state)
+// 		nextMove := move(state)
 
-		if contains(tc.intoSelf, nextMove.Move) {
-			t.Errorf("%s: snake moved into self, %s", tc.name, nextMove.Move)
-		}
-		if contains(tc.intoWall, nextMove.Move) {
-			t.Errorf("%s: snake moved into wall, %s", tc.name, nextMove.Move)
-		}
-	}
-}
+// 		if contains(tc.intoSelf, nextMove.Move) {
+// 			t.Errorf("%s: snake moved into self, %s", tc.name, nextMove.Move)
+// 		}
+// 		if contains(tc.intoWall, nextMove.Move) {
+// 			t.Errorf("%s: snake moved into wall, %s", tc.name, nextMove.Move)
+// 		}
+// 	}
+// }
 
 func TestSelfAvoidance2(t *testing.T) {
 	state := wire.GameState{
@@ -319,14 +319,20 @@ func TestHead2Head(t *testing.T) {
 	}{
 		{
 			me: wire.Battlesnake{
-				ID:   "snake-508e96ac-94ad-11ea-bb37",
-				Head: wire.Coord{X: 0, Y: 0},
-				Body: []wire.Coord{{X: 0, Y: 0}, {X: 0, Y: 1}, {X: 0, Y: 2}},
+				ID:     "snake-508e96ac-94ad-11ea-bb37",
+				Name:   "foo",
+				Length: 3,
+				Health: 78,
+				Head:   wire.Coord{X: 0, Y: 0},
+				Body:   []wire.Coord{{X: 0, Y: 0}, {X: 0, Y: 1}, {X: 0, Y: 2}},
 			},
 			other: wire.Battlesnake{
-				ID:   "snake-b67f4906-94ae-11ea-bb37",
-				Head: wire.Coord{X: 2, Y: 0},
-				Body: []wire.Coord{{X: 2, Y: 0}, {X: 2, Y: 1}, {X: 2, Y: 2}},
+				ID:     "snake-b67f4906-94ae-11ea-bb37",
+				Name:   "bar",
+				Length: 3,
+				Health: 98,
+				Head:   wire.Coord{X: 2, Y: 0},
+				Body:   []wire.Coord{{X: 2, Y: 0}, {X: 2, Y: 1}, {X: 2, Y: 2}},
 			},
 			expected: "right",
 		},
@@ -337,6 +343,7 @@ func TestHead2Head(t *testing.T) {
 				Width:  7,
 				Height: 7,
 				Snakes: []wire.Battlesnake{tc.me, tc.other},
+				Food:   []wire.Coord{{X: 6, Y: 6}},
 			},
 			You: tc.me,
 		}
