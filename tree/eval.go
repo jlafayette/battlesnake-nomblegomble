@@ -352,7 +352,8 @@ func (b *Board) Eval(index SnakeIndex) float64 {
 		panic("no health?!")
 	}
 	// TODO: account for distance to nearest food
-	healthScore := remap(float64(100-health), 0, 100, -200, 10)
+	// healthScore := remap(float64(100-health), 0, 100, 0, 100)
+	healthScore := float64(health)
 	score += healthScore
 
 	// what's our length relative to other snakes?
@@ -401,10 +402,13 @@ func (b *Board) Eval(index SnakeIndex) float64 {
 
 	// Food
 	// this is all calculated in the foodTracker struct for my snake
-	foodScore := float64(results[index].Food)
+	rawFoodScore := float64(results[index].Food)
+	// Food score is multiplied by hunger
+	foodMult := (100.0 - float64(health)) * rawFoodScore
+	foodScore := rawFoodScore * foodMult * 0.01
 	score += foodScore
 
-	// fmt.Printf("score: %.1f iDead: %.1f othersDead: %.1f health: %.1f food: %.1f length: %.1f area me/others/raw/score: %.1f/%.1f/%.1f/%.1f\n", score, iDeadScore, othersDeadScore, healthScore, foodScore, longestScore, myArea, othersArea, rawArea, areaScore)
+	// fmt.Printf("score: %.1f iDead: %.1f othersDead: %.1f health: %.1f food: %.1f/%.1f length: %.1f area me/others/raw/score: %.1f/%.1f/%.1f/%.1f\n", score, iDeadScore, othersDeadScore, healthScore, rawFoodScore, foodScore, longestScore, myArea, othersArea, rawArea, areaScore)
 
 	return score
 }

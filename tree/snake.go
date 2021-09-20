@@ -5,8 +5,9 @@ import (
 )
 
 type eatEvent struct {
-	turn  int
-	coord Coord
+	turn       int
+	coord      Coord
+	prevHealth int
 }
 
 func removeEatEvent(s []eatEvent, i int) []eatEvent {
@@ -101,8 +102,9 @@ func (s *Snake) Move(m Move, food, die bool) error {
 
 	if food {
 		s.Length += 1
-		s.eatEvents = append(s.eatEvents, eatEvent{turn: s.turn, coord: s.ba[s.start]})
+		s.eatEvents = append(s.eatEvents, eatEvent{turn: s.turn, coord: s.ba[s.start], prevHealth: s.Health})
 		s.ateLastTurn = true
+		s.Health = 100
 	} else {
 		s.ateLastTurn = false
 	}
@@ -135,6 +137,7 @@ func (s *Snake) UndoMove() (*Coord, error) {
 			s.Length -= 1
 			food = &event.coord
 			removeEventIndex = i
+			s.Health = event.prevHealth
 			break
 		}
 	}

@@ -260,3 +260,56 @@ func TestFood2(t *testing.T) {
 		t.Errorf("snake moved into wall, %v", move)
 	}
 }
+
+func TestFoodBasic(t *testing.T) {
+	tests := []struct {
+		name     string
+		input    wire.Battlesnake
+		food     []wire.Coord
+		expected Move
+	}{
+		{
+			name: "eat when starving",
+			input: wire.Battlesnake{
+				Head:   wire.Coord{X: 5, Y: 5},
+				Body:   []wire.Coord{{X: 5, Y: 5}, {X: 5, Y: 4}, {X: 6, Y: 4}},
+				Health: 1,
+				Length: 3,
+				ID:     "my-id",
+			},
+			food:     []wire.Coord{{X: 6, Y: 5}},
+			expected: Right,
+		},
+		{
+			name: "go towards food when hungry",
+			input: wire.Battlesnake{
+				Head:   wire.Coord{X: 5, Y: 5},
+				Body:   []wire.Coord{{X: 5, Y: 5}, {X: 5, Y: 4}, {X: 6, Y: 4}},
+				Health: 20,
+				Length: 3,
+				ID:     "my-id",
+			},
+			food:     []wire.Coord{{X: 0, Y: 5}},
+			expected: Left,
+		},
+	}
+
+	for _, tc := range tests {
+		state := wire.GameState{
+			Board: wire.Board{
+				Width:  12,
+				Height: 12,
+				Snakes: []wire.Battlesnake{tc.input},
+				Food:   tc.food,
+			},
+			You: tc.input,
+		}
+
+		treeState := NewState(&state, 1)
+		move := treeState.FindBestMove(true)
+
+		if move != tc.expected {
+			t.Errorf("%s: expected %s, got %s", tc.name, tc.expected, move)
+		}
+	}
+}
