@@ -7,7 +7,7 @@ import (
 	"github.com/jlafayette/battlesnake-go/wire"
 )
 
-func TestSpace1(t *testing.T) {
+func TestSpace01(t *testing.T) {
 	state := wire.GameState{
 		Game: wire.Game{
 			ID: "e7e26081-2012-4184-b755-dcddf9d027b6",
@@ -64,6 +64,77 @@ func TestSpace1(t *testing.T) {
 		t.Errorf("snake moved into too small of space, %v", move)
 	}
 	if move == Right {
+		t.Errorf("snake moved into self, %v", move)
+	}
+	if move == Left {
+		t.Errorf("snake moved into wall, %v", move)
+	}
+}
+
+func TestSpace02(t *testing.T) {
+	state := wire.GameState{
+		Game: wire.Game{
+			ID: "19cd79a4-e053-4045-8eeb-388de9581ef4",
+			Ruleset: wire.Ruleset{
+				Name:    "standard",
+				Version: "v1.0.22",
+			},
+			Timeout: 500,
+		},
+		Turn: 123,
+		Board: wire.Board{
+			Height: 11,
+			Width:  11,
+			Food:   []wire.Coord{{6, 10}},
+			Snakes: []wire.Battlesnake{
+				{
+					ID:      "gs_WKyKwcjyQdRj8prJxrmWYDH8",
+					Name:    "Voxel",
+					Health:  98,
+					Head:    wire.Coord{6, 9},
+					Body:    []wire.Coord{{6, 9}, {6, 8}, {6, 7}, {7, 7}, {7, 6}, {7, 5}, {7, 4}, {6, 4}, {6, 3}, {5, 3}, {5, 4}, {4, 4}, {4, 5}, {3, 5}, {3, 6}, {3, 7}, {3, 8}, {4, 8}},
+					Length:  18,
+					Latency: "72",
+					Shout:   "",
+				},
+				{
+					ID:      "gs_CXjSk4VBPdF6wRFvbcBPfQQd",
+					Name:    "nomblegomble",
+					Health:  77,
+					Head:    wire.Coord{0, 9},
+					Body:    []wire.Coord{{0, 9}, {0, 10}, {1, 10}, {2, 10}, {3, 10}, {3, 9}, {2, 9}, {2, 8}, {1, 8}, {1, 7}, {0, 7}},
+					Length:  11,
+					Latency: "28",
+					Shout:   "",
+				},
+			},
+		},
+		You: wire.Battlesnake{
+			ID:      "gs_CXjSk4VBPdF6wRFvbcBPfQQd",
+			Name:    "nomblegomble",
+			Health:  77,
+			Head:    wire.Coord{0, 9},
+			Body:    []wire.Coord{{0, 9}, {0, 10}, {1, 10}, {2, 10}, {3, 10}, {3, 9}, {2, 9}, {2, 8}, {1, 8}, {1, 7}, {0, 7}},
+			Length:  11,
+			Latency: "28",
+			Shout:   "",
+		},
+	}
+
+	// [0: up 1: down 2: dead 3: dead]
+	// [0: left 1: left 2: dead 3: dead]
+	// [0: left 1: right 2: dead 3: dead]
+	// []
+	// score: 92.0 iDead: 0.0 othersDead: 50.0 health: 77.0 food: 0.0/0.0 length: -35.0 area me/others/raw/score: 3.0/3.0/0.0/0.0
+
+	// This was tricky because 1 and 2 depth passed, but 3 failed
+	treeState := NewState(&state, 3)
+	move := treeState.FindBestMove(true)
+
+	if move == Right {
+		t.Errorf("snake moved into too small of space, %v", move)
+	}
+	if move == Up {
 		t.Errorf("snake moved into self, %v", move)
 	}
 	if move == Left {

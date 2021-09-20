@@ -379,6 +379,7 @@ func (s *State) ApplyMove() {
 				break
 			}
 			if head.snake.Index == otherHead.snake.Index {
+				die = head.snake.VsSelf(head.move)
 				continue
 			}
 			die = head.snake.Vs(otherHead.snake, head.move, otherHead.move)
@@ -456,6 +457,14 @@ func (s *State) Score() {
 	s.node.scored = true
 }
 
+func (s *State) printNodeStack() {
+	n := s.node
+	for n != nil {
+		fmt.Println(n.moves)
+		n = n.parent
+	}
+}
+
 func (s *State) FindBestMove(verbose bool) Move {
 	// Not going to do iterative deepening yet, just a set depth
 
@@ -483,6 +492,7 @@ func (s *State) FindBestMove(verbose bool) Move {
 				// score the current node
 				if !s.node.scored && (s.currentDepth >= s.maxDepth) {
 					// fmt.Printf("%v\n", s.node.moves)
+					// s.printNodeStack()
 					s.evalBoard.Load(s.Snakes, s.Food, s.Hazards)
 					score := s.evalBoard.Eval(SnakeIndex(s.MyIndex))
 					s.node.score = score

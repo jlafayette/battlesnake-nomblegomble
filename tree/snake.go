@@ -199,3 +199,18 @@ func (s1 *Snake) Vs(s2 *Snake, m1, m2 Move) bool {
 
 	return die1
 }
+
+func (s *Snake) VsSelf(m Move) bool {
+	die := false
+	newHead := s.Head().Move(m)
+	for i, b := range s.Body {
+		if !s.ateLastTurn && i == len(s.Body)-1 {
+			continue
+		}
+		if newHead.Equals(b) {
+			die = true
+			break
+		}
+	}
+	return die
+}
