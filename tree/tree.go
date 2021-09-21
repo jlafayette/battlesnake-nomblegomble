@@ -509,25 +509,50 @@ func (s *State) FindBestMove(verbose bool) Move {
 				// then go up to parent and score it
 				// scan over neighbors, taking the min of each group (grouped by myMove)
 				// take the max of the group
+
+				// debug print
+				// fmt.Println("--- choosing a best move from siblings")
+				// bkNode := s.node
+				// s.node = s.node.parent
+				// s.printNodeStack()
+				// s.node = bkNode
+
 				lastChild := s.node
 				maxScore := -99999.0
+
 				bestMove := Dead // this is kind of the None state for moves
+				// Sometimes there is no good move if the opponent plays perfectly (and can
+				// predict the future), so in this case, we need a backup 'lucky' move to
+				// play instead. This comes up when there are losing H2H moves, but the
+				// other snake might go a different direction, so it's better to try it
+				// and hope for the best.
+				luckyMove := Up // Use this if bestMove is Dead
+
 				for _, m1 := range []Move{Left, Right, Up, Down} {
 					minScore := 99999.0
+					luckyScore := -99999.0
 					atLeastOne := false
 					node := lastChild
 					for node != nil {
 						if node.moves[s.MyIndex].move == m1 {
 							atLeastOne = true
 							minScore = minf(minScore, node.score)
+							luckyScore = maxf(luckyScore, node.score)
 						}
 						node = node.prevSibling
 					}
 					if atLeastOne {
 						if minScore > maxScore {
 							bestMove = m1
+							// fmt.Printf("  found new best move: %v\n", m1)
+						}
+						if luckyScore > maxScore {
+							luckyMove = m1
+							// fmt.Printf("  found new lucky move %v\n", m1)
 						}
 						maxScore = maxf(maxScore, minScore)
+					} else {
+						// fmt.Printf("  atLeastOne: %v for %v\n", atLeastOne, m1)
 					}
 				}
 
@@ -535,9 +560,17 @@ func (s *State) FindBestMove(verbose bool) Move {
 				s.UpLevel()
 				s.node.score = maxScore
 				s.node.scored = true
+				// fmt.Printf("  Pushed a new score (%.1f) up to the parent\n", maxScore)
+
 				if s.node.parent == nil {
 					if verbose {
 						fmt.Printf("Ran %d loops\n", loop_count)
+					}
+					if bestMove == Dead {
+						if verbose {
+							fmt.Printf("No good move, let's hope '%v' works\n", luckyMove)
+						}
+						return luckyMove
 					}
 					return bestMove
 				}

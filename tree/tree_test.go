@@ -384,3 +384,91 @@ func TestFoodBasic(t *testing.T) {
 		}
 	}
 }
+
+// prefer a 50% chance to hitting the wall
+func TestH2H01(t *testing.T) {
+	state := wire.GameState{
+		Game: wire.Game{
+			ID: "7c1978a8-f0b5-4a58-9e0b-5df817230715",
+			Ruleset: wire.Ruleset{
+				Name:    "standard",
+				Version: "v1.0.22",
+			},
+			Timeout: 500,
+		},
+		Turn: 29,
+		Board: wire.Board{
+			Height: 11,
+			Width:  11,
+			Food:   []wire.Coord{{3, 0}},
+			Snakes: []wire.Battlesnake{
+				{
+					ID:      "gs_MSJgRvk6tpfKQS9g93h9D8fD",
+					Name:    "Secret Snake",
+					Health:  89,
+					Head:    wire.Coord{6, 3},
+					Body:    []wire.Coord{{6, 3}, {7, 3}, {7, 2}, {8, 2}},
+					Length:  4,
+					Latency: "42",
+					Shout:   "",
+				},
+				{
+					ID:      "gs_JKHrcwtwQmP3XSPVwpFjyfC7",
+					Name:    "trentren-vilu",
+					Health:  99,
+					Head:    wire.Coord{6, 9},
+					Body:    []wire.Coord{{6, 9}, {5, 9}, {4, 9}, {3, 9}, {3, 8}, {4, 8}, {5, 8}, {5, 7}, {4, 7}},
+					Length:  9,
+					Latency: "43",
+					Shout:   "",
+				},
+				{
+					ID:      "gs_R3HxxD89jPQYjrrPmc8pYW7K",
+					Name:    "nomblegomble",
+					Health:  96,
+					Head:    wire.Coord{7, 10},
+					Body:    []wire.Coord{{7, 10}, {8, 10}, {9, 10}, {9, 9}, {9, 8}, {8, 8}},
+					Length:  6,
+					Latency: "68",
+					Shout:   "",
+				},
+				{
+					ID:      "gs_QGVk7YrR3QWPPXXdvYGhpdHG",
+					Name:    "Serpentor",
+					Health:  87,
+					Head:    wire.Coord{7, 4},
+					Body:    []wire.Coord{{7, 4}, {7, 5}, {7, 6}, {7, 7}, {8, 7}, {8, 6}},
+					Length:  6,
+					Latency: "92",
+					Shout:   "",
+				},
+			},
+		},
+		You: wire.Battlesnake{
+			ID:      "gs_R3HxxD89jPQYjrrPmc8pYW7K",
+			Name:    "nomblegomble",
+			Health:  96,
+			Head:    wire.Coord{7, 10},
+			Body:    []wire.Coord{{7, 10}, {8, 10}, {9, 10}, {9, 9}, {9, 8}, {8, 8}},
+			Length:  6,
+			Latency: "68",
+			Shout:   "",
+		},
+	}
+
+	// 1 is fine, >2 was returning 'dead' move since all H2H moves end in (possible death)
+	// to fix this, add the 'lucky' move as a backup.
+	treeState := NewState(&state, 2)
+	move := treeState.FindBestMove(true)
+	fmt.Printf("got move: %v\n", move)
+
+	if move == Dead {
+		t.Errorf("should never get '%v' as move", move)
+	}
+	if move == Right {
+		t.Errorf("snake moved into self, %v", move)
+	}
+	if move == Up {
+		t.Errorf("snake moved into wall, %v", move)
+	}
+}
