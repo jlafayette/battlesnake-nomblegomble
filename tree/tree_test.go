@@ -472,3 +472,94 @@ func TestH2H01(t *testing.T) {
 		t.Errorf("snake moved into wall, %v", move)
 	}
 }
+
+var result Move
+var benchState wire.GameState
+
+func benchmark01(depth int, b *testing.B) {
+	b.ReportAllocs()
+
+	var r Move
+
+	state := wire.GameState{
+		Game: wire.Game{
+			ID: "eb8f2aa1-fce4-473a-b33d-a8181573c478",
+			Ruleset: wire.Ruleset{
+				Name:    "standard",
+				Version: "v1.0.22",
+			},
+			Timeout: 500,
+		},
+		Turn: 2,
+		Board: wire.Board{
+			Height: 11,
+			Width:  11,
+			Food:   []wire.Coord{{0, 6}, {5, 5}, {8, 4}},
+			Snakes: []wire.Battlesnake{
+				{
+					ID:      "gs_jCFX9pP8FBhckB9BTSBTvgRF",
+					Name:    "haspid",
+					Health:  98,
+					Head:    wire.Coord{3, 5},
+					Body:    []wire.Coord{{3, 5}, {2, 5}, {1, 5}},
+					Length:  3,
+					Latency: "264",
+					Shout:   "",
+				},
+				{
+					ID:      "gs_pkWJTmghRJfbWk6JGmv3y94V",
+					Name:    "trentren-vilu",
+					Health:  100,
+					Head:    wire.Coord{4, 8},
+					Body:    []wire.Coord{{4, 8}, {5, 8}, {5, 9}, {5, 9}},
+					Length:  4,
+					Latency: "44",
+					Shout:   "",
+				},
+				{
+					ID:      "gs_VChQfdbhMP8MQ8PCk8wqmrkS",
+					Name:    "nomblegomble",
+					Health:  100,
+					Head:    wire.Coord{10, 6},
+					Body:    []wire.Coord{{10, 6}, {9, 6}, {9, 5}, {9, 5}},
+					Length:  4,
+					Latency: "137",
+					Shout:   "",
+				},
+				{
+					ID:      "gs_wyd7SF9TfgCWqGVwvmwCtRPb",
+					Name:    "caicai-vilu",
+					Health:  100,
+					Head:    wire.Coord{0, 0},
+					Body:    []wire.Coord{{0, 0}, {1, 0}, {1, 1}, {1, 1}},
+					Length:  4,
+					Latency: "42",
+					Shout:   "",
+				},
+			},
+		},
+		You: wire.Battlesnake{
+			ID:      "gs_VChQfdbhMP8MQ8PCk8wqmrkS",
+			Name:    "nomblegomble",
+			Health:  100,
+			Head:    wire.Coord{10, 6},
+			Body:    []wire.Coord{{10, 6}, {9, 6}, {9, 5}, {9, 5}},
+			Length:  4,
+			Latency: "137",
+			Shout:   "",
+		},
+	}
+	b.ResetTimer()
+
+	for n := 0; n < b.N; n++ {
+		treeState := NewState(&state, depth)
+		r = treeState.FindBestMove(false)
+		// b.Error("failed!")
+	}
+
+	result = r
+}
+
+func Benchmark01_1(b *testing.B) { benchmark01(1, b) }
+func Benchmark01_2(b *testing.B) { benchmark01(2, b) }
+func Benchmark01_3(b *testing.B) { benchmark01(3, b) }

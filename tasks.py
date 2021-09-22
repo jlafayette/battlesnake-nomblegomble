@@ -103,3 +103,8 @@ def deploy(ctx):
 @task
 def format(ctx):
     ctx.run("black -l 100 tasks.py")
+
+
+# Test Benchmark
+# cd tree
+# go test -bench Benchmark01 -run xxx > bench01-2.txt
