@@ -28,8 +28,9 @@ type Snake struct {
 	ateLastTurn bool
 	toUndo      int
 
-	Length int
-	Health int
+	Length      int
+	Health      int
+	HealthStack *IntStack
 
 	Dead   bool
 	DiedOn int
@@ -48,21 +49,22 @@ func NewSnake(index, health int, coords []Coord, turn, depth int) *Snake {
 	// b = append(b, Coord{0, 0}) // extra?
 	eatEvents := make([]eatEvent, 0)
 	return &Snake{
-		Index:     index,
-		ba:        b,
-		start:     start,
-		end:       end,
-		Body:      b[start:end],
-		eatEvents: eatEvents,
-		turn:      turn,
-		Length:    len(coords),
-		Health:    health,
-		Dead:      false,
-		DiedOn:    -1,
+		Index:       index,
+		ba:          b,
+		start:       start,
+		end:         end,
+		Body:        b[start:end],
+		eatEvents:   eatEvents,
+		turn:        turn,
+		Length:      len(coords),
+		Health:      health,
+		HealthStack: NewIntStack(depth),
+		Dead:        false,
+		DiedOn:      -1,
 	}
 }
 
-func (s *Snake) Move(m Move, food, die bool) error {
+func (s *Snake) Move(m Move, food, die, hazard bool) error {
 	// fmt.Printf("%d %d move: %v, food %v, die %v\n", s.Index, s.turn+1, m, food, die)
 
 	// Eating normally mutates the previous tail into a duplicate of the new tail,
@@ -104,9 +106,19 @@ func (s *Snake) Move(m Move, food, die bool) error {
 		s.Length += 1
 		s.eatEvents = append(s.eatEvents, eatEvent{turn: s.turn, coord: s.ba[s.start], prevHealth: s.Health})
 		s.ateLastTurn = true
+		s.HealthStack.Push(s.Health)
 		s.Health = 100
 	} else {
 		s.ateLastTurn = false
+		s.HealthStack.Push(s.Health)
+		if hazard {
+			s.Health -= 16
+		} else {
+			s.Health -= 1
+		}
+	}
+	if s.Health <= 0 {
+		die = true
 	}
 	if die {
 		// fmt.Printf("snake %d died on turn %d\n", s.Index, s.turn)
@@ -161,6 +173,7 @@ func (s *Snake) UndoMove() (*Coord, error) {
 		s.end = len(s.ba)
 	}
 	s.Body = s.ba[s.start:s.end]
+	s.Health = s.HealthStack.Pop(100)
 	return food, err
 }
 

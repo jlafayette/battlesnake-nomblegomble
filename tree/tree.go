@@ -101,7 +101,10 @@ func NewState(wireState *wire.GameState, depth int) *State {
 			break
 		}
 	}
-	hazards := make([]Coord, 0)
+	hazards := make([]Coord, 0, len(wireState.Board.Hazards))
+	for _, wireHazard := range wireState.Board.Hazards {
+		hazards = append(hazards, Coord{wireHazard.X, wireHazard.Y})
+	}
 	board := NewBoard(wireState.Board.Width, wireState.Board.Height, snakes, food, hazards)
 
 	root := &MoveNode{}
@@ -313,11 +316,12 @@ func (s *State) DownLevel() {
 }
 
 type newHeadInfo struct {
-	snake *Snake
-	coord Coord
-	food  bool
-	move  Move
-	die   bool
+	snake  *Snake
+	coord  Coord
+	food   bool
+	move   Move
+	die    bool
+	hazard bool
 }
 
 func (s *State) ApplyMove() {
@@ -335,7 +339,7 @@ func (s *State) ApplyMove() {
 		if snake.Dead {
 			// We need to call move even though the snake is dead
 			// so it's internal turn count stay accurate.
-			err := snake.Move(Dead, false, false)
+			err := snake.Move(Dead, false, false, false)
 			if err != nil {
 				fmt.Println(err.Error())
 			}
@@ -355,12 +359,20 @@ func (s *State) ApplyMove() {
 		if food {
 			s.Food = remove(s.Food, removeIndex)
 		}
+		hazard := false
+		for _, h := range s.Hazards {
+			if h.Equals(newHead) {
+				hazard = true
+				break
+			}
+		}
 		newHeads = append(newHeads,
 			&newHeadInfo{
-				snake: snake,
-				coord: newHead,
-				food:  food,
-				move:  move.move,
+				snake:  snake,
+				coord:  newHead,
+				food:   food,
+				move:   move.move,
+				hazard: hazard,
 			},
 		)
 	}
@@ -387,7 +399,7 @@ func (s *State) ApplyMove() {
 		head.die = die
 	}
 	for _, head := range newHeads {
-		err := head.snake.Move(head.move, head.food, head.die)
+		err := head.snake.Move(head.move, head.food, head.die, head.hazard)
 		if err != nil {
 			fmt.Println(err.Error())
 		}

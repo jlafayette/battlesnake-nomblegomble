@@ -473,6 +473,83 @@ func TestH2H01(t *testing.T) {
 	}
 }
 
+func TestRespect01(t *testing.T) {
+	state := wire.GameState{
+		Game: wire.Game{
+			ID: "31a26274-75d7-49d7-8dec-e34e3a348802",
+			Ruleset: wire.Ruleset{
+				Name:    "royale",
+				Version: "v1.0.22",
+			},
+			Timeout: 600,
+		},
+		Turn: 82,
+		Board: wire.Board{
+			Height: 11,
+			Width:  11,
+			Food:   []wire.Coord{{10, 0}, {8, 9}, {10, 9}, {2, 0}, {7, 1}, {4, 10}},
+			Snakes: []wire.Battlesnake{
+				{
+					ID:      "gs_jP3b937PT9XBMRGRp6JX3GmD",
+					Name:    "ChoffesBattleSnakeV1",
+					Health:  89,
+					Head:    wire.Coord{3, 3},
+					Body:    []wire.Coord{{3, 3}, {4, 3}, {4, 4}, {4, 5}, {3, 5}, {2, 5}, {2, 4}, {1, 4}, {1, 5}, {1, 6}, {1, 7}, {1, 8}},
+					Length:  12,
+					Latency: "168",
+					Shout:   "",
+				},
+				{
+					ID:      "gs_d7KD34x7mk4PBTP9RvdVSTFT",
+					Name:    "king crimson",
+					Health:  61,
+					Head:    wire.Coord{6, 4},
+					Body:    []wire.Coord{{6, 4}, {6, 3}, {5, 3}, {5, 4}, {5, 5}, {5, 6}, {6, 6}, {6, 7}},
+					Length:  8,
+					Latency: "175",
+					Shout:   "",
+				},
+				{
+					ID:      "gs_KCDr3MxmSC7Y6C3J6WdmW44H",
+					Name:    "nomblegomble",
+					Health:  29,
+					Head:    wire.Coord{9, 5},
+					Body:    []wire.Coord{{9, 5}, {9, 4}, {9, 3}, {9, 2}, {8, 2}, {7, 2}, {6, 2}, {5, 2}, {4, 2}},
+					Length:  9,
+					Latency: "31",
+					Shout:   "",
+				},
+			},
+			Hazards: []wire.Coord{{0, 10}, {1, 10}, {2, 10}, {3, 10}, {4, 10}, {5, 10}, {6, 10}, {7, 10}, {8, 10}, {9, 0}, {9, 1}, {9, 2}, {9, 3}, {9, 4}, {9, 5}, {9, 6}, {9, 7}, {9, 8}, {9, 9}, {9, 10}, {10, 0}, {10, 1}, {10, 2}, {10, 3}, {10, 4}, {10, 5}, {10, 6}, {10, 7}, {10, 8}, {10, 9}, {10, 10}},
+		},
+		You: wire.Battlesnake{
+			ID:      "gs_KCDr3MxmSC7Y6C3J6WdmW44H",
+			Name:    "nomblegomble",
+			Health:  29,
+			Head:    wire.Coord{9, 5},
+			Body:    []wire.Coord{{9, 5}, {9, 4}, {9, 3}, {9, 2}, {8, 2}, {7, 2}, {6, 2}, {5, 2}, {4, 2}},
+			Length:  9,
+			Latency: "31",
+			Shout:   "",
+		},
+	}
+
+	treeState := NewState(&state, 2)
+	move := treeState.FindBestMove(true)
+
+	if move == Up {
+		t.Errorf("snake moved needlessly through the sauce, %v", move)
+	}
+	if move == Right {
+		t.Errorf("snake moved deeper into the sauce, %v", move)
+	}
+	if move == Down {
+		t.Errorf("snake moved into self, %v", move)
+	}
+}
+
+// -- benchmarks
+
 var result Move
 var benchState wire.GameState
 

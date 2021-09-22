@@ -26,10 +26,10 @@ func TestEating01(t *testing.T) {
 
 	snake := NewSnake(0, 83, []Coord{{6, 7}, {7, 7}, {7, 6}, {7, 5}}, 19, 4)
 
-	snake.Move(Up, false, false)
-	snake.Move(Up, true, false)
-	snake.Move(Left, false, false)
-	snake.Move(Down, false, false)
+	snake.Move(Up, false, false, false)
+	snake.Move(Up, true, false, false)
+	snake.Move(Left, false, false, false)
+	snake.Move(Down, false, false, false)
 	// snake.Move(Down, false)  // panics because depth=4
 
 	if snake.Length != 5 {
@@ -85,11 +85,11 @@ func TestEating02(t *testing.T) {
 
 	snake := NewSnake(0, 100, []Coord{{9, 1}, {9, 1}, {9, 1}}, 0, 5)
 
-	snake.Move(Right, false, false)
-	snake.Move(Down, true, false)
-	snake.Move(Left, false, false)
-	snake.Move(Up, false, false)
-	snake.Move(Up, false, false)
+	snake.Move(Right, false, false, false)
+	snake.Move(Down, true, false, false)
+	snake.Move(Left, false, false, false)
+	snake.Move(Up, false, false, false)
+	snake.Move(Up, false, false, false)
 
 	if snake.Length != 4 {
 		t.Errorf("expected Length to be 4, got %d", snake.Length)
@@ -150,13 +150,13 @@ func TestEating03(t *testing.T) {
 
 	snake := NewSnake(0, 83, []Coord{{4, 3}, {4, 2}, {4, 1}, {4, 0}, {3, 0}, {2, 0}, {2, 1}, {3, 1}, {3, 2}, {2, 2}, {1, 2}, {1, 1}, {1, 0}, {0, 0}, {0, 1}, {0, 2}, {0, 3}}, 93, 7)
 
-	snake.Move(Up, false, false)
-	snake.Move(Left, true, false)
-	snake.Move(Left, true, false)
-	snake.Move(Left, false, false)
-	snake.Move(Left, true, false)
-	snake.Move(Up, false, false)
-	snake.Move(Right, false, false)
+	snake.Move(Up, false, false, false)
+	snake.Move(Left, true, false, false)
+	snake.Move(Left, true, false, false)
+	snake.Move(Left, false, false, false)
+	snake.Move(Left, true, false, false)
+	snake.Move(Up, false, false, false)
+	snake.Move(Right, false, false, false)
 
 	if snake.Length != 20 {
 		t.Errorf("expected Length to be 20, got %d", snake.Length)
@@ -201,19 +201,19 @@ func TestDead01(t *testing.T) {
 	snake := NewSnake(0, 83, []Coord{{4, 3}, {4, 2}, {4, 1}}, 1, 5)
 
 	// ddd {1, 4}, {2, 4}, {3, 4}, {4, 4}, {4, 3}, {4, 2}, {4, 1}
-	snake.Move(Up, false, false)
+	snake.Move(Up, false, false, false)
 	// fmt.Printf("Body %v\n", snake.Body)
-	snake.Move(Left, false, false)
+	snake.Move(Left, false, false, false)
 	// fmt.Printf("Body %v\n", snake.Body)
-	snake.Move(Left, false, false)
+	snake.Move(Left, false, false, false)
 	// fmt.Printf("Body %v\n", snake.Body)
-	snake.Move(Left, false, true)
+	snake.Move(Left, false, true, false)
 	// fmt.Printf("Body %v\n", snake.Body)
-	snake.Move(Dead, false, false)
+	snake.Move(Dead, false, false, false)
 	// fmt.Printf("Body %v\n", snake.Body)
-	snake.Move(Dead, false, false)
+	snake.Move(Dead, false, false, false)
 	// fmt.Printf("Body %v\n", snake.Body)
-	snake.Move(Dead, false, false)
+	snake.Move(Dead, false, false, false)
 	// fmt.Printf("Body %v\n", snake.Body)
 
 	if snake.Length != 3 {
