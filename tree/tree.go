@@ -480,12 +480,11 @@ func (s *State) printNodeStack() {
 func (s *State) FindBestMove(verbose bool) Move {
 	// Not going to do iterative deepening yet, just a set depth
 
-	loop_count := 0
+	eval_count := 0
 
 	for {
-		loop_count += 1
 		if s.node == nil {
-			fmt.Printf("ERROR: s.node == nil after %d loops\n", loop_count)
+			fmt.Printf("ERROR: s.node == nil after %d evals\n", eval_count)
 			return Up
 		}
 		// If the root node is scored, then we are done
@@ -510,6 +509,7 @@ func (s *State) FindBestMove(verbose bool) Move {
 					s.node.score = score
 					// fmt.Printf("score: %.2f\n", score)
 					s.node.scored = true
+					eval_count += 1
 				}
 			}
 		} else { // If scored
@@ -576,7 +576,7 @@ func (s *State) FindBestMove(verbose bool) Move {
 
 				if s.node.parent == nil {
 					if verbose {
-						fmt.Printf("Ran %d loops\n", loop_count)
+						fmt.Printf("Evaluated %d positions\n", eval_count)
 					}
 					if bestMove == Dead {
 						if verbose {
