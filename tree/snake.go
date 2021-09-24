@@ -112,7 +112,7 @@ func (s *Snake) Move(m Move, food, die, hazard bool) error {
 		s.ateLastTurn = false
 		s.HealthStack.Push(s.Health)
 		if hazard {
-			s.Health -= 16
+			s.Health -= 15
 		} else {
 			s.Health -= 1
 		}
