@@ -22,12 +22,16 @@ type Cell struct {
 	// Keeping track of state.
 	// State is a bit weird since snakes can overlap on h2h. But... they can't go through
 	// The body of other snakes
-	length    int        // for heads
+	length     int // for heads
+	headHealth int // for heads
+
 	snakeId   SnakeIndex // index of current snake
 	bodyIndex BodyIndex  // 0 is head len(body)-1 is the tail
-	contents  Contents   // head,body,tail, empty, food
 
+	contents     Contents // head,body,tail, empty, food
 	prevContents Contents
+
+	hazard bool
 }
 
 func NewCell() *Cell {
@@ -42,6 +46,7 @@ func NewCell() *Cell {
 
 func (c *Cell) Clear() {
 	c.length = 0
+	c.headHealth = 0
 	c.snakeId = -1
 	c.bodyIndex = -1
 	c.contents = Empty
@@ -109,12 +114,13 @@ func (c *Cell) SnakeId() SnakeIndex {
 	return c.snakeId
 }
 
-func (c *Cell) SetSnake(snakeIndex SnakeIndex, bodyIndex BodyIndex, length int, turn Turn) {
+func (c *Cell) SetSnake(snakeIndex SnakeIndex, bodyIndex BodyIndex, length, health int, turn Turn) {
 	isHead := bodyIndex == 0
 	isTail := int(bodyIndex) == length-1
 	if isHead {
 		c.contents = Head
 		c.length = length
+		c.headHealth = health
 	} else if isTail {
 		c.contents = Tail
 	} else {
@@ -130,6 +136,23 @@ func (c *Cell) SetFood() {
 	c.contents = Food
 }
 
+func (c *Cell) SetHazard() {
+	c.hazard = true
+}
+
+func (c *Cell) IsHazard() bool {
+	return c.hazard
+}
+
+func (c *Cell) Area() float64 {
+	// Could penalize sauce area if needed
+	// if c.hazard {
+	// 	return 0.25
+	// }
+	return 1.0
+}
+
+// This is the way to move a space filling 'snake' to a new cell
 func (c *Cell) NewHeadFrom(nc *Cell, turn Turn) {
 	if c.contents == Head {
 		// resolve H2H
@@ -142,16 +165,24 @@ func (c *Cell) NewHeadFrom(nc *Cell, turn Turn) {
 			c.contents = H2H
 			c.bodyIndex = -1
 			c.snakeId = -1
+			c.length = 0
+			c.headHealth = 0
 		} else if c.length > nc.length {
 			// the head that was marked here earlier won, so prev info can stay
 		} else {
 			// new nc head wins
 			c.contents = Head
 			c.length = nc.length
+			c.headHealth = nc.headHealth
 			c.snakeId = nc.snakeId
 			c.bodyIndex = 0
 			if c.prevContents == Food {
 				c.length += 1
+			}
+			if c.IsHazard() {
+				c.headHealth -= 15
+			} else {
+				c.headHealth -= 1
 			}
 		}
 		return
@@ -160,6 +191,12 @@ func (c *Cell) NewHeadFrom(nc *Cell, turn Turn) {
 	// Default (no h2h)
 	c.contents = Head
 	c.length = nc.length
+	c.headHealth = nc.headHealth
+	if c.IsHazard() {
+		c.headHealth -= 15
+	} else {
+		c.headHealth -= 1
+	}
 	if c.prevContents == Food {
 		c.length += 1
 	}
@@ -168,6 +205,21 @@ func (c *Cell) NewHeadFrom(nc *Cell, turn Turn) {
 }
 
 func (c *Cell) NewTurn() {
+	if c.contents == Head {
+		if c.IsHazard() {
+			c.headHealth -= 15
+		} else {
+			c.headHealth -= 1
+		}
+		if c.headHealth <= 0 {
+			// snake has died
+			c.length = 0
+			c.headHealth = 0
+			c.snakeId = -1
+			c.bodyIndex = -1
+			c.contents = Empty
+		}
+	}
 	c.prevContents = c.contents
 	if c.prevContents != Head {
 		// Non-heads don't need length, so zero it out to help with debugging if things get screwed up
@@ -188,8 +240,11 @@ func (c *Cell) String() string {
 	case DoubleTail:
 		return "  " + strconv.Itoa(int(c.snakeId)) + "D" + strconv.Itoa(int(c.bodyIndex))
 	case H2H:
-		return "  xXx"
+		return "  h2h"
 	case Empty:
+		if c.IsHazard() {
+			return "  xXx"
+		}
 		return "  [ ]"
 	}
 	return "     "
