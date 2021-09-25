@@ -367,6 +367,9 @@ func TestFoodBasic(t *testing.T) {
 
 	for _, tc := range tests {
 		state := wire.GameState{
+			Game: wire.Game{
+				Timeout: 500,
+			},
 			Board: wire.Board{
 				Width:  12,
 				Height: 12,

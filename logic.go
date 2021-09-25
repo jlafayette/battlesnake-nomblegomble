@@ -50,12 +50,12 @@ func move(state wire.GameState) wire.BattlesnakeMoveResponse {
 	// --- PASS: TestAvoidBadHead2Head (217.13s)
 	// And a later one timed out the test at 10 minutes
 
-	depth := 2
-	if len(state.Board.Snakes) <= 2 {
-		depth = 3
-	}
+	// depth := 2
+	// if len(state.Board.Snakes) <= 2 {
+	// 	depth = 3
+	// }
 
-	treeState := tree.NewState(&state, depth)
+	treeState := tree.NewState(&state, 20)
 	move := treeState.FindBestMove(true)
 
 	move_str := move.String()

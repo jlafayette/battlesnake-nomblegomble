@@ -2,6 +2,7 @@ package tree
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/jlafayette/battlesnake-go/wire"
 )
@@ -20,8 +21,10 @@ type MoveNode struct {
 	// These are moves to achieve this position from the parent.
 	moves []snakeMove
 
-	score  float64
-	scored bool
+	// scores for iterative deepening
+	prevScore   float64 // the score for the previous deepening level
+	score       float64 // the score for the current deepening level
+	scoredLevel int     // the deepening level this has been scored at last
 
 	// The parent position, if nil, then we are the root of the tree
 	parent *MoveNode
@@ -59,8 +62,10 @@ type State struct {
 	InitialTurn int
 
 	// How many moves deep to go
-	maxDepth     int
-	currentDepth int
+	maxDepth       int
+	currentDepth   int
+	deepeningLevel int
+	timeout        int64 // timeout in ms
 
 	// The tree, for moving forward and backwards and evaluating each position
 	Root *MoveNode
@@ -107,6 +112,10 @@ func NewState(wireState *wire.GameState, depth int) *State {
 	}
 	board := NewBoard(wireState.Board.Width, wireState.Board.Height, snakes, food, hazards)
 
+	// timeout should have 100ms buffer, but always be at least 50ms
+	// the min of 50 is mostly for test cases where this is not specified
+	timeout := max(50, int(wireState.Game.Timeout)-100)
+
 	root := &MoveNode{}
 	return &State{
 		Width:        wireState.Board.Width,
@@ -115,6 +124,7 @@ func NewState(wireState *wire.GameState, depth int) *State {
 		InitialTurn:  wireState.Turn,
 		maxDepth:     depth,
 		currentDepth: 0,
+		timeout:      int64(timeout),
 		Root:         root,
 		node:         root,
 		evalBoard:    board,
@@ -466,7 +476,7 @@ func (s *State) PrevSibling() {
 func (s *State) Score() {
 	score := s.evalBoard.Eval(SnakeIndex(s.MyIndex))
 	s.node.score = score
-	s.node.scored = true
+	s.node.scoredLevel = s.deepeningLevel
 }
 
 func (s *State) printNodeStack() {
@@ -480,37 +490,71 @@ func (s *State) printNodeStack() {
 func (s *State) FindBestMove(verbose bool) Move {
 	// Not going to do iterative deepening yet, just a set depth
 
+	start := time.Now()
+	s.deepeningLevel = 1
+
+	// The best move so far found. This is updated each time we complete a new
+	// deepening level. If a level times out, then we return the best move
+	// found so far (from previous level).
+	bestMove := Up
+
+	// The deepening loop
+	for {
+		mv, timeout := s.findBestMove(start, verbose)
+		if timeout {
+			return bestMove
+		}
+		bestMove = mv
+		fmt.Printf("got best move %v at level %d\n", mv, s.deepeningLevel)
+		if s.deepeningLevel >= s.maxDepth {
+			fmt.Printf("got best move %v at max depth of %d\n", bestMove, s.maxDepth)
+			return bestMove
+		}
+		s.deepeningLevel += 1
+	}
+}
+
+func (s *State) findBestMove(start time.Time, verbose bool) (Move, bool) {
+
 	eval_count := 0
 
 	for {
+		// check for timeout here
+		elapsed := time.Since(start)
+		if elapsed.Milliseconds() > s.timeout {
+			fmt.Printf("timing out on level %d after %v\n", s.deepeningLevel, elapsed)
+			return Up, true
+		}
+
 		if s.node == nil {
 			fmt.Printf("ERROR: s.node == nil after %d evals\n", eval_count)
-			return Up
+			return Up, false
 		}
+
+		atMaxDepth := s.currentDepth >= s.deepeningLevel
+		scored := s.node.scoredLevel == s.deepeningLevel
+
 		// If the root node is scored, then we are done
-		if s.node.parent == nil && s.node.scored {
+		if s.node.parent == nil && scored {
 			panic("should have returned already")
 		}
 
 		// If not scored, either go down or score the node (if at max depth)
-		if !s.node.scored { // not scored
-			atMaxDepth := s.currentDepth >= s.maxDepth
+		if !scored { // not scored
 			if !atMaxDepth {
 				// if node is not scored and depth is not max
 				s.DownLevel()
 			} else { // at max depth
 				// if node is not scored and depth is max
 				// score the current node
-				if !s.node.scored && (s.currentDepth >= s.maxDepth) {
-					// fmt.Printf("%v\n", s.node.moves)
-					// s.printNodeStack()
-					s.evalBoard.Load(s.Snakes, s.Food, s.Hazards)
-					score := s.evalBoard.Eval(SnakeIndex(s.MyIndex))
-					s.node.score = score
-					// fmt.Printf("score: %.2f\n", score)
-					s.node.scored = true
-					eval_count += 1
-				}
+				// fmt.Printf("%v\n", s.node.moves)
+				// s.printNodeStack()
+				s.evalBoard.Load(s.Snakes, s.Food, s.Hazards)
+				score := s.evalBoard.Eval(SnakeIndex(s.MyIndex))
+				s.node.score = score
+				// fmt.Printf("score: %.2f\n", score)
+				s.node.scoredLevel = s.deepeningLevel
+				eval_count += 1
 			}
 		} else { // If scored
 			nextSibling := s.node.nextSibling
@@ -571,7 +615,7 @@ func (s *State) FindBestMove(verbose bool) Move {
 				// go up to parent, apply score from children
 				s.UpLevel()
 				s.node.score = maxScore
-				s.node.scored = true
+				s.node.scoredLevel = s.deepeningLevel
 				// fmt.Printf("  Pushed a new score (%.1f) up to the parent\n", maxScore)
 
 				if s.node.parent == nil {
@@ -582,9 +626,9 @@ func (s *State) FindBestMove(verbose bool) Move {
 						if verbose {
 							fmt.Printf("No good move, let's hope '%v' works\n", luckyMove)
 						}
-						return luckyMove
+						return luckyMove, false
 					}
-					return bestMove
+					return bestMove, false
 				}
 			}
 		}
