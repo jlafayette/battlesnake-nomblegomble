@@ -44,18 +44,8 @@ func end(state wire.GameState) {
 // where to move -- valid moves are "up", "down", "left", or "right".
 func move(state wire.GameState) wire.BattlesnakeMoveResponse {
 
-	// At 4 moves, things are taking waaaay too long sometimes:
-	// === RUN   TestAvoidBadHead2Head
-	// Ran 15,926,417 loops
-	// 2021/09/18 22:06:14 3509d89e-8809-46c9-b46c-164158eaac26 MOVE 3: right
-	// --- PASS: TestAvoidBadHead2Head (217.13s)
-	// And a later one timed out the test at 10 minutes
-
-	// depth := 2
-	// if len(state.Board.Snakes) <= 2 {
-	// 	depth = 3
-	// }
-
+	// Depth of 20 is the upper limit, it will return when the timeout is
+	// reached most of the time.
 	treeState := tree.NewState(&state, 20)
 	move, lvl := treeState.FindBestMove(true)
 
