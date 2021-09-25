@@ -500,8 +500,8 @@ func (s *State) FindBestMove(verbose bool) Move {
 
 	// The deepening loop
 	for {
-		mv, timeout := s.findBestMove(start, verbose)
-		if timeout {
+		mv, timeout, failed := s.findBestMove(start, verbose)
+		if timeout || failed {
 			return bestMove
 		}
 		bestMove = mv
@@ -514,7 +514,7 @@ func (s *State) FindBestMove(verbose bool) Move {
 	}
 }
 
-func (s *State) findBestMove(start time.Time, verbose bool) (Move, bool) {
+func (s *State) findBestMove(start time.Time, verbose bool) (Move, bool, bool) {
 
 	eval_count := 0
 
@@ -523,12 +523,12 @@ func (s *State) findBestMove(start time.Time, verbose bool) (Move, bool) {
 		elapsed := time.Since(start)
 		if elapsed.Milliseconds() > s.timeout {
 			fmt.Printf("timing out on level %d after %v\n", s.deepeningLevel, elapsed)
-			return Up, true
+			return Up, true, false
 		}
 
 		if s.node == nil {
 			fmt.Printf("ERROR: s.node == nil after %d evals\n", eval_count)
-			return Up, false
+			return Up, false, true
 		}
 
 		atMaxDepth := s.currentDepth >= s.deepeningLevel
@@ -583,6 +583,7 @@ func (s *State) findBestMove(start time.Time, verbose bool) (Move, bool) {
 				// other snake might go a different direction, so it's better to try it
 				// and hope for the best.
 				luckyMove := Up // Use this if bestMove is Dead
+				luckyMoveFound := false
 
 				for _, m1 := range []Move{Left, Right, Up, Down} {
 					minScore := 99999.0
@@ -604,6 +605,7 @@ func (s *State) findBestMove(start time.Time, verbose bool) (Move, bool) {
 						}
 						if luckyScore > maxScore {
 							luckyMove = m1
+							luckyMoveFound = true
 							// fmt.Printf("  found new lucky move %v\n", m1)
 						}
 						maxScore = maxf(maxScore, minScore)
@@ -623,12 +625,17 @@ func (s *State) findBestMove(start time.Time, verbose bool) (Move, bool) {
 						fmt.Printf("Evaluated %d positions\n", eval_count)
 					}
 					if bestMove == Dead {
-						if verbose {
-							fmt.Printf("No good move, let's hope '%v' works\n", luckyMove)
+						if luckyMoveFound {
+							if verbose {
+								fmt.Printf("No good move, let's hope '%v' works\n", luckyMove)
+							}
+							return luckyMove, false, false
+						} else {
+							fmt.Println("No good or lucky move found")
+							return Dead, false, true
 						}
-						return luckyMove, false
 					}
-					return bestMove, false
+					return bestMove, false, false
 				}
 			}
 		}
