@@ -487,7 +487,7 @@ func (s *State) printNodeStack() {
 	}
 }
 
-func (s *State) FindBestMove(verbose bool) Move {
+func (s *State) FindBestMove(verbose bool) (Move, int) {
 	// Not going to do iterative deepening yet, just a set depth
 
 	start := time.Now()
@@ -502,13 +502,13 @@ func (s *State) FindBestMove(verbose bool) Move {
 	for {
 		mv, timeout, failed := s.findBestMove(start, verbose)
 		if timeout || failed {
-			return bestMove
+			return bestMove, s.deepeningLevel
 		}
 		bestMove = mv
 		fmt.Printf("got best move %v at level %d\n", mv, s.deepeningLevel)
 		if s.deepeningLevel >= s.maxDepth {
 			fmt.Printf("got best move %v at max depth of %d\n", bestMove, s.maxDepth)
-			return bestMove
+			return bestMove, s.deepeningLevel
 		}
 		s.deepeningLevel += 1
 	}

@@ -5,6 +5,7 @@ package main
 import (
 	"fmt"
 	"log"
+	"strconv"
 
 	"github.com/jlafayette/battlesnake-go/tree"
 	"github.com/jlafayette/battlesnake-go/wire"
@@ -56,7 +57,7 @@ func move(state wire.GameState) wire.BattlesnakeMoveResponse {
 	// }
 
 	treeState := tree.NewState(&state, 20)
-	move := treeState.FindBestMove(true)
+	move, lvl := treeState.FindBestMove(true)
 
 	move_str := move.String()
 	if move_str == "dead" {
@@ -66,6 +67,6 @@ func move(state wire.GameState) wire.BattlesnakeMoveResponse {
 
 	log.Printf("%s MOVE %d: %s/%s\n", state.Game.ID, state.Turn, move.String(), move_str)
 	return wire.BattlesnakeMoveResponse{
-		Move: move_str,
+		Move: move_str, Shout: strconv.Itoa(lvl),
 	}
 }

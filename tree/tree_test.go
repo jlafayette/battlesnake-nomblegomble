@@ -58,7 +58,7 @@ func TestSpace01(t *testing.T) {
 	}
 
 	treeState := NewState(&state, 1)
-	move := treeState.FindBestMove(true)
+	move, _ := treeState.FindBestMove(true)
 
 	if move == Up {
 		t.Errorf("snake moved into too small of space, %v", move)
@@ -129,7 +129,7 @@ func TestSpace02(t *testing.T) {
 
 	// This was tricky because 1 and 2 depth passed, but 3 failed
 	treeState := NewState(&state, 3)
-	move := treeState.FindBestMove(true)
+	move, _ := treeState.FindBestMove(true)
 
 	if move == Right {
 		t.Errorf("snake moved into too small of space, %v", move)
@@ -193,7 +193,7 @@ func TestFood1(t *testing.T) {
 	}
 
 	treeState := NewState(&state, 1)
-	move := treeState.FindBestMove(true)
+	move, _ := treeState.FindBestMove(true)
 	fmt.Printf("got move: %v\n", move)
 
 	if move == Down {
@@ -255,7 +255,7 @@ func TestTailOk01(t *testing.T) {
 	}
 
 	treeState := NewState(&state, 1)
-	move := treeState.FindBestMove(true)
+	move, _ := treeState.FindBestMove(true)
 
 	if move == Up {
 		t.Errorf("snake moved into other snake, %v", move)
@@ -319,7 +319,7 @@ func TestFood2(t *testing.T) {
 	}
 
 	treeState := NewState(&state, 1)
-	move := treeState.FindBestMove(true)
+	move, _ := treeState.FindBestMove(true)
 
 	if move == Right {
 		t.Errorf("snake moved away from food, %v", move)
@@ -380,7 +380,7 @@ func TestFoodBasic(t *testing.T) {
 		}
 
 		treeState := NewState(&state, 1)
-		move := treeState.FindBestMove(true)
+		move, _ := treeState.FindBestMove(true)
 
 		if move != tc.expected {
 			t.Errorf("%s: expected %s, got %s", tc.name, tc.expected, move)
@@ -462,7 +462,7 @@ func TestH2H01(t *testing.T) {
 	// 1 is fine, >2 was returning 'dead' move since all H2H moves end in (possible death)
 	// to fix this, add the 'lucky' move as a backup.
 	treeState := NewState(&state, 2)
-	move := treeState.FindBestMove(true)
+	move, _ := treeState.FindBestMove(true)
 	fmt.Printf("got move: %v\n", move)
 
 	if move == Dead {
@@ -538,7 +538,7 @@ func TestRespect01(t *testing.T) {
 	}
 
 	treeState := NewState(&state, 2)
-	move := treeState.FindBestMove(true)
+	move, _ := treeState.FindBestMove(true)
 
 	if move == Up {
 		t.Errorf("snake moved needlessly through the sauce, %v", move)
@@ -604,7 +604,7 @@ func TestRespect02(t *testing.T) {
 	}
 
 	treeState := NewState(&state, 3)
-	move := treeState.FindBestMove(true)
+	move, _ := treeState.FindBestMove(true)
 
 	if move == Up {
 		t.Errorf("snake moved away from food, %v", move)
@@ -680,7 +680,7 @@ func TestRespect03(t *testing.T) {
 	}
 
 	treeState := NewState(&state, 1)
-	move := treeState.FindBestMove(true)
+	move, _ := treeState.FindBestMove(true)
 
 	if move == Left {
 		t.Errorf("snake moved into space with sauce and no food, %v", move)
@@ -745,7 +745,7 @@ func TestH2HTieBetterThanLoss01(t *testing.T) {
 	}
 
 	treeState := NewState(&state, 10)
-	move := treeState.FindBestMove(true)
+	move, _ := treeState.FindBestMove(true)
 
 	// if move == Up {
 	// 	t.Errorf("snake moved into too small of space, %v", move)
@@ -840,7 +840,7 @@ func benchmark01(depth int, b *testing.B) {
 
 	for n := 0; n < b.N; n++ {
 		treeState := NewState(&state, depth)
-		r = treeState.FindBestMove(false)
+		r, _ = treeState.FindBestMove(false)
 		// b.Error("failed!")
 	}
 
