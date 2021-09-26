@@ -2,6 +2,7 @@ package tree
 
 import (
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/jlafayette/battlesnake-go/wire"
@@ -16,13 +17,16 @@ func (s snakeMove) String() string {
 	return fmt.Sprintf("%d: %v", s.snakeIndex, s.move)
 }
 
+func (s snakeMove) ShortString() string {
+	return fmt.Sprintf("%d:%s", s.snakeIndex, s.move.ShortString())
+}
+
 // Root of the tree
 type MoveNode struct {
 	// These are moves to achieve this position from the parent.
 	moves []snakeMove
 
 	// scores for iterative deepening
-	prevScore   float64 // the score for the previous deepening level
 	score       float64 // the score for the current deepening level
 	scoredLevel int     // the deepening level this has been scored at last
 
@@ -47,6 +51,110 @@ type MoveNode struct {
 	// c1 <> c2
 	nextSibling *MoveNode
 	prevSibling *MoveNode
+}
+
+func (mn *MoveNode) FirstSibling() *MoveNode {
+	node := mn
+	for {
+		if node.prevSibling == nil {
+			return node
+		}
+		node = node.prevSibling
+	}
+}
+
+func (mn *MoveNode) LastSibling() *MoveNode {
+	node := mn
+	for {
+		if node.nextSibling == nil {
+			return node
+		}
+		node = node.nextSibling
+	}
+}
+
+func (mn *MoveNode) SiblingCount() int {
+	count := 1
+	node := mn.FirstSibling()
+	for {
+		if node.nextSibling == nil {
+			return count
+		}
+		node = node.nextSibling
+		count += 1
+	}
+}
+
+func (m1 *MoveNode) swap(m2 *MoveNode) {
+	tmpM := m2.moves
+	tmpS := m2.score
+	tmpL := m2.scoredLevel
+	tmpC := m2.child
+	m2.moves = m1.moves
+	m2.score = m1.score
+	m2.scoredLevel = m1.scoredLevel
+	m2.child = m1.child
+	m1.moves = tmpM
+	m1.score = tmpS
+	m1.scoredLevel = tmpL
+	m1.child = tmpC
+
+}
+
+// Sort
+// Move for my snake with max min score grouped at the start
+// Subsequent moves grouped with their minscore at start of group
+func (mn *MoveNode) SortSiblings(myIndex int, bestMove Move) {
+	for i := mn.FirstSibling(); i != nil; i = i.nextSibling {
+		iSort := i.moves[myIndex].move
+		if iSort == bestMove {
+			iSort = 0
+		}
+		for j := i.nextSibling; j != nil; j = j.nextSibling {
+			jSort := j.moves[myIndex].move
+			if jSort == bestMove {
+				jSort = 0
+			}
+			if iSort > jSort {
+				i.swap(j)
+			}
+		}
+	}
+
+	// Sort by scores (within move groups)
+	for i := mn.FirstSibling(); i != nil; i = i.nextSibling {
+		for j := i.nextSibling; j != nil; j = j.nextSibling {
+			if i.moves[myIndex].move != j.moves[myIndex].move {
+				continue
+			}
+			if i.score > j.score {
+				i.swap(j)
+			}
+		}
+	}
+}
+
+// Convert to a short display string, for example: "0:L 1:L 2:R 3:X 1 212.0"
+func (node *MoveNode) String() string {
+	var sb strings.Builder
+	for _, m := range node.moves {
+		sb.WriteString(m.ShortString())
+		sb.WriteByte(' ')
+	}
+	sb.WriteString(fmt.Sprintf("%d %.1f", node.scoredLevel, node.score))
+	return sb.String()
+}
+
+func (mn *MoveNode) PrintSiblings() {
+	node := mn.FirstSibling()
+	for {
+		fmt.Println(node)
+		if node.nextSibling == nil {
+			break
+		}
+		node = node.nextSibling
+	}
+	fmt.Printf("connected: %d\n", node.SiblingCount())
 }
 
 // State keeps track of the current position
@@ -613,6 +721,16 @@ func (s *State) findBestMove(start time.Time, verbose bool) (Move, bool, bool) {
 						// fmt.Printf("  atLeastOne: %v for %v\n", atLeastOne, m1)
 					}
 				}
+
+				// before going up to the parent, sort the moves from best to
+				// worst so that next deepening level can do better pruning
+				// (pruning not implemented yet)
+				// fmt.Println("before sorting")
+				// s.node.PrintSiblings()
+				// Sort by MyIndex Move
+				s.node.SortSiblings(s.MyIndex, bestMove)
+				// fmt.Printf("sorted by %d:%v first\n", s.MyIndex, bestMove)
+				// s.node.PrintSiblings()
 
 				// go up to parent, apply score from children
 				s.UpLevel()

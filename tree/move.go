@@ -3,7 +3,7 @@ package tree
 type Move uint8
 
 const (
-	Up Move = iota
+	Up Move = iota + 1
 	Down
 	Left
 	Right
@@ -22,6 +22,23 @@ func (m Move) String() string {
 		return "right"
 	case Dead:
 		return "dead"
+	default:
+		panic("invalid move")
+	}
+}
+
+func (m Move) ShortString() string {
+	switch m {
+	case Up:
+		return "U"
+	case Down:
+		return "D"
+	case Left:
+		return "L"
+	case Right:
+		return "R"
+	case Dead:
+		return "X"
 	default:
 		panic("invalid move")
 	}
