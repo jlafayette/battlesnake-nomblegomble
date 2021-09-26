@@ -29,6 +29,7 @@ type MoveNode struct {
 	// scores for iterative deepening
 	score       float64 // the score for the current deepening level
 	scoredLevel int     // the deepening level this has been scored at last
+	pruned      bool    // if the node has been pruned (no score needed)
 
 	// The parent position, if nil, then we are the root of the tree
 	parent *MoveNode
@@ -131,6 +132,50 @@ func (mn *MoveNode) SortSiblings(myIndex int, bestMove Move) {
 				i.swap(j)
 			}
 		}
+	}
+}
+
+func (mn *MoveNode) NodeAfterPrune(myIndex int) *MoveNode {
+	return nil
+}
+
+// Return score and bool (true if a best is found, otherwise false)
+func (mn *MoveNode) BestSoFar(myIndex int) (float64, bool) {
+	// need a complete set scored
+	// take the min of the complete set
+
+	// currentMove := mn.moves[myIndex].move
+
+	// for n := mn.FirstSibling(); n != nil && n != mn; n = n.nextSibling {
+	// }
+
+	// minScore := 0
+	// maxScore := 0
+	// for _, m1 := range []Move{Left, Right, Up, Down} {
+	// 	minScore := 99999.0
+	// 	atLeastOne := false
+	// 	for node != nil {
+	// 		if node.moves[myIndex].move == m1 {
+	// 			minScore = minf(minScore, node.score)
+	// 		}
+	// 		node = node.prevSibling
+	// 	}
+	// 	if atLeastOne {
+	// 		if minScore > maxScore {
+	// 			bestMove = m1
+	// 		}
+	// 		maxScore = maxf(maxScore, minScore)
+	// 	}
+	// }
+
+	// take max of all the mins
+
+	return 0, false
+}
+
+func (mn *MoveNode) ResetPrunedSiblings() {
+	for node := mn.FirstSibling(); node != nil; node = node.nextSibling {
+		node.pruned = false
 	}
 }
 
@@ -652,11 +697,14 @@ func (s *State) findBestMove(start time.Time, verbose bool) (Move, bool, bool) {
 			if !atMaxDepth {
 				// if node is not scored and depth is not max
 				s.DownLevel()
-			} else { // at max depth
+			} else { // at max depth (leaf nodes)
 				// if node is not scored and depth is max
 				// score the current node
 				// fmt.Printf("%v\n", s.node.moves)
 				// s.printNodeStack()
+
+				// before scoring... can this be pruned?
+
 				s.evalBoard.Load(s.Snakes, s.Food, s.Hazards)
 				score := s.evalBoard.Eval(SnakeIndex(s.MyIndex))
 				s.node.score = score
@@ -724,7 +772,6 @@ func (s *State) findBestMove(start time.Time, verbose bool) (Move, bool, bool) {
 
 				// before going up to the parent, sort the moves from best to
 				// worst so that next deepening level can do better pruning
-				// (pruning not implemented yet)
 				// fmt.Println("before sorting")
 				// s.node.PrintSiblings()
 				// Sort by MyIndex Move
@@ -733,10 +780,26 @@ func (s *State) findBestMove(start time.Time, verbose bool) (Move, bool, bool) {
 				// s.node.PrintSiblings()
 
 				// go up to parent, apply score from children
+				s.node.ResetPrunedSiblings()
 				s.UpLevel()
 				s.node.score = maxScore
 				s.node.scoredLevel = s.deepeningLevel
 				// fmt.Printf("  Pushed a new score (%.1f) up to the parent\n", maxScore)
+
+				if s.node.nextSibling != nil && s.node.parent != nil {
+					// check for pruning
+					newNode := s.node.NodeAfterPrune(s.MyIndex)
+					if newNode == nil {
+						// all the rest were pruned, so we can go up another level
+						score, _ := s.node.BestSoFar(s.MyIndex)
+						s.node.ResetPrunedSiblings()
+						s.UpLevel()
+						s.node.score = score
+						s.node.scoredLevel = s.deepeningLevel
+					} else {
+						s.node = newNode
+					}
+				}
 
 				if s.node.parent == nil {
 					if verbose {
