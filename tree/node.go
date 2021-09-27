@@ -154,7 +154,7 @@ func (mn *MoveNode) NodeAfterPrune(myIndex, level int) *MoveNode {
 		return mn
 	}
 
-	_, best, ok := mn.BestSoFar(myIndex, level)
+	_, _, best, ok := mn.BestSoFar(myIndex, level)
 	if !ok {
 		return mn
 	}
@@ -200,17 +200,19 @@ func (mn *MoveNode) NodeAfterPrune(myIndex, level int) *MoveNode {
 }
 
 // Return score and bool (true if a best is found, otherwise false)
-func (mn *MoveNode) BestSoFar(myIndex, level int) (Move, float64, bool) {
+func (mn *MoveNode) BestSoFar(myIndex, level int) (Move, Move, float64, bool) {
 	// need a complete set scored
 	// take the min of the complete set
 
 	found := false
 	maxScore := LOWEST
 	bestMove := NoMove
+	luckyMove := NoMove
 	for _, m1 := range []Move{Left, Right, Up, Down} {
 		allScored := true
 		atLeastOne := false
 		minScore := HIGHEST
+		luckyScore := LOWEST
 
 		for node := mn.FirstSibling(); node != nil; node = node.nextSibling {
 			m2 := node.moves[myIndex].move
@@ -226,17 +228,21 @@ func (mn *MoveNode) BestSoFar(myIndex, level int) (Move, float64, bool) {
 			minScore = minf(minScore, node.score)
 			// fmt.Printf("%s setting minScore to %.2f\n", node.String(), minScore)
 			atLeastOne = true
+			luckyScore = maxf(luckyScore, node.score)
 		}
 		if allScored && atLeastOne {
 			if minScore > maxScore {
 				bestMove = m1
+			}
+			if luckyScore > maxScore {
+				luckyMove = m1
 			}
 			maxScore = maxf(maxScore, minScore)
 			// fmt.Printf("%s setting maxScore to %.2f\n", m1.ShortString(), maxScore)
 			found = true
 		}
 	}
-	return bestMove, maxScore, found
+	return bestMove, luckyMove, maxScore, found
 }
 
 func (mn *MoveNode) ResetPrunedSiblings() {

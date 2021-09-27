@@ -622,8 +622,10 @@ func (s *State) findBestMove(start time.Time, verbose bool) (Move, bool, bool) {
 						// fmt.Printf("successfully pruned! jumping  %v  ->  %v\n", s.node, newNode)
 						if newNode == nil {
 							// all the rest were pruned, so we can go up another level
-							bMove, score, _ := s.node.BestSoFar(s.MyIndex, s.deepeningLevel)
+							bMove, lMove, score, _ := s.node.BestSoFar(s.MyIndex, s.deepeningLevel)
 							bestMove = bMove
+							luckyMove = lMove
+							luckyMoveFound = luckyMove != NoMove
 							s.node.ResetPrunedSiblings()
 							s.UpLevel()
 							s.node.score = score
@@ -642,7 +644,7 @@ func (s *State) findBestMove(start time.Time, verbose bool) (Move, bool, bool) {
 					if verbose {
 						fmt.Printf("Evaluated %d positions\n", eval_count)
 					}
-					if bestMove == Dead {
+					if bestMove == Dead || bestMove == NoMove {
 						if luckyMoveFound {
 							if verbose {
 								fmt.Printf("No good move, let's hope '%v' works\n", luckyMove)

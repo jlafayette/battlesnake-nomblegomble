@@ -50,8 +50,8 @@ func move(state wire.GameState) wire.BattlesnakeMoveResponse {
 	move, lvl := treeState.FindBestMove(true)
 
 	move_str := move.String()
-	if move_str == "dead" {
-		fmt.Printf("ERROR: best move should never be dead")
+	if move == tree.Dead || move == tree.NoMove {
+		fmt.Printf("ERROR: best move should never be 'dead' or 'nomove'")
 		move_str = "up"
 	}
 
