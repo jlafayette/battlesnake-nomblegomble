@@ -55,7 +55,7 @@ func move(state wire.GameState) wire.BattlesnakeMoveResponse {
 		move_str = "up"
 	}
 
-	log.Printf("%s MOVE %d: %s/%s\n", state.Game.ID, state.Turn, move.String(), move_str)
+	log.Printf("%s MOVE %d: %s\n", state.Game.ID, state.Turn, move_str)
 	return wire.BattlesnakeMoveResponse{
 		Move: move_str, Shout: strconv.Itoa(lvl),
 	}

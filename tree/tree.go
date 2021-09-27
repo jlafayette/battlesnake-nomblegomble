@@ -493,7 +493,7 @@ func (s *State) findBestMove(start time.Time, verbose bool) (Move, bool, bool) {
 		// check for timeout here
 		elapsed := time.Since(start)
 		if elapsed.Milliseconds() > s.timeout {
-			fmt.Printf("timing out on level %d after %v\n", s.deepeningLevel, elapsed)
+			fmt.Printf("timing out on level %d after %v (%d)\n", s.deepeningLevel, elapsed, eval_count)
 			return Up, true, false
 		}
 
@@ -538,7 +538,7 @@ func (s *State) findBestMove(start time.Time, verbose bool) (Move, bool, bool) {
 				// eval set (backtrack over the siblings and get the group score)
 				// then go up to parent and score it
 				// scan over neighbors, taking the min of each group (grouped by myMove)
-				// take the max of the group
+				// take the max of the groups
 
 				// debug print
 				// fmt.Println("--- choosing a best move from siblings")
@@ -548,7 +548,7 @@ func (s *State) findBestMove(start time.Time, verbose bool) (Move, bool, bool) {
 				// s.node = bkNode
 
 				lastChild := s.node
-				maxScore := -99999.0
+				maxScore := LOWEST
 
 				bestMove := Dead // this is kind of the None state for moves
 				// Sometimes there is no good move if the opponent plays perfectly (and can
@@ -560,12 +560,12 @@ func (s *State) findBestMove(start time.Time, verbose bool) (Move, bool, bool) {
 				luckyMoveFound := false
 
 				for _, m1 := range []Move{Left, Right, Up, Down} {
-					minScore := 99999.0
-					luckyScore := -99999.0
+					minScore := HIGHEST
+					luckyScore := LOWEST
 					atLeastOne := false
 					node := lastChild
 					for node != nil {
-						if node.moves[s.MyIndex].move == m1 {
+						if node.moves[s.MyIndex].move == m1 && !node.pruned {
 							atLeastOne = true
 							minScore = minf(minScore, node.score)
 							luckyScore = maxf(luckyScore, node.score)
@@ -588,34 +588,48 @@ func (s *State) findBestMove(start time.Time, verbose bool) (Move, bool, bool) {
 					}
 				}
 
+				doPruning := true
+
 				// before going up to the parent, sort the moves from best to
 				// worst so that next deepening level can do better pruning
 				// fmt.Println("before sorting")
 				// s.node.PrintSiblings()
 				// Sort by MyIndex Move
-				s.node.SortSiblings(s.MyIndex, bestMove)
-				// fmt.Printf("sorted by %d:%v first\n", s.MyIndex, bestMove)
-				// s.node.PrintSiblings()
+				if doPruning {
+					s.node.SortSiblings(s.MyIndex, bestMove)
+					// fmt.Printf("sorted by %d:%v first\n", s.MyIndex, bestMove)
+					// s.node.PrintSiblings()
+				}
 
 				// go up to parent, apply score from children
-				s.node.ResetPrunedSiblings()
+				if doPruning {
+					s.node.ResetPrunedSiblings()
+				}
 				s.UpLevel()
 				s.node.score = maxScore
 				s.node.scoredLevel = s.deepeningLevel
 				// fmt.Printf("  Pushed a new score (%.1f) up to the parent\n", maxScore)
 
-				if s.node.nextSibling != nil && s.node.parent != nil {
+				if s.node.nextSibling != nil && s.node.parent != nil && doPruning {
 					// check for pruning
-					newNode := s.node.NodeAfterPrune(s.MyIndex)
-					if newNode == nil {
-						// all the rest were pruned, so we can go up another level
-						score, _ := s.node.BestSoFar(s.MyIndex)
-						s.node.ResetPrunedSiblings()
-						s.UpLevel()
-						s.node.score = score
-						s.node.scoredLevel = s.deepeningLevel
-					} else {
-						s.node = newNode
+					newNode := s.node.NodeAfterPrune(s.MyIndex, s.deepeningLevel)
+					if newNode != s.node {
+						// fmt.Printf("successfully pruned! jumping  %v  ->  %v\n", s.node, newNode)
+						if newNode == nil {
+							// all the rest were pruned, so we can go up another level
+							score, _ := s.node.BestSoFar(s.MyIndex, s.deepeningLevel)
+							// s.node.SortSiblings(s.MyIndex, bMove)
+							s.node.ResetPrunedSiblings()
+							s.UpLevel()
+							s.node.score = score
+							s.node.scoredLevel = s.deepeningLevel
+						} else {
+							// s.NextSibling() but jumping forward
+							s.UpLevel()
+							s.node = newNode
+							s.currentDepth += 1
+							s.ApplyMove()
+						}
 					}
 				}
 
@@ -630,7 +644,9 @@ func (s *State) findBestMove(start time.Time, verbose bool) (Move, bool, bool) {
 							}
 							return luckyMove, false, false
 						} else {
-							fmt.Println("No good or lucky move found")
+							if verbose {
+								fmt.Println("No good or lucky move found")
+							}
 							return Dead, false, true
 						}
 					}

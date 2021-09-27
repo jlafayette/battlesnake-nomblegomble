@@ -5,6 +5,11 @@ import (
 	"strings"
 )
 
+const (
+	HIGHEST = 9999999.0
+	LOWEST  = -9999999.0
+)
+
 // A node in the tree
 type MoveNode struct {
 	// These are moves to achieve this position from the parent.
@@ -59,15 +64,11 @@ func (mn *MoveNode) LastSibling() *MoveNode {
 }
 
 func (mn *MoveNode) SiblingCount() int {
-	count := 1
-	node := mn.FirstSibling()
-	for {
-		if node.nextSibling == nil {
-			return count
-		}
-		node = node.nextSibling
+	count := 0
+	for node := mn.FirstSibling(); node != nil; node = node.nextSibling {
 		count += 1
 	}
+	return count
 }
 
 func (m1 *MoveNode) swap(m2 *MoveNode) {
@@ -119,42 +120,95 @@ func (mn *MoveNode) SortSiblings(myIndex int, bestMove Move) {
 	}
 }
 
-func (mn *MoveNode) NodeAfterPrune(myIndex int) *MoveNode {
+func (mn *MoveNode) NodeAfterPrune(myIndex, level int) *MoveNode {
+	// If pruning can occur, then mark all the nodes as pruned and return the
+	// next node that cannot be pruned. It's ok to return nil if all the nodes
+	// can be pruned or no
+
+	// fmt.Printf("--- prune opportunity for %v (%d) level: (%d)\n", mn, myIndex, level)
+
+	if mn == nil || mn.nextSibling == nil {
+		return mn
+	}
+
+	best, ok := mn.BestSoFar(myIndex, level)
+	if !ok {
+		return mn
+	}
+	myMove := mn.moves[myIndex].move
+	lowest := HIGHEST
+	found := false
+	firstNode := mn.FirstSibling()
+	for node := firstNode; node != nil; node = node.nextSibling {
+		if node.moves[myIndex].move != myMove {
+			continue
+		}
+		if node.scoredLevel != level || node.pruned {
+			continue
+		}
+		lowest = minf(lowest, node.score)
+		found = true
+	}
+	if !found {
+		return mn
+	}
+	// this comparison is a mystery, seems like it should be opposite?
+	// but lowest > best make all the test fail
+	if lowest >= best {
+		return mn
+	}
+
+	// pruned := 0
+	for node := mn.nextSibling; node != nil; node = node.nextSibling {
+		if node.moves[myIndex].move != myMove {
+			// if pruned > 0 {
+			// 	fmt.Printf("%d->successfully pruned! jumping  %v -> %v (%d)\n", pruned, mn, node, myIndex)
+			// }
+			return node
+		}
+		// pruned += 1
+		node.pruned = true
+	}
+	// if pruned > 0 {
+	// 	fmt.Printf("%d->successfully pruned! jumping  %v -> %v (%d)\n", pruned, mn, nil, myIndex)
+	// }
 	return nil
 }
 
 // Return score and bool (true if a best is found, otherwise false)
-func (mn *MoveNode) BestSoFar(myIndex int) (float64, bool) {
+func (mn *MoveNode) BestSoFar(myIndex, level int) (float64, bool) {
 	// need a complete set scored
 	// take the min of the complete set
 
-	// currentMove := mn.moves[myIndex].move
+	found := false
+	maxScore := LOWEST
+	for _, m1 := range []Move{Left, Right, Up, Down} {
+		allScored := true
+		atLeastOne := false
+		minScore := HIGHEST
 
-	// for n := mn.FirstSibling(); n != nil && n != mn; n = n.nextSibling {
-	// }
-
-	// minScore := 0
-	// maxScore := 0
-	// for _, m1 := range []Move{Left, Right, Up, Down} {
-	// 	minScore := 99999.0
-	// 	atLeastOne := false
-	// 	for node != nil {
-	// 		if node.moves[myIndex].move == m1 {
-	// 			minScore = minf(minScore, node.score)
-	// 		}
-	// 		node = node.prevSibling
-	// 	}
-	// 	if atLeastOne {
-	// 		if minScore > maxScore {
-	// 			bestMove = m1
-	// 		}
-	// 		maxScore = maxf(maxScore, minScore)
-	// 	}
-	// }
-
-	// take max of all the mins
-
-	return 0, false
+		for node := mn.FirstSibling(); node != nil; node = node.nextSibling {
+			m2 := node.moves[myIndex].move
+			if m2 != m1 || node.pruned {
+				// fmt.Printf("%v != %v || %v\n", m2, m1, node.pruned)
+				continue
+			}
+			if node.scoredLevel != level {
+				// fmt.Printf("%d != %d\n", node.scoredLevel, level)
+				allScored = false
+				break
+			}
+			minScore = minf(minScore, node.score)
+			// fmt.Printf("%s setting minScore to %.2f\n", node.String(), minScore)
+			atLeastOne = true
+		}
+		if allScored && atLeastOne {
+			maxScore = maxf(maxScore, minScore)
+			// fmt.Printf("%s setting maxScore to %.2f\n", m1.ShortString(), maxScore)
+			found = true
+		}
+	}
+	return maxScore, found
 }
 
 func (mn *MoveNode) ResetPrunedSiblings() {
