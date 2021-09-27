@@ -76,32 +76,55 @@ func (m1 *MoveNode) swap(m2 *MoveNode) {
 	tmpS := m2.score
 	tmpL := m2.scoredLevel
 	tmpC := m2.child
+	tmpP := m2.pruned
 	m2.moves = m1.moves
 	m2.score = m1.score
 	m2.scoredLevel = m1.scoredLevel
 	m2.child = m1.child
+	m2.pruned = m1.pruned
 	m1.moves = tmpM
 	m1.score = tmpS
 	m1.scoredLevel = tmpL
 	m1.child = tmpC
-
+	m1.pruned = tmpP
 }
 
 // Sort
 // Move for my snake with max min score grouped at the start
 // Subsequent moves grouped with their minscore at start of group
 func (mn *MoveNode) SortSiblings(myIndex int, bestMove Move) {
+
+	// sorting is bugged, needs to be done twice
+	// fmt.Printf("sorting with (%d) %s\n", myIndex, bestMove.ShortString())
+
 	for i := mn.FirstSibling(); i != nil; i = i.nextSibling {
 		iSort := i.moves[myIndex].move
 		if iSort == bestMove {
-			iSort = 0
+			iSort = NoMove
 		}
 		for j := i.nextSibling; j != nil; j = j.nextSibling {
 			jSort := j.moves[myIndex].move
 			if jSort == bestMove {
-				jSort = 0
+				jSort = NoMove
 			}
 			if iSort > jSort {
+				// fmt.Printf("%d(%s) > %d(%s)  swap\n", iSort, iSort.ShortString(), jSort, jSort.ShortString())
+				i.swap(j)
+			}
+		}
+	}
+	for i := mn.FirstSibling(); i != nil; i = i.nextSibling {
+		iSort := i.moves[myIndex].move
+		if iSort == bestMove {
+			iSort = NoMove
+		}
+		for j := i.nextSibling; j != nil; j = j.nextSibling {
+			jSort := j.moves[myIndex].move
+			if jSort == bestMove {
+				jSort = NoMove
+			}
+			if iSort > jSort {
+				// fmt.Printf("%d(%s) > %d(%s)  swap\n", iSort, iSort.ShortString(), jSort, jSort.ShortString())
 				i.swap(j)
 			}
 		}
@@ -131,7 +154,7 @@ func (mn *MoveNode) NodeAfterPrune(myIndex, level int) *MoveNode {
 		return mn
 	}
 
-	best, ok := mn.BestSoFar(myIndex, level)
+	_, best, ok := mn.BestSoFar(myIndex, level)
 	if !ok {
 		return mn
 	}
@@ -154,7 +177,8 @@ func (mn *MoveNode) NodeAfterPrune(myIndex, level int) *MoveNode {
 	}
 	// this comparison is a mystery, seems like it should be opposite?
 	// but lowest > best make all the test fail
-	if lowest >= best {
+	// we should not prune if lowest > best (this makes sense)
+	if lowest > best {
 		return mn
 	}
 
@@ -176,12 +200,13 @@ func (mn *MoveNode) NodeAfterPrune(myIndex, level int) *MoveNode {
 }
 
 // Return score and bool (true if a best is found, otherwise false)
-func (mn *MoveNode) BestSoFar(myIndex, level int) (float64, bool) {
+func (mn *MoveNode) BestSoFar(myIndex, level int) (Move, float64, bool) {
 	// need a complete set scored
 	// take the min of the complete set
 
 	found := false
 	maxScore := LOWEST
+	bestMove := NoMove
 	for _, m1 := range []Move{Left, Right, Up, Down} {
 		allScored := true
 		atLeastOne := false
@@ -203,12 +228,15 @@ func (mn *MoveNode) BestSoFar(myIndex, level int) (float64, bool) {
 			atLeastOne = true
 		}
 		if allScored && atLeastOne {
+			if minScore > maxScore {
+				bestMove = m1
+			}
 			maxScore = maxf(maxScore, minScore)
 			// fmt.Printf("%s setting maxScore to %.2f\n", m1.ShortString(), maxScore)
 			found = true
 		}
 	}
-	return maxScore, found
+	return bestMove, maxScore, found
 }
 
 func (mn *MoveNode) ResetPrunedSiblings() {
@@ -224,7 +252,11 @@ func (node *MoveNode) String() string {
 		sb.WriteString(m.ShortString())
 		sb.WriteByte(' ')
 	}
-	sb.WriteString(fmt.Sprintf("%d %.1f", node.scoredLevel, node.score))
+	prunedStr := "-"
+	if node.pruned {
+		prunedStr = "X"
+	}
+	sb.WriteString(fmt.Sprintf("%d%s %.1f", node.scoredLevel, prunedStr, node.score))
 	return sb.String()
 }
 

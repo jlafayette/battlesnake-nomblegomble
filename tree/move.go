@@ -3,7 +3,8 @@ package tree
 type Move uint8
 
 const (
-	Up Move = iota + 1
+	NoMove Move = iota
+	Up
 	Down
 	Left
 	Right
@@ -22,6 +23,8 @@ func (m Move) String() string {
 		return "right"
 	case Dead:
 		return "dead"
+	case NoMove:
+		return "none"
 	default:
 		panic("invalid move")
 	}
@@ -39,6 +42,8 @@ func (m Move) ShortString() string {
 		return "R"
 	case Dead:
 		return "X"
+	case NoMove:
+		return "."
 	default:
 		panic("invalid move")
 	}
@@ -55,6 +60,8 @@ func (m Move) Next(coord Coord) Coord {
 	case Right:
 		return Coord{X: coord.X + 1, Y: coord.Y}
 	case Dead:
+		return Coord{X: coord.X, Y: coord.Y}
+	case NoMove:
 		return Coord{X: coord.X, Y: coord.Y}
 	default:
 		panic("invalid move")

@@ -591,14 +591,19 @@ func (s *State) findBestMove(start time.Time, verbose bool) (Move, bool, bool) {
 				doPruning := true
 
 				// before going up to the parent, sort the moves from best to
-				// worst so that next deepening level can do better pruning
-				// fmt.Println("before sorting")
-				// s.node.PrintSiblings()
-				// Sort by MyIndex Move
+				// worst so that next deepening level can do better some
+				// pruning
 				if doPruning {
+					// if s.currentDepth == 1 {
+					// 	fmt.Printf("before sorting (%d)\n", s.MyIndex)
+					// 	s.node.PrintSiblings()
+					// 	fmt.Printf("sorting with (%d) %s\n", s.MyIndex, bestMove.ShortString())
+					// }
 					s.node.SortSiblings(s.MyIndex, bestMove)
-					// fmt.Printf("sorted by %d:%v first\n", s.MyIndex, bestMove)
-					// s.node.PrintSiblings()
+					// if s.currentDepth == 1 {
+					// 	fmt.Printf("after sorting (%d)\n", s.MyIndex)
+					// 	s.node.PrintSiblings()
+					// }
 				}
 
 				// go up to parent, apply score from children
@@ -617,8 +622,8 @@ func (s *State) findBestMove(start time.Time, verbose bool) (Move, bool, bool) {
 						// fmt.Printf("successfully pruned! jumping  %v  ->  %v\n", s.node, newNode)
 						if newNode == nil {
 							// all the rest were pruned, so we can go up another level
-							score, _ := s.node.BestSoFar(s.MyIndex, s.deepeningLevel)
-							// s.node.SortSiblings(s.MyIndex, bMove)
+							bMove, score, _ := s.node.BestSoFar(s.MyIndex, s.deepeningLevel)
+							bestMove = bMove
 							s.node.ResetPrunedSiblings()
 							s.UpLevel()
 							s.node.score = score

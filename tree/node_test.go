@@ -17,7 +17,7 @@ func TestSingleNodeBestSoFar(t *testing.T) {
 
 	// -- one scored node
 
-	score, ok := node1.BestSoFar(0, 2)
+	_, score, ok := node1.BestSoFar(0, 2)
 
 	if score != 5 || !ok {
 		t.Errorf("score should be found for a single node, expected 5.00,true, got %.2f,%v", score, ok)
@@ -61,7 +61,7 @@ func TestNodeBestSoFar01(t *testing.T) {
 
 	// -- one scored node is incomplete
 
-	_, ok := node1.BestSoFar(0, 2)
+	_, _, ok := node1.BestSoFar(0, 2)
 
 	if ok {
 		t.Errorf("no complete move set is scored, expected false, got %v", ok)
@@ -72,7 +72,7 @@ func TestNodeBestSoFar01(t *testing.T) {
 	node2.score = 4
 	node2.scoredLevel = 2
 
-	score, ok := node2.BestSoFar(0, 2)
+	_, score, ok := node2.BestSoFar(0, 2)
 
 	if score != 4 || !ok {
 		t.Errorf("score should be min of the moves, expected 4.00,true, got %.2f,%v", score, ok)
@@ -83,7 +83,7 @@ func TestNodeBestSoFar01(t *testing.T) {
 	node3.score = 2
 	node3.scoredLevel = 2
 
-	score, ok = node3.BestSoFar(0, 2)
+	_, score, ok = node3.BestSoFar(0, 2)
 
 	if score != 4 || !ok {
 		t.Errorf("score should be min of L since R incomplete, expected 4.00,true, got %.2f,%v", score, ok)
@@ -94,7 +94,7 @@ func TestNodeBestSoFar01(t *testing.T) {
 	node4.score = 2
 	node4.scoredLevel = 2
 
-	score, ok = node4.BestSoFar(0, 2)
+	_, score, ok = node4.BestSoFar(0, 2)
 
 	if score != 4 || !ok {
 		t.Errorf("score should be min of L since R has lower min, expected 4.00,true, got %.2f,%v", score, ok)
