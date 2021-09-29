@@ -310,6 +310,7 @@ func (s *State) ApplyMove() {
 		fmt.Println("ERROR: s.node == nil")
 		return
 	}
+	removeFoods := make([]Coord, 0)
 	newHeads := make([]*newHeadInfo, 0, 4)
 	for _, move := range s.node.moves {
 		// shouldn't happen...
@@ -329,16 +330,12 @@ func (s *State) ApplyMove() {
 		head := snake.Head()
 		newHead := head.Move(move.move)
 		food := false
-		removeIndex := -1
-		for i, f := range s.Food {
+		for _, f := range s.Food {
 			if f.Equals(newHead) {
 				food = true
-				removeIndex = i
+				removeFoods = append(removeFoods, f)
 				break
 			}
-		}
-		if food {
-			s.Food = remove(s.Food, removeIndex)
 		}
 		hazard := false
 		for _, h := range s.Hazards {
@@ -356,6 +353,21 @@ func (s *State) ApplyMove() {
 				hazard: hazard,
 			},
 		)
+	}
+	// Remove foods only after calculating if snakes eat, that way in case of
+	// H2H both snakes count as having eaten (otherwise the first snake gets
+	// it even if it would die in the H2H).
+	for _, f := range removeFoods {
+		rmIndex := -1
+		for i := range s.Food {
+			if s.Food[i].Equals(f) {
+				rmIndex = i
+				break
+			}
+		}
+		if rmIndex > -1 {
+			s.Food = remove(s.Food, rmIndex)
+		}
 	}
 	for _, head := range newHeads {
 		if head.snake.Dead {

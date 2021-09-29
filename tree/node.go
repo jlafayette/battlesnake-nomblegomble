@@ -325,3 +325,15 @@ func (mn *MoveNode) PrintSiblings() {
 	}
 	fmt.Printf("connected: %d\n", node.SiblingCount())
 }
+
+func (mn *MoveNode) MyMovesString(myIndex int) string {
+	strs := make([]string, 0)
+	for node := mn; node.parent != nil; node = node.parent {
+		strs = append(strs, node.moves[myIndex].move.ShortString())
+	}
+	var sb strings.Builder
+	for i := len(strs) - 1; i >= 0; i -= 1 {
+		sb.WriteString(strs[i])
+	}
+	return sb.String()
+}

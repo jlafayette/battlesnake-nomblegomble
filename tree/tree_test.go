@@ -822,14 +822,89 @@ func TestMaybeDontMoveIntoCornerAndDie(t *testing.T) {
 	treeState := NewState(&state, 10)
 	move, _ := treeState.FindBestMove(true)
 
-	// if move == Up {
-	// 	t.Errorf("snake moved into too small of space, %v", move)
-	// }
-	// if move == Right {
-	// 	t.Errorf("snake moved into self, %v", move)
-	// }
+	if move == Up {
+		t.Errorf("snake moved into corner, just stop it, %v", move)
+	}
+	if move == Right {
+		t.Errorf("snake moved deeper into sauce, %v", move)
+	}
 	if move == Left {
 		t.Errorf("snake moved into self, %v", move)
+	}
+}
+
+func TestEatTheFood01(t *testing.T) {
+	state := wire.GameState{
+		Game: wire.Game{
+			ID: "9ed99ee5-a8d8-4270-a706-d6f1189ffd2a",
+			Ruleset: wire.Ruleset{
+				Name:    "royale",
+				Version: "v1.0.22",
+			},
+			Timeout: 500,
+		},
+		Turn: 143,
+		Board: wire.Board{
+			Height: 11,
+			Width:  11,
+			Food:   []wire.Coord{{0, 9}, {9, 8}, {1, 3}, {9, 10}, {7, 9}},
+			Snakes: []wire.Battlesnake{
+				{
+					ID:      "gs_D3QVPfpvDC3txQSQfFfPF7Bf",
+					Name:    "Pr├╝zze v2",
+					Health:  13,
+					Head:    wire.Coord{1, 2},
+					Body:    []wire.Coord{{1, 2}, {2, 2}, {3, 2}, {4, 2}, {5, 2}, {6, 2}, {7, 2}, {8, 2}},
+					Length:  8,
+					Latency: "369",
+					Shout:   ", t=347",
+				},
+				{
+					ID:      "gs_X8SV44B8RvjHMM6b6bPYtMhW",
+					Name:    "WhitishMeteor",
+					Health:  85,
+					Head:    wire.Coord{4, 9},
+					Body:    []wire.Coord{{4, 9}, {4, 10}, {5, 10}, {6, 10}, {6, 9}, {6, 8}, {6, 7}, {7, 7}, {7, 6}, {6, 6}, {5, 6}, {5, 7}, {5, 8}, {4, 8}, {3, 8}, {2, 8}, {2, 7}},
+					Length:  17,
+					Latency: "342",
+					Shout:   "",
+				},
+				{
+					ID:      "gs_cG4bdcDHbKCvgmthMkJVxR3b",
+					Name:    "nomblegomble",
+					Health:  60,
+					Head:    wire.Coord{2, 3},
+					Body:    []wire.Coord{{2, 3}, {3, 3}, {4, 3}, {5, 3}, {5, 4}, {6, 4}, {7, 4}, {8, 4}, {8, 5}, {7, 5}, {6, 5}, {5, 5}, {4, 5}, {4, 4}},
+					Length:  14,
+					Latency: "473",
+					Shout:   "5",
+				},
+			},
+			Hazards: []wire.Coord{{0, 0}, {0, 1}, {0, 2}, {0, 3}, {0, 4}, {0, 5}, {0, 6}, {0, 7}, {0, 8}, {0, 9}, {0, 10}, {1, 8}, {1, 9}, {1, 10}, {2, 8}, {2, 9}, {2, 10}, {3, 8}, {3, 9}, {3, 10}, {4, 8}, {4, 9}, {4, 10}, {5, 8}, {5, 9}, {5, 10}, {6, 8}, {6, 9}, {6, 10}, {7, 8}, {7, 9}, {7, 10}, {8, 0}, {8, 1}, {8, 2}, {8, 3}, {8, 4}, {8, 5}, {8, 6}, {8, 7}, {8, 8}, {8, 9}, {8, 10}, {9, 0}, {9, 1}, {9, 2}, {9, 3}, {9, 4}, {9, 5}, {9, 6}, {9, 7}, {9, 8}, {9, 9}, {9, 10}, {10, 0}, {10, 1}, {10, 2}, {10, 3}, {10, 4}, {10, 5}, {10, 6}, {10, 7}, {10, 8}, {10, 9}, {10, 10}},
+		},
+		You: wire.Battlesnake{
+			ID:      "gs_cG4bdcDHbKCvgmthMkJVxR3b",
+			Name:    "nomblegomble",
+			Health:  60,
+			Head:    wire.Coord{2, 3},
+			Body:    []wire.Coord{{2, 3}, {3, 3}, {4, 3}, {5, 3}, {5, 4}, {6, 4}, {7, 4}, {8, 4}, {8, 5}, {7, 5}, {6, 5}, {5, 5}, {4, 5}, {4, 4}},
+			Length:  14,
+			Latency: "473",
+			Shout:   "5",
+		},
+	}
+
+	treeState := NewState(&state, 3)
+	move, _ := treeState.FindBestMove(true)
+
+	if move == Up {
+		t.Errorf("snake moved away from delicious food, %v", move)
+	}
+	if move == Right {
+		t.Errorf("snake moved into self, %v", move)
+	}
+	if move == Down {
+		t.Errorf("snake moved into other snake, %v", move)
 	}
 }
 
