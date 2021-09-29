@@ -71,7 +71,36 @@ func (mn *MoveNode) SiblingCount() int {
 	return count
 }
 
+func (mn *MoveNode) place() (int, int) {
+	before := 0
+	for node := mn; node != nil; node = node.prevSibling {
+		before += 1
+	}
+	return before, mn.SiblingCount()
+}
+
+func (mn *MoveNode) hierarchy() string {
+	// .2/23 ..1/123 ...4/4
+	strs := make([]string, 0)
+	for node := mn; node != nil; node = node.parent {
+		p, t := node.place()
+		strs = append(strs, fmt.Sprintf("%d/%d", p, t))
+	}
+	var sb strings.Builder
+	for i := len(strs) - 2; i >= 0; i -= 1 {
+		for j := 0; j < len(strs)-i-1; j++ {
+			sb.WriteByte('.')
+		}
+		sb.WriteString(strs[i])
+		sb.WriteByte(' ')
+	}
+	return sb.String()
+}
+
 func (m1 *MoveNode) swap(m2 *MoveNode) {
+	// p1, _ := m1.place()
+	// p2, _ := m2.place()
+	// fmt.Printf("swap %d<>%d\n", p1, p2)
 	tmpM := m2.moves
 	tmpS := m2.score
 	tmpL := m2.scoredLevel
@@ -81,12 +110,31 @@ func (m1 *MoveNode) swap(m2 *MoveNode) {
 	m2.score = m1.score
 	m2.scoredLevel = m1.scoredLevel
 	m2.child = m1.child
+	if m2.child != nil {
+		m2.child.parent = m2
+	}
 	m2.pruned = m1.pruned
+
 	m1.moves = tmpM
 	m1.score = tmpS
 	m1.scoredLevel = tmpL
 	m1.child = tmpC
 	m1.pruned = tmpP
+	if m1.child != nil {
+		m1.child.parent = m1
+	}
+
+	// m1.assert()
+	// m2.assert()
+}
+
+func (mn *MoveNode) assert() {
+	if mn.child == nil {
+		return
+	}
+	if mn.child.parent != mn {
+		panic("got all screwed up here")
+	}
 }
 
 // Sort
@@ -94,56 +142,58 @@ func (m1 *MoveNode) swap(m2 *MoveNode) {
 // Subsequent moves grouped with their minscore at start of group
 func (mn *MoveNode) SortSiblings(myIndex int, bestMove Move) {
 
-	// sorting is bugged, needs to be done twice
 	// fmt.Printf("sorting with (%d) %s\n", myIndex, bestMove.ShortString())
 
-	for i := mn.FirstSibling(); i != nil; i = i.nextSibling {
-		iSort := i.moves[myIndex].move
-		if iSort == bestMove {
-			iSort = NoMove
-		}
-		for j := i.nextSibling; j != nil; j = j.nextSibling {
-			jSort := j.moves[myIndex].move
-			if jSort == bestMove {
-				jSort = NoMove
-			}
-			if iSort > jSort {
-				// fmt.Printf("%d(%s) > %d(%s)  swap\n", iSort, iSort.ShortString(), jSort, jSort.ShortString())
-				i.swap(j)
-			}
-		}
-	}
-	for i := mn.FirstSibling(); i != nil; i = i.nextSibling {
-		iSort := i.moves[myIndex].move
-		if iSort == bestMove {
-			iSort = NoMove
-		}
-		for j := i.nextSibling; j != nil; j = j.nextSibling {
-			jSort := j.moves[myIndex].move
-			if jSort == bestMove {
-				jSort = NoMove
-			}
-			if iSort > jSort {
-				// fmt.Printf("%d(%s) > %d(%s)  swap\n", iSort, iSort.ShortString(), jSort, jSort.ShortString())
-				i.swap(j)
-			}
-		}
-	}
+	// This seems to break everything?
 
 	// Sort by scores (within move groups)
+	// for i := mn.FirstSibling(); i != nil; i = i.nextSibling {
+	// 	for j := i.nextSibling; j != nil; j = j.nextSibling {
+	// 		if i.moves[myIndex].move != j.moves[myIndex].move {
+	// 			continue
+	// 		}
+	// 		if i.score > j.score {
+	// 			i.swap(j)
+	// 		}
+	// 	}
+	// }
+
 	for i := mn.FirstSibling(); i != nil; i = i.nextSibling {
+		iSort := i.moves[myIndex].move
+		if iSort == bestMove {
+			iSort = NoMove
+		}
 		for j := i.nextSibling; j != nil; j = j.nextSibling {
-			if i.moves[myIndex].move != j.moves[myIndex].move {
-				continue
+			jSort := j.moves[myIndex].move
+			if jSort == bestMove {
+				jSort = NoMove
 			}
-			if i.score > j.score {
+			if iSort > jSort {
+				// fmt.Printf("%d(%s) > %d(%s)  swap\n", iSort, iSort.ShortString(), jSort, jSort.ShortString())
 				i.swap(j)
 			}
 		}
 	}
+	// for i := mn.FirstSibling(); i != nil; i = i.nextSibling {
+	// 	iSort := i.moves[myIndex].move
+	// 	if iSort == bestMove {
+	// 		iSort = NoMove
+	// 	}
+	// 	for j := i.nextSibling; j != nil; j = j.nextSibling {
+	// 		jSort := j.moves[myIndex].move
+	// 		if jSort == bestMove {
+	// 			jSort = NoMove
+	// 		}
+	// 		if iSort > jSort {
+	// 			// fmt.Printf("%d(%s) > %d(%s)  swap\n", iSort, iSort.ShortString(), jSort, jSort.ShortString())
+	// 			i.swap(j)
+	// 		}
+	// 	}
+	// }
+
 }
 
-func (mn *MoveNode) NodeAfterPrune(myIndex, level int) *MoveNode {
+func (mn *MoveNode) NodeAfterPrune(myIndex, level int) (*MoveNode, int) {
 	// If pruning can occur, then mark all the nodes as pruned and return the
 	// next node that cannot be pruned. It's ok to return nil if all the nodes
 	// can be pruned or no
@@ -151,12 +201,12 @@ func (mn *MoveNode) NodeAfterPrune(myIndex, level int) *MoveNode {
 	// fmt.Printf("--- prune opportunity for %v (%d) level: (%d)\n", mn, myIndex, level)
 
 	if mn == nil || mn.nextSibling == nil {
-		return mn
+		return mn, 0
 	}
 
 	_, _, best, ok := mn.BestSoFar(myIndex, level)
 	if !ok {
-		return mn
+		return mn, 0
 	}
 	myMove := mn.moves[myIndex].move
 	lowest := HIGHEST
@@ -173,30 +223,28 @@ func (mn *MoveNode) NodeAfterPrune(myIndex, level int) *MoveNode {
 		found = true
 	}
 	if !found {
-		return mn
+		return mn, 0
 	}
-	// this comparison is a mystery, seems like it should be opposite?
-	// but lowest > best make all the test fail
-	// we should not prune if lowest > best (this makes sense)
+	// we should not prune if lowest > best
 	if lowest > best {
-		return mn
+		return mn, 0
 	}
 
-	// pruned := 0
+	pruned := 0
 	for node := mn.nextSibling; node != nil; node = node.nextSibling {
 		if node.moves[myIndex].move != myMove {
 			// if pruned > 0 {
 			// 	fmt.Printf("%d->successfully pruned! jumping  %v -> %v (%d)\n", pruned, mn, node, myIndex)
 			// }
-			return node
+			return node, pruned
 		}
-		// pruned += 1
+		pruned += 1
 		node.pruned = true
 	}
 	// if pruned > 0 {
 	// 	fmt.Printf("%d->successfully pruned! jumping  %v -> %v (%d)\n", pruned, mn, nil, myIndex)
 	// }
-	return nil
+	return nil, pruned
 }
 
 // Return score and bool (true if a best is found, otherwise false)

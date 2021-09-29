@@ -148,7 +148,7 @@ func TestNodePrune01(t *testing.T) {
 	node3.score = 2
 	node3.scoredLevel = 2
 
-	nextNode := node3.NodeAfterPrune(0, 2)
+	nextNode, _ := node3.NodeAfterPrune(0, 2)
 
 	if nextNode != node5 {
 		t.Errorf("other R nodes should be pruned, expected %v, got %v", node5, nextNode)
