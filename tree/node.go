@@ -16,9 +16,9 @@ type MoveNode struct {
 	moves []snakeMove
 
 	// scores for iterative deepening
-	score       float64 // the score for the current deepening level
-	scoredLevel int     // the deepening level this has been scored at last
-	pruned      bool    // if the node has been pruned (no score needed)
+	scores      []float64 // the score for the current deepening level
+	scoredLevel int       // the deepening level this has been scored at last
+	pruned      bool      // if the node has been pruned (no score needed)
 
 	// The parent position, if nil, then we are the root of the tree
 	parent *MoveNode
@@ -41,6 +41,18 @@ type MoveNode struct {
 	// c1 <> c2
 	nextSibling *MoveNode
 	prevSibling *MoveNode
+}
+
+func NewMoveNode(snakeCount int) *MoveNode {
+	moves := make([]snakeMove, 0, snakeCount)
+	scores := make([]float64, 0, snakeCount)
+	for i := 0; i < snakeCount; i++ {
+		scores = append(scores, 0.0)
+	}
+	return &MoveNode{
+		moves:  moves,
+		scores: scores,
+	}
 }
 
 func (mn *MoveNode) FirstSibling() *MoveNode {
@@ -102,12 +114,12 @@ func (m1 *MoveNode) swap(m2 *MoveNode) {
 	// p2, _ := m2.place()
 	// fmt.Printf("swap %d<>%d\n", p1, p2)
 	tmpM := m2.moves
-	tmpS := m2.score
+	tmpS := m2.scores
 	tmpL := m2.scoredLevel
 	tmpC := m2.child
 	tmpP := m2.pruned
 	m2.moves = m1.moves
-	m2.score = m1.score
+	m2.scores = m1.scores
 	m2.scoredLevel = m1.scoredLevel
 	m2.child = m1.child
 	if m2.child != nil {
@@ -116,7 +128,7 @@ func (m1 *MoveNode) swap(m2 *MoveNode) {
 	m2.pruned = m1.pruned
 
 	m1.moves = tmpM
-	m1.score = tmpS
+	m1.scores = tmpS
 	m1.scoredLevel = tmpL
 	m1.child = tmpC
 	m1.pruned = tmpP
@@ -219,7 +231,7 @@ func (mn *MoveNode) NodeAfterPrune(myIndex, level int) (*MoveNode, int) {
 		if node.scoredLevel != level || node.pruned {
 			continue
 		}
-		lowest = minf(lowest, node.score)
+		lowest = minf(lowest, node.scores[myIndex])
 		found = true
 	}
 	if !found {
@@ -273,10 +285,10 @@ func (mn *MoveNode) BestSoFar(myIndex, level int) (Move, Move, float64, bool) {
 				allScored = false
 				break
 			}
-			minScore = minf(minScore, node.score)
+			minScore = minf(minScore, node.scores[myIndex])
 			// fmt.Printf("%s setting minScore to %.2f\n", node.String(), minScore)
 			atLeastOne = true
-			luckyScore = maxf(luckyScore, node.score)
+			luckyScore = maxf(luckyScore, node.scores[myIndex])
 		}
 		if allScored && atLeastOne {
 			if minScore > maxScore {
@@ -305,12 +317,13 @@ func (node *MoveNode) String() string {
 	for _, m := range node.moves {
 		sb.WriteString(m.ShortString())
 		sb.WriteByte(' ')
+		sb.WriteString(fmt.Sprintf("%.1f", node.scores[m.snakeIndex]))
 	}
 	prunedStr := "-"
 	if node.pruned {
 		prunedStr = "X"
 	}
-	sb.WriteString(fmt.Sprintf("%d%s %.1f", node.scoredLevel, prunedStr, node.score))
+	sb.WriteString(fmt.Sprintf("%d%s", node.scoredLevel, prunedStr))
 	return sb.String()
 }
 

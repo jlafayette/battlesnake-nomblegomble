@@ -87,7 +87,7 @@ func NewState(wireState *wire.GameState, depth int) *State {
 	// the min of 50 is mostly for test cases where this is not specified
 	timeout := max(50, int(wireState.Game.Timeout)-50)
 
-	root := &MoveNode{}
+	root := NewMoveNode(len(snakes))
 	return &State{
 		Width:        wireState.Board.Width,
 		Height:       wireState.Board.Height,
@@ -262,7 +262,9 @@ func (s *State) createPossibleMoves() {
 		for _, m1 := range m1moves {
 			for _, m2 := range m2moves {
 				for _, m3 := range m3moves {
-					node := &MoveNode{moves: []snakeMove{m0, m1, m2, m3}, parent: s.node}
+					node := NewMoveNode(4)
+					node.moves = []snakeMove{m0, m1, m2, m3}
+					node.parent = s.node
 					if prev == nil {
 						s.node.child = node
 					} else {
@@ -530,7 +532,7 @@ func (s *State) findBestMove(start time.Time, verbose bool) (Move, bool, bool) {
 
 				s.evalBoard.Load(s.Snakes, s.Food, s.Hazards)
 				scores := s.evalBoard.Eval(SnakeIndex(s.MyIndex))
-				s.node.score = scores[s.MyIndex]
+				s.node.scores = scores
 				// fmt.Printf("score: %.2f\n", score)
 				s.node.scoredLevel = s.deepeningLevel
 				eval_count += 1
@@ -565,8 +567,8 @@ func (s *State) findBestMove(start time.Time, verbose bool) (Move, bool, bool) {
 					for node != nil {
 						if node.moves[s.MyIndex].move == m1 && !node.pruned {
 							atLeastOne = true
-							minScore = minf(minScore, node.score)
-							luckyScore = maxf(luckyScore, node.score)
+							minScore = minf(minScore, node.scores[s.MyIndex])
+							luckyScore = maxf(luckyScore, node.scores[s.MyIndex])
 						}
 						node = node.prevSibling
 					}
@@ -594,7 +596,7 @@ func (s *State) findBestMove(start time.Time, verbose bool) (Move, bool, bool) {
 
 				// go up to parent, apply score from children
 				s.UpLevel()
-				s.node.score = maxScore
+				s.node.scores[s.MyIndex] = maxScore // TODO: update parent with other snake scores too
 				s.node.scoredLevel = s.deepeningLevel
 				// fmt.Printf("  Pushed a new score (%.1f) up to the parent\n", maxScore)
 
@@ -624,7 +626,7 @@ func (s *State) findBestMove(start time.Time, verbose bool) (Move, bool, bool) {
 					luckyMoveFound = luckyMove != NoMove
 					s.node.ResetPrunedSiblings()
 					s.UpLevel()
-					s.node.score = score
+					s.node.scores[s.MyIndex] = score // TODO: update the parent with all scores
 					s.node.scoredLevel = s.deepeningLevel
 				}
 
