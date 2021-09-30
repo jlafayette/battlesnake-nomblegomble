@@ -46,7 +46,13 @@ func move(state wire.GameState) wire.BattlesnakeMoveResponse {
 
 	// Depth of 20 is the upper limit, it will return when the timeout is
 	// reached most of the time.
-	treeState := tree.NewState(&state, 20)
+	depth := 20
+	// if state.Turn < 3 {
+	// 	// Thinking too hard on the first 2 turns seems to skip the starting
+	// 	// food sometimes...
+	// 	depth = 1
+	// }
+	treeState := tree.NewState(&state, depth)
 	move, lvl := treeState.FindBestMove(true)
 
 	move_str := move.String()

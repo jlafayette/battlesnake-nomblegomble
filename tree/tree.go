@@ -455,13 +455,6 @@ func (s *State) PrevSibling() {
 	s.ApplyMove()
 }
 
-// Score sets node score from the current position loaded into eval.Board
-func (s *State) Score() {
-	score := s.evalBoard.Eval(SnakeIndex(s.MyIndex))
-	s.node.score = score
-	s.node.scoredLevel = s.deepeningLevel
-}
-
 func (s *State) printNodeStack() {
 	n := s.node
 	for n != nil {
@@ -471,7 +464,6 @@ func (s *State) printNodeStack() {
 }
 
 func (s *State) FindBestMove(verbose bool) (Move, int) {
-	// Not going to do iterative deepening yet, just a set depth
 
 	start := time.Now()
 	s.deepeningLevel = 1
@@ -537,8 +529,8 @@ func (s *State) findBestMove(start time.Time, verbose bool) (Move, bool, bool) {
 				// fmt.Print(" ")
 
 				s.evalBoard.Load(s.Snakes, s.Food, s.Hazards)
-				score := s.evalBoard.Eval(SnakeIndex(s.MyIndex))
-				s.node.score = score
+				scores := s.evalBoard.Eval(SnakeIndex(s.MyIndex))
+				s.node.score = scores[s.MyIndex]
 				// fmt.Printf("score: %.2f\n", score)
 				s.node.scoredLevel = s.deepeningLevel
 				eval_count += 1

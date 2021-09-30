@@ -123,7 +123,7 @@ func (b *Board) Load(snakes []*Snake, foods, hazards []Coord) {
 	}
 }
 
-func (b *Board) _checkNeighbor(x, y int, cell *Cell, myIndex SnakeIndex, nx, ny int) bool {
+func (b *Board) _checkNeighbor(x, y int, cell *Cell, nx, ny int) bool {
 	// Check for nearby heads
 	nCell, ok := b.getCell(nx, ny)
 	if ok && nCell.IsHead() {
@@ -139,7 +139,7 @@ func (b *Board) _checkNeighbor(x, y int, cell *Cell, myIndex SnakeIndex, nx, ny 
 	return false
 }
 
-func (b *Board) Update(myIndex SnakeIndex) bool {
+func (b *Board) Update() bool {
 	done := true
 	b.Turn += 1
 
@@ -165,19 +165,19 @@ func (b *Board) Update(myIndex SnakeIndex) bool {
 			}
 
 			// Check for nearby heads
-			head := b._checkNeighbor(x, y, cell, myIndex, x-1, y)
+			head := b._checkNeighbor(x, y, cell, x-1, y)
 			if head {
 				done = false
 			}
-			head = b._checkNeighbor(x, y, cell, myIndex, x+1, y)
+			head = b._checkNeighbor(x, y, cell, x+1, y)
 			if head {
 				done = false
 			}
-			head = b._checkNeighbor(x, y, cell, myIndex, x, y+1)
+			head = b._checkNeighbor(x, y, cell, x, y+1)
 			if head {
 				done = false
 			}
-			head = b._checkNeighbor(x, y, cell, myIndex, x, y-1)
+			head = b._checkNeighbor(x, y, cell, x, y-1)
 			if head {
 				done = false
 			}
@@ -223,7 +223,7 @@ func (b *Board) Update(myIndex SnakeIndex) bool {
 	return done
 }
 
-func (b *Board) fill(myIndex SnakeIndex) map[SnakeIndex]*EvalResult {
+func (b *Board) fill() map[SnakeIndex]*EvalResult {
 	results := make(map[SnakeIndex]*EvalResult)
 	var longest int = 0
 	for snakeIndex, l := range b.lengths {
@@ -244,7 +244,7 @@ func (b *Board) fill(myIndex SnakeIndex) map[SnakeIndex]*EvalResult {
 	done := false
 	for !done {
 		// fmt.Println(b.String())
-		done = b.Update(myIndex)
+		done = b.Update()
 		if (int(b.Turn) >= b.Width*b.Height) || (int(b.Turn) >= longest*2) {
 			// if int(b.Turn) >= b.Width*b.Height {
 			done = true
@@ -262,7 +262,9 @@ func (b *Board) fill(myIndex SnakeIndex) map[SnakeIndex]*EvalResult {
 	// 	food := length - origLen
 	// 	results[snakeIndex].Food = int(food)
 	// }
-	results[myIndex].Food = b.foodTrackers[myIndex].score
+	for id := range b.foodTrackers {
+		results[id].Food = b.foodTrackers[id].score
+	}
 
 	// for k, v := range results {
 	// 	fmt.Printf("Snake %d Area: %d\n", k, v.Area)
@@ -306,97 +308,102 @@ func PrintResults(r map[SnakeIndex]*EvalResult) {
 	}
 }
 
-func (b *Board) Eval(index SnakeIndex) float64 {
-	// scores := make([]float64, len(b.lengths))
-	score := 0.0
+func (b *Board) Eval(myIndex SnakeIndex) []float64 {
+	scores := make([]float64, b.snakeCount)
+	results := b.fill()
 
-	// are we dead?
-	// -9999
-	iDeadScore := 0.0
-	dead, ok := b.dead[index]
-	if !ok {
-		panic("given index is missing from dead")
-	}
-	if dead {
-		iDeadScore = -9999.0
-	}
-	score += iDeadScore
+	for index := range b.dead {
+		score := 0.0
 
-	// how many other snakes are still alive?
-	// 0,50
-	snakeCount := 0
-	aliveCount := 0
-	for k, v := range b.dead {
-		if k == index {
-			continue
+		// are we dead?
+		// -9999
+		iDeadScore := 0.0
+		dead, ok := b.dead[index]
+		if !ok {
+			panic("given index is missing from dead")
 		}
-		snakeCount += 1
-		if !v {
-			aliveCount += 1
+		if dead {
+			iDeadScore = -9999.0
 		}
-	}
-	othersDeadScore := remap(float64(aliveCount), 0, float64(snakeCount), 0, 50)
-	score += othersDeadScore
+		score += iDeadScore
 
-	// what's our health relative to other snakes?
-	health, ok := b.health[index]
-	if !ok {
-		panic("no health?!")
-	}
-	healthScore := float64(health) * 2
-	score += healthScore
-
-	// what's our length relative to other snakes?
-	// 0, 50
-	// my length
-	// other longest
-	// my length - longest
-	// -20?, 20? --> we don't really care if it's too much positive, so we clamp it
-	// -10, 10 -> -50, 50
-	myLength, ok := b.lengths[index]
-	if !ok {
-		panic("no length!")
-	}
-	if myLength <= 0 {
-		panic("my length is less than or equal to zero!")
-	}
-	otherLongest := 0
-	for i, l := range b.lengths {
-		if i == index {
-			continue
+		// how many other snakes are still alive?
+		// 0,50
+		snakeCount := 0
+		aliveCount := 0
+		for k, v := range b.dead {
+			if k == index {
+				continue
+			}
+			snakeCount += 1
+			if !v {
+				aliveCount += 1
+			}
 		}
-		otherLongest = max(otherLongest, l)
-	}
-	longestScore := remap(float64(clamp(myLength-otherLongest, -10, 10)), -10, 10, -120, 120)
-	score += longestScore
+		othersDeadScore := remap(float64(aliveCount), 0, float64(snakeCount), 0, 50)
+		score += othersDeadScore
 
-	// how much space do we have relative to other snakes?
-	// mySpace - (otherSpace / number of opponents)
-	// -100,100
-	results := b.fill(index)
-	myArea := 0.0
-	othersArea := 0.0
-	for k, v := range results {
-		if k == index {
-			myArea = minf(float64(v.Area)/float64(myLength), 3)
-		} else {
-			othersArea += minf(float64(v.Area)/float64(b.lengths[k]), 3)
+		// what's our health relative to other snakes?
+		health, ok := b.health[index]
+		if !ok {
+			panic("no health?!")
 		}
+		healthScore := float64(health) * 2
+		score += healthScore
+
+		// what's our length relative to other snakes?
+		// 0, 50
+		// my length
+		// other longest
+		// my length - longest
+		// -20?, 20? --> we don't really care if it's too much positive, so we clamp it
+		// -10, 10 -> -50, 50
+		myLength, ok := b.lengths[index]
+		if !ok {
+			panic("no length!")
+		}
+		if myLength <= 0 {
+			panic("my length is less than or equal to zero!")
+		}
+		otherLongest := 0
+		for i, l := range b.lengths {
+			if i == index {
+				continue
+			}
+			otherLongest = max(otherLongest, l)
+		}
+		longestScore := remap(float64(clamp(myLength-otherLongest, -10, 10)), -10, 10, -120, 120)
+		score += longestScore
+
+		// how much space do we have relative to other snakes?
+		// mySpace - (otherSpace / number of opponents)
+		// -100,100
+
+		myArea := 0.0
+		othersArea := 0.0
+		for k, v := range results {
+			if k == index {
+				myArea = minf(float64(v.Area)/float64(myLength), 3)
+			} else {
+				othersArea += minf(float64(v.Area)/float64(b.lengths[k]), 3)
+			}
+		}
+		rawArea := myArea
+		if aliveCount > 0 {
+			rawArea = myArea - (othersArea / float64(aliveCount))
+		}
+		areaScore := remap(float64(rawArea), -3, 3, -100, 100)
+		score += areaScore
+
+		// Food
+		// this is all calculated in the foodTracker struct for my snake
+		rawFoodScore := float64(results[index].Food)
+		foodScore := rawFoodScore * 2.0
+		score += foodScore
+
+		// fmt.Printf("score: %.1f iDead: %.1f othersDead: %.1f health: %.1f food/score: %.1f/%.1f length: %.1f area me/others/raw/score: %.1f/%.1f/%.1f/%.1f\n", score, iDeadScore, othersDeadScore, healthScore, rawFoodScore, foodScore, longestScore, myArea, othersArea, rawArea, areaScore)
+
+		scores[index] = score
 	}
-	rawArea := myArea
-	if aliveCount > 0 {
-		rawArea = myArea - (othersArea / float64(aliveCount))
-	}
-	areaScore := remap(float64(rawArea), -3, 3, -100, 100)
-	score += areaScore
-
-	// Food
-	// this is all calculated in the foodTracker struct for my snake
-	rawFoodScore := float64(results[index].Food)
-	foodScore := rawFoodScore * 2.0
-	score += foodScore
-
-	// fmt.Printf("score: %.1f iDead: %.1f othersDead: %.1f health: %.1f food/score: %.1f/%.1f length: %.1f area me/others/raw/score: %.1f/%.1f/%.1f/%.1f\n", score, iDeadScore, othersDeadScore, healthScore, rawFoodScore, foodScore, longestScore, myArea, othersArea, rawArea, areaScore)
-
-	return score
+	return scores
 }
