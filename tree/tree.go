@@ -533,6 +533,8 @@ func (s *State) findBestMove(start time.Time, verbose bool) (Move, bool, bool) {
 				// score the current node
 
 				// before scoring... can this be pruned?
+				// fmt.Print(s.node.MyMovesString(s.MyIndex))
+				// fmt.Print(" ")
 
 				s.evalBoard.Load(s.Snakes, s.Food, s.Hazards)
 				score := s.evalBoard.Eval(SnakeIndex(s.MyIndex))

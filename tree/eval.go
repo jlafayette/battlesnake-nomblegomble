@@ -6,17 +6,18 @@ import (
 )
 
 type Board struct {
-	Width       int
-	Height      int
-	Turn        Turn
-	Cells       []*Cell
-	lengths1    map[SnakeIndex]int     // original lengths
-	lengths     map[SnakeIndex]int     // current lengths
-	areas       map[SnakeIndex]float64 // this is a float so hazards can count less
-	foodTracker *foodTracker           // foods in area weighted by distance
-	ate         map[SnakeIndex]bool
-	dead        map[SnakeIndex]bool
-	health      map[SnakeIndex]int
+	Width        int
+	Height       int
+	snakeCount   int
+	Turn         Turn
+	Cells        []*Cell
+	lengths1     map[SnakeIndex]int          // original lengths
+	lengths      map[SnakeIndex]int          // current lengths
+	areas        map[SnakeIndex]float64      // this is a float so hazards can count less
+	foodTrackers map[SnakeIndex]*foodTracker // foods in area weighted by distance
+	ate          map[SnakeIndex]bool
+	dead         map[SnakeIndex]bool
+	health       map[SnakeIndex]int
 }
 
 func (b *Board) getCell(x, y int) (*Cell, bool) {
@@ -41,18 +42,24 @@ func NewBoard(width, height int, snakes []*Snake, foods, hazards []Coord) *Board
 	areas := make(map[SnakeIndex]float64, snakeNumber)
 	dead := make(map[SnakeIndex]bool, snakeNumber)
 	health := make(map[SnakeIndex]int, snakeNumber)
+	trackers := make(map[SnakeIndex]*foodTracker, snakeNumber)
+	for i := 0; i < snakeNumber; i++ {
+		trackers[SnakeIndex(i)] = newFoodTracker()
+	}
+
 	b := &Board{
-		Width:       w,
-		Height:      h,
-		Turn:        0,
-		Cells:       cells,
-		lengths:     lengths,
-		lengths1:    lengths1,
-		areas:       areas,
-		foodTracker: newFoodTracker(),
-		ate:         ate,
-		dead:        dead,
-		health:      health,
+		Width:        w,
+		Height:       h,
+		snakeCount:   snakeNumber,
+		Turn:         0,
+		Cells:        cells,
+		lengths:      lengths,
+		lengths1:     lengths1,
+		areas:        areas,
+		foodTrackers: trackers,
+		ate:          ate,
+		dead:         dead,
+		health:       health,
 	}
 	for x := 0; x < b.Width; x++ {
 		for y := 0; y < b.Height; y++ {
@@ -65,6 +72,7 @@ func NewBoard(width, height int, snakes []*Snake, foods, hazards []Coord) *Board
 
 // Load a position to evaluate
 func (b *Board) Load(snakes []*Snake, foods, hazards []Coord) {
+	b.snakeCount = len(snakes)
 	b.Turn = 0
 	// clear areas
 	for i := range b.areas {
@@ -75,7 +83,9 @@ func (b *Board) Load(snakes []*Snake, foods, hazards []Coord) {
 		b.ate[i] = false
 	}
 	// clear food tracker
-	b.foodTracker.reset()
+	for i := range b.foodTrackers {
+		b.foodTrackers[i].reset()
+	}
 	// clear cells
 	for _, cell := range b.Cells {
 		cell.Clear()
@@ -113,6 +123,22 @@ func (b *Board) Load(snakes []*Snake, foods, hazards []Coord) {
 	}
 }
 
+func (b *Board) _checkNeighbor(x, y int, cell *Cell, myIndex SnakeIndex, nx, ny int) bool {
+	// Check for nearby heads
+	nCell, ok := b.getCell(nx, ny)
+	if ok && nCell.IsHead() {
+		id := nCell.SnakeId()
+		cell.NewHeadFrom(nCell, b.Turn)
+		if cell.IsFood() {
+			b.ate[id] = true
+			b.foodTrackers[id].add(Coord{x, y}, b.Turn)
+		}
+		b.areas[id] += cell.Area()
+		return true
+	}
+	return false
+}
+
 func (b *Board) Update(myIndex SnakeIndex) bool {
 	done := true
 	b.Turn += 1
@@ -139,56 +165,20 @@ func (b *Board) Update(myIndex SnakeIndex) bool {
 			}
 
 			// Check for nearby heads
-			nCell, ok := b.getCell(x-1, y)
-			if ok && nCell.IsHead() {
-				id := nCell.SnakeId()
-				cell.NewHeadFrom(nCell, b.Turn)
-				if cell.IsFood() {
-					b.ate[id] = true
-					if id == myIndex {
-						b.foodTracker.add(Coord{x, y}, b.Turn)
-					}
-				}
-				b.areas[id] += cell.Area()
+			head := b._checkNeighbor(x, y, cell, myIndex, x-1, y)
+			if head {
 				done = false
 			}
-			nCell, ok = b.getCell(x+1, y)
-			if ok && nCell.IsHead() {
-				id := nCell.SnakeId()
-				cell.NewHeadFrom(nCell, b.Turn)
-				if cell.IsFood() {
-					b.ate[id] = true
-					if id == myIndex {
-						b.foodTracker.add(Coord{x, y}, b.Turn)
-					}
-				}
-				b.areas[id] += cell.Area()
+			head = b._checkNeighbor(x, y, cell, myIndex, x+1, y)
+			if head {
 				done = false
 			}
-			nCell, ok = b.getCell(x, y+1)
-			if ok && nCell.IsHead() {
-				id := nCell.SnakeId()
-				cell.NewHeadFrom(nCell, b.Turn)
-				if cell.IsFood() {
-					b.ate[id] = true
-					if id == myIndex {
-						b.foodTracker.add(Coord{x, y}, b.Turn)
-					}
-				}
-				b.areas[id] += cell.Area()
+			head = b._checkNeighbor(x, y, cell, myIndex, x, y+1)
+			if head {
 				done = false
 			}
-			nCell, ok = b.getCell(x, y-1)
-			if ok && nCell.IsHead() {
-				id := nCell.SnakeId()
-				cell.NewHeadFrom(nCell, b.Turn)
-				if cell.IsFood() {
-					b.ate[id] = true
-					if id == myIndex {
-						b.foodTracker.add(Coord{x, y}, b.Turn)
-					}
-				}
-				b.areas[id] += cell.Area()
+			head = b._checkNeighbor(x, y, cell, myIndex, x, y-1)
+			if head {
 				done = false
 			}
 		}
@@ -272,7 +262,7 @@ func (b *Board) fill(myIndex SnakeIndex) map[SnakeIndex]*EvalResult {
 	// 	food := length - origLen
 	// 	results[snakeIndex].Food = int(food)
 	// }
-	results[myIndex].Food = b.foodTracker.score
+	results[myIndex].Food = b.foodTrackers[myIndex].score
 
 	// for k, v := range results {
 	// 	fmt.Printf("Snake %d Area: %d\n", k, v.Area)
@@ -317,6 +307,7 @@ func PrintResults(r map[SnakeIndex]*EvalResult) {
 }
 
 func (b *Board) Eval(index SnakeIndex) float64 {
+	// scores := make([]float64, len(b.lengths))
 	score := 0.0
 
 	// are we dead?

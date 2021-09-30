@@ -908,6 +908,74 @@ func TestEatTheFood01(t *testing.T) {
 	}
 }
 
+func TestMaybeDontMoveIntoCornerAndDie02(t *testing.T) {
+	state := wire.GameState{
+		Game: wire.Game{
+			ID: "a697f868-d48d-4fd0-b807-9a89a225e147",
+			Ruleset: wire.Ruleset{
+				Name:    "royale",
+				Version: "v1.0.22",
+			},
+			Timeout: 500,
+		},
+		Turn: 125,
+		Board: wire.Board{
+			Height: 11,
+			Width:  11,
+			Food:   []wire.Coord{{10, 0}, {10, 1}, {7, 0}, {10, 3}, {9, 3}},
+			Snakes: []wire.Battlesnake{
+				{
+					ID:      "gs_H3cVVxcMFMMfQx3rcr6JWyK6",
+					Name:    "nomblegomble",
+					Health:  100,
+					Head:    wire.Coord{3, 10},
+					Body:    []wire.Coord{{3, 10}, {3, 9}, {3, 8}, {2, 8}, {1, 8}, {1, 7}, {0, 7}, {0, 6}, {0, 5}, {1, 5}, {1, 6}, {2, 6}, {2, 6}},
+					Length:  13,
+					Latency: "473",
+					Shout:   "8",
+				},
+				{
+					ID:      "gs_4bVBjpSkGxHQDr9bHm6GRPg9",
+					Name:    "Nessegrev-gamma",
+					Health:  79,
+					Head:    wire.Coord{5, 6},
+					Body:    []wire.Coord{{5, 6}, {5, 5}, {5, 4}, {4, 4}, {4, 3}, {3, 3}, {2, 3}, {1, 3}, {1, 4}, {2, 4}, {3, 4}, {3, 5}, {4, 5}},
+					Length:  13,
+					Latency: "402",
+					Shout:   "",
+				},
+			},
+			Hazards: []wire.Coord{{0, 0}, {0, 1}, {0, 2}, {0, 3}, {0, 4}, {0, 5}, {0, 6}, {0, 7}, {0, 8}, {0, 9}, {0, 10}, {1, 0}, {1, 1}, {1, 9}, {1, 10}, {2, 0}, {2, 1}, {2, 9}, {2, 10}, {3, 0}, {3, 1}, {3, 9}, {3, 10}, {4, 0}, {4, 1}, {4, 9}, {4, 10}, {5, 0}, {5, 1}, {5, 9}, {5, 10}, {6, 0}, {6, 1}, {6, 9}, {6, 10}, {7, 0}, {7, 1}, {7, 9}, {7, 10}, {8, 0}, {8, 1}, {8, 9}, {8, 10}, {9, 0}, {9, 1}, {9, 9}, {9, 10}, {10, 0}, {10, 1}, {10, 2}, {10, 3}, {10, 4}, {10, 5}, {10, 6}, {10, 7}, {10, 8}, {10, 9}, {10, 10}},
+		},
+		You: wire.Battlesnake{
+			ID:      "gs_H3cVVxcMFMMfQx3rcr6JWyK6",
+			Name:    "nomblegomble",
+			Health:  100,
+			Head:    wire.Coord{3, 10},
+			Body:    []wire.Coord{{3, 10}, {3, 9}, {3, 8}, {2, 8}, {1, 8}, {1, 7}, {0, 7}, {0, 6}, {0, 5}, {1, 5}, {1, 6}, {2, 6}, {2, 6}},
+			Length:  13,
+			Latency: "473",
+			Shout:   "8",
+		},
+	}
+	t.Skip("wip to try and fix this")
+
+	// 1 is fine, >2 all go left
+	// seem to be overly afraid of H2H
+	treeState := NewState(&state, 3)
+	move, _ := treeState.FindBestMove(true)
+
+	if move == Left {
+		t.Errorf("snake moved into the corner and will definately die, %v", move)
+	}
+	if move == Down {
+		t.Errorf("snake moved into self, %v", move)
+	}
+	if move == Up {
+		t.Errorf("snake moved into wall, %v", move)
+	}
+}
+
 // -- benchmarks
 
 var result Move
