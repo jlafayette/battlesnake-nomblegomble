@@ -29,11 +29,11 @@ func (mn *MoveNode) EvalSiblings(snakeCount, level int) (*MoveNode, bool) {
 	nextNode, done := mn.resolve(level)
 	if !done {
 		nextNode = mn.nextUnscoredSibling(level)
-		p, t := nextNode.place()
-		fmt.Printf("Not done yet, nextNode (%d/%d): %v\n", p, t, nextNode)
-	} else {
-		fmt.Println("DONE!!")
-	}
+		// p, t := nextNode.place()
+		// fmt.Printf("Not done yet, nextNode (%d/%d): %v\n", p, t, nextNode)
+	} // else {
+	// 	fmt.Println("DONE!!")
+	// }
 
 	return nextNode, done
 	// return MoveNodeEval{NextNode: nextNode, FinalNode: finalNode}
@@ -101,7 +101,7 @@ func (mn *MoveNode) pruneLowestSibling(snakeCount, level int) bool {
 			}
 			// ok, now we have a complete set and a lowest2 score for that set
 			// if lowestMove is already found, we can compare and do a prune,
-			fmt.Printf("found a complete set for %d:%v\n", index, m1)
+			// fmt.Printf("found a complete set for %d:%v\n", index, m1)
 			if lowestMove != NoMove {
 				if lowest2 < lowest {
 					pruneIndex = index
@@ -122,13 +122,13 @@ func (mn *MoveNode) pruneLowestSibling(snakeCount, level int) bool {
 	if !found {
 		return false
 	}
-	count := 0
-	for node := firstNode; node != nil; node = node.nextSibling {
-		if node.moves[pruneIndex].move == pruneMove {
-			count += 1
-		}
-	}
-	fmt.Printf("found a lowest set to prune %d:%v (count: %d)\n", pruneIndex, pruneMove, count)
+	// count := 0
+	// for node := firstNode; node != nil; node = node.nextSibling {
+	// 	if node.moves[pruneIndex].move == pruneMove {
+	// 		count += 1
+	// 	}
+	// }
+	// fmt.Printf("found a lowest set to prune %d:%v (count: %d)\n", pruneIndex, pruneMove, count)
 	actuallyPrunedSomthing := false
 	for node := firstNode; node != nil; node = node.nextSibling {
 
@@ -136,13 +136,13 @@ func (mn *MoveNode) pruneLowestSibling(snakeCount, level int) bool {
 			continue
 		}
 		if node.moves[pruneIndex].move == pruneMove {
-			p1, t := node.place()
-			fmt.Printf("%d pruned a move: %d/%d %v\n", level, p1, t, node)
+			// p1, t := node.place()
+			// fmt.Printf("%d pruned a move: %d/%d %v\n", level, p1, t, node)
 			node.pruned = true
 			actuallyPrunedSomthing = true
 		}
 	}
-	fmt.Printf("...prunedSomething: %v\n", actuallyPrunedSomthing)
+	// fmt.Printf("...prunedSomething: %v\n", actuallyPrunedSomthing)
 	return actuallyPrunedSomthing
 }
 
@@ -167,7 +167,7 @@ func (mn *MoveNode) resolve(level int) (*MoveNode, bool) {
 			candidate = node
 		} else {
 			// two candidates... so we can't resolve
-			fmt.Printf("%d two candidates... not done yet\n", level)
+			// fmt.Printf("%d two candidates... not done yet\n", level)
 			// p, t := candidate.place()
 			// fmt.Printf("  candidate1 (%d/%d): %v\n", p, t, candidate)
 			// p, t = node.place()
@@ -193,22 +193,25 @@ func (mn *MoveNode) nextUnscoredSibling(level int) *MoveNode {
 			return node
 		}
 	}
-	fmt.Println("before no unscored siblings...")
-	p, t := mn.place()
-	fmt.Printf("%d/%d, %v\n", p, t, mn)
-	for node := mn.FirstSibling(); node != nil; node = node.nextSibling {
 
-		if node.pruned {
-			continue
-		}
-		if node.scoredLevel != level {
-			panic("bad")
-		}
-		p, t = node.place()
-		fmt.Printf("scored %d/%d: %v\n", p, t, node)
-		// p, t = node.place()
-		// fmt.Printf("scored %d/%d: %v\n", p, t, node)
-	}
+	//-- debug stuff before panic
+
+	// fmt.Println("before no unscored siblings...")
+	// p, t := mn.place()
+	// fmt.Printf("%d/%d, %v\n", p, t, mn)
+	// for node := mn.FirstSibling(); node != nil; node = node.nextSibling {
+
+	// 	if node.pruned {
+	// 		continue
+	// 	}
+	// 	if node.scoredLevel != level {
+	// 		panic("bad")
+	// 	}
+	// 	p, t = node.place()
+	// 	fmt.Printf("scored %d/%d: %v\n", p, t, node)
+	// 	// p, t = node.place()
+	// 	// fmt.Printf("scored %d/%d: %v\n", p, t, node)
+	// }
 	panic("no unscored siblings")
 }
 

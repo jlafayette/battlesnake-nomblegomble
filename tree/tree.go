@@ -549,6 +549,8 @@ func (s *State) findBestMove(start time.Time, verbose bool) (Move, bool, bool) {
 				s.ApplyMove()
 			} else {
 				//
+				s.node.ResetPrunedSiblings()
+
 				s.UpLevel()
 				s.node.scores = nextNode.scores
 				s.node.scoredLevel = s.deepeningLevel
