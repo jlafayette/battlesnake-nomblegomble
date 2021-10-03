@@ -10,7 +10,7 @@ const (
 	LOWEST  = -9999999.0
 )
 
-func (mn *MoveNode) EvalSiblings(snakeCount, level int) (*MoveNode, bool) {
+func (mn *MoveNode) EvalSiblings(myIndex, snakeCount, level int) (*MoveNode, bool) {
 	// this is a variation of minmax
 	if mn == nil {
 		panic("can't eval siblings since node is nil")
@@ -23,7 +23,7 @@ func (mn *MoveNode) EvalSiblings(snakeCount, level int) (*MoveNode, bool) {
 	// trim it
 	didAPrune := true
 	for didAPrune {
-		didAPrune = mn.pruneLowestSibling(snakeCount, level)
+		didAPrune = mn.pruneLowestSibling(myIndex, snakeCount, level)
 	}
 
 	nextNode, done := mn.resolve(level)
@@ -35,6 +35,12 @@ func (mn *MoveNode) EvalSiblings(snakeCount, level int) (*MoveNode, bool) {
 	// 	fmt.Println("DONE!!")
 	// }
 
+	if nextNode == nil {
+		// We got to the minmax part (all obviously bad opponent moves trimmed)
+		nextNode = mn.BestMove(myIndex, level)
+		done = true
+	}
+
 	return nextNode, done
 	// return MoveNodeEval{NextNode: nextNode, FinalNode: finalNode}
 
@@ -44,7 +50,7 @@ func (mn *MoveNode) EvalSiblings(snakeCount, level int) (*MoveNode, bool) {
 	// do we have enough info yet to do any pruning?
 }
 
-func (mn *MoveNode) pruneLowestSibling(snakeCount, level int) bool {
+func (mn *MoveNode) pruneLowestSibling(myIndex, snakeCount, level int) bool {
 	// if we have enough information, prune a move for one of the snakes
 	// (all the move combos that contain that move can be pruned)
 
@@ -53,6 +59,10 @@ func (mn *MoveNode) pruneLowestSibling(snakeCount, level int) bool {
 
 	// And... we need one other move that is better than the lowest of the fully scored move
 	// LLL LLR LRL LRR RLL (0 can do L because if that one R is higher)
+
+	// One more thing, the score difference needs to be significant
+	// Also we don't prune away our own moves - that will be done in a more
+	// normal minmax function after all the other prunes are done.
 	firstNode := mn.FirstSibling()
 
 	pruneIndex := -1
@@ -62,6 +72,9 @@ func (mn *MoveNode) pruneLowestSibling(snakeCount, level int) bool {
 	// for id in snakeids
 	// TODO: randomize snake index order and do other snakes before mySnake
 	for index := 0; index < snakeCount; index++ {
+		if index == myIndex {
+			continue
+		}
 		if found {
 			break
 		}
@@ -103,15 +116,28 @@ func (mn *MoveNode) pruneLowestSibling(snakeCount, level int) bool {
 			// if lowestMove is already found, we can compare and do a prune,
 			// fmt.Printf("found a complete set for %d:%v\n", index, m1)
 			if lowestMove != NoMove {
+				var diff float64
 				if lowest2 < lowest {
-					pruneIndex = index
-					pruneMove = m1
+					diff = lowest - lowest2
 				} else {
-					pruneIndex = index
-					pruneMove = lowestMove
+					diff = lowest2 - lowest
 				}
-				found = true
+
+				// can't rule out another snakes move unless it's obviously worse
+				threshold := 50.0
+				if diff > threshold {
+					// fmt.Printf("difference for %d between %s and %s: %.1f\n", index, lowestMove.ShortString(), m1.ShortString(), diff)
+					if lowest2 < lowest {
+						pruneIndex = index
+						pruneMove = m1
+					} else {
+						pruneIndex = index
+						pruneMove = lowestMove
+					}
+					found = true
+				}
 			}
+
 			// if lowestMove is not already found, then we store this one as
 			// the lowest (it's always the lowest since it's the only move)
 			lowestMove = m1
@@ -151,7 +177,7 @@ func (mn *MoveNode) resolve(level int) (*MoveNode, bool) {
 
 	// for this to work we need only one node left after skipping pruned nodes
 	// (and the one node left can't be unscored)
-	// return nil if that isn't the case
+	// return (nil, false) if that isn't the case
 
 	firstNode := mn.FirstSibling()
 
@@ -182,9 +208,6 @@ func (mn *MoveNode) resolve(level int) (*MoveNode, bool) {
 }
 
 func (mn *MoveNode) nextUnscoredSibling(level int) *MoveNode {
-	if mn.nextSibling == nil && mn.scoredLevel != level {
-		panic("resolve didn't do it's job")
-	}
 	for node := mn; node != nil; node = node.nextSibling {
 		if node.pruned {
 			continue
@@ -194,7 +217,7 @@ func (mn *MoveNode) nextUnscoredSibling(level int) *MoveNode {
 		}
 	}
 
-	//-- debug stuff before panic
+	//-- debug stuff before returning nil
 
 	// fmt.Println("before no unscored siblings...")
 	// p, t := mn.place()
@@ -212,7 +235,49 @@ func (mn *MoveNode) nextUnscoredSibling(level int) *MoveNode {
 	// 	// p, t = node.place()
 	// 	// fmt.Printf("scored %d/%d: %v\n", p, t, node)
 	// }
-	panic("no unscored siblings")
+	return nil
+}
+
+// Return score and bool (true if a best is found, otherwise false)
+func (mn *MoveNode) BestMove(myIndex, level int) *MoveNode {
+	// need a complete set scored
+	// take the min of the complete set
+
+	maxScore := LOWEST
+	bestMoveNode := mn
+	for _, m1 := range []Move{Left, Right, Up, Down} {
+		atLeastOne := false
+		minScore := HIGHEST
+		var minNode *MoveNode
+
+		for node := mn.FirstSibling(); node != nil; node = node.nextSibling {
+			m2 := node.moves[myIndex].move
+			if m2 != m1 || node.pruned {
+				// fmt.Printf("%v != %v || %v\n", m2, m1, node.pruned)
+				continue
+			}
+			if node.scoredLevel != level {
+				// fmt.Printf("%d != %d\n", node.scoredLevel, level)
+				panic("everything should be scored before calling BestMove")
+			}
+			if node.scores[myIndex] < minScore {
+				minNode = node
+			}
+			minScore = minf(minScore, node.scores[myIndex])
+			// fmt.Printf("%s setting minScore to %.2f\n", node.String(), minScore)
+			atLeastOne = true
+		}
+		if atLeastOne {
+			if minScore > maxScore {
+				bestMoveNode = minNode
+			}
+
+			maxScore = maxf(maxScore, minScore)
+			// fmt.Printf("%s setting maxScore to %.2f\n", m1.ShortString(), maxScore)
+		}
+	}
+
+	return bestMoveNode
 }
 
 // A node in the tree

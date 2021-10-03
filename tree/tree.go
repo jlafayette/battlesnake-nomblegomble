@@ -540,7 +540,7 @@ func (s *State) findBestMove(start time.Time, verbose bool) (Move, bool, bool) {
 
 			// TODO: add back in alpha-beta pruning
 
-			nextNode, done := s.node.EvalSiblings(len(s.Snakes), s.deepeningLevel)
+			nextNode, done := s.node.EvalSiblings(s.MyIndex, len(s.Snakes), s.deepeningLevel)
 			if !done {
 				// s.NextSibling() but jumping forward
 				s.UpLevel()

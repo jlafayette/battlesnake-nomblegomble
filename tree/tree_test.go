@@ -961,10 +961,9 @@ func TestMaybeDontMoveIntoCornerAndDie02(t *testing.T) {
 			Shout:   "8",
 		},
 	}
-	// t.Skip("wip to try and fix this")
 
 	// 1 is fine, >2 all go left
-	// seem to be overly afraid of H2H
+	// seem to be overly afraid of H2H (this was true when the test was added)
 	treeState := NewState(&state, 3)
 	move, _ := treeState.FindBestMove(true)
 
@@ -972,6 +971,91 @@ func TestMaybeDontMoveIntoCornerAndDie02(t *testing.T) {
 		t.Errorf("snake moved into the corner and will definately die, %v", move)
 	}
 	if move == Down {
+		t.Errorf("snake moved into self, %v", move)
+	}
+	if move == Up {
+		t.Errorf("snake moved into wall, %v", move)
+	}
+}
+
+func Test__NAME__(t *testing.T) {
+	state := wire.GameState{
+		Game: wire.Game{
+			ID: "b6af3e62-95fe-4b6a-8807-3de99a2e776f",
+			Ruleset: wire.Ruleset{
+				Name:    "royale",
+				Version: "v1.0.22",
+			},
+			Timeout: 500,
+		},
+		Turn: 18,
+		Board: wire.Board{
+			Height: 11,
+			Width:  11,
+			Food:   []wire.Coord{{0, 9}, {1, 1}},
+			Snakes: []wire.Battlesnake{
+				{
+					ID:      "gs_GhjgBb7YxVDYttTYPvb4SFkC",
+					Name:    "Salazar Slitherin",
+					Health:  92,
+					Head:    wire.Coord{3, 3},
+					Body:    []wire.Coord{{3, 3}, {4, 3}, {5, 3}, {5, 2}, {6, 2}},
+					Length:  5,
+					Latency: "151",
+					Shout:   "5 4 17",
+				},
+				{
+					ID:      "gs_Vq7WM3YmkWtfdSFQ3yGdGwC6",
+					Name:    "Devious Devin",
+					Health:  84,
+					Head:    wire.Coord{1, 9},
+					Body:    []wire.Coord{{1, 9}, {2, 9}, {3, 9}, {4, 9}},
+					Length:  4,
+					Latency: "431",
+					Shout:   "",
+				},
+				{
+					ID:      "gs_SSFrSBMjgJtCFgFS8ryDqDCY",
+					Name:    "nomblegomble",
+					Health:  94,
+					Head:    wire.Coord{4, 10},
+					Body:    []wire.Coord{{4, 10}, {5, 10}, {6, 10}, {7, 10}, {8, 10}},
+					Length:  5,
+					Latency: "474",
+					Shout:   "3",
+				},
+				{
+					ID:      "gs_jXrjh6XCWdfxxRQ6kDc7hwXQ",
+					Name:    "≡ƒÆÇ≡ƒÆÇ≡ƒÆÇ≡ƒÆÇ≡ƒÆÇ",
+					Health:  91,
+					Head:    wire.Coord{6, 6},
+					Body:    []wire.Coord{{6, 6}, {7, 6}, {8, 6}, {8, 5}, {8, 4}, {9, 4}},
+					Length:  6,
+					Latency: "84",
+					Shout:   "",
+				},
+			},
+			Hazards: []wire.Coord{},
+		},
+		You: wire.Battlesnake{
+			ID:      "gs_SSFrSBMjgJtCFgFS8ryDqDCY",
+			Name:    "nomblegomble",
+			Health:  94,
+			Head:    wire.Coord{4, 10},
+			Body:    []wire.Coord{{4, 10}, {5, 10}, {6, 10}, {7, 10}, {8, 10}},
+			Length:  5,
+			Latency: "474",
+			Shout:   "3",
+		},
+	}
+
+	treeState := NewState(&state, 3)
+	move, _ := treeState.FindBestMove(true)
+
+	if move == Left {
+		t.Errorf("snake moved into trapped corner (will die), %v", move)
+	}
+	if move == Right {
 		t.Errorf("snake moved into self, %v", move)
 	}
 	if move == Up {
