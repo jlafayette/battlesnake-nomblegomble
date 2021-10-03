@@ -309,10 +309,11 @@ func PrintResults(r map[SnakeIndex]*EvalResult) {
 }
 
 func (b *Board) Eval(myIndex SnakeIndex) []float64 {
-	scores := make([]float64, b.snakeCount)
+	scores := make([]float64, 4)
 	results := b.fill()
 
-	for index := range b.dead {
+	for indexI := 0; indexI < 4; indexI++ {
+		index := SnakeIndex(indexI)
 		score := 0.0
 
 		// are we dead?
@@ -320,7 +321,8 @@ func (b *Board) Eval(myIndex SnakeIndex) []float64 {
 		iDeadScore := 0.0
 		dead, ok := b.dead[index]
 		if !ok {
-			panic("given index is missing from dead")
+			scores[index] = 0.0
+			continue
 		}
 		if dead {
 			iDeadScore = -9999.0
@@ -404,6 +406,9 @@ func (b *Board) Eval(myIndex SnakeIndex) []float64 {
 		// fmt.Printf("score: %.1f iDead: %.1f othersDead: %.1f health: %.1f food/score: %.1f/%.1f length: %.1f area me/others/raw/score: %.1f/%.1f/%.1f/%.1f\n", score, iDeadScore, othersDeadScore, healthScore, rawFoodScore, foodScore, longestScore, myArea, othersArea, rawArea, areaScore)
 
 		scores[index] = score
+	}
+	if len(scores) != 4 {
+		panic(fmt.Sprintf("expected 4 scores, got %d", len(scores)))
 	}
 	return scores
 }

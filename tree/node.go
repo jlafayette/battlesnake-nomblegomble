@@ -10,6 +10,208 @@ const (
 	LOWEST  = -9999999.0
 )
 
+func (mn *MoveNode) EvalSiblings(snakeCount, level int) (*MoveNode, bool) {
+	// this is a variation of minmax
+	if mn == nil {
+		panic("can't eval siblings since node is nil")
+	}
+
+	// find the lowest scored move where the snake has an alternative and drop
+	// it repeat until all snakes have only one option
+
+	// find a bad move for one of the snakes (the worst)
+	// trim it
+	didAPrune := true
+	for didAPrune {
+		didAPrune = mn.pruneLowestSibling(snakeCount, level)
+	}
+
+	nextNode, done := mn.resolve(level)
+	if !done {
+		nextNode = mn.nextUnscoredSibling(level)
+		p, t := nextNode.place()
+		fmt.Printf("Not done yet, nextNode (%d/%d): %v\n", p, t, nextNode)
+	} else {
+		fmt.Println("DONE!!")
+	}
+
+	return nextNode, done
+	// return MoveNodeEval{NextNode: nextNode, FinalNode: finalNode}
+
+	// move counts (how many options)
+	// if all snakes have only one option then we are done
+
+	// do we have enough info yet to do any pruning?
+}
+
+func (mn *MoveNode) pruneLowestSibling(snakeCount, level int) bool {
+	// if we have enough information, prune a move for one of the snakes
+	// (all the move combos that contain that move can be pruned)
+
+	// to prune, we need all the node scored for that move
+	// LLL LLR LRL LRR (0 can do L)
+
+	// And... we need one other move that is better than the lowest of the fully scored move
+	// LLL LLR LRL LRR RLL (0 can do L because if that one R is higher)
+	firstNode := mn.FirstSibling()
+
+	pruneIndex := -1
+	pruneMove := NoMove
+	found := false
+
+	// for id in snakeids
+	// TODO: randomize snake index order and do other snakes before mySnake
+	for index := 0; index < snakeCount; index++ {
+		if found {
+			break
+		}
+		lowest := HIGHEST
+		lowestMove := NoMove
+		//   for move in Up,Lf,Rt,Dn
+		for _, m1 := range []Move{Up, Down, Right, Left} {
+			if found {
+				break
+			}
+			lowest2 := HIGHEST
+			complete := true
+			atLeastOne := false
+			//     for node in nodes
+			for node := firstNode; node != nil; node = node.nextSibling {
+				if found {
+					break
+				}
+				if node.pruned {
+					continue
+				}
+				//       check for complete
+				//       optionally record lowest
+				m2 := node.moves[index].move
+				if m1 != m2 {
+					continue
+				}
+				atLeastOne = true
+				if node.scoredLevel != level {
+					complete = false
+					break
+				}
+				lowest2 = minf(lowest2, node.scores[index])
+			}
+			if !complete || !atLeastOne {
+				continue
+			}
+			// ok, now we have a complete set and a lowest2 score for that set
+			// if lowestMove is already found, we can compare and do a prune,
+			fmt.Printf("found a complete set for %d:%v\n", index, m1)
+			if lowestMove != NoMove {
+				if lowest2 < lowest {
+					pruneIndex = index
+					pruneMove = m1
+				} else {
+					pruneIndex = index
+					pruneMove = lowestMove
+				}
+				found = true
+			}
+			// if lowestMove is not already found, then we store this one as
+			// the lowest (it's always the lowest since it's the only move)
+			lowestMove = m1
+			lowest = minf(lowest2, lowest)
+		}
+	}
+
+	if !found {
+		return false
+	}
+	count := 0
+	for node := firstNode; node != nil; node = node.nextSibling {
+		if node.moves[pruneIndex].move == pruneMove {
+			count += 1
+		}
+	}
+	fmt.Printf("found a lowest set to prune %d:%v (count: %d)\n", pruneIndex, pruneMove, count)
+	actuallyPrunedSomthing := false
+	for node := firstNode; node != nil; node = node.nextSibling {
+
+		if node.pruned || node.scoredLevel != level {
+			continue
+		}
+		if node.moves[pruneIndex].move == pruneMove {
+			p1, t := node.place()
+			fmt.Printf("%d pruned a move: %d/%d %v\n", level, p1, t, node)
+			node.pruned = true
+			actuallyPrunedSomthing = true
+		}
+	}
+	fmt.Printf("...prunedSomething: %v\n", actuallyPrunedSomthing)
+	return actuallyPrunedSomthing
+}
+
+func (mn *MoveNode) resolve(level int) (*MoveNode, bool) {
+	// here we return the final node if we can narrow it down that far
+
+	// for this to work we need only one node left after skipping pruned nodes
+	// (and the one node left can't be unscored)
+	// return nil if that isn't the case
+
+	firstNode := mn.FirstSibling()
+
+	var candidate *MoveNode
+	for node := firstNode; node != nil; node = node.nextSibling {
+		if node.pruned {
+			continue
+		}
+		if node.scoredLevel != level {
+			return node, false
+		}
+		if candidate == nil {
+			candidate = node
+		} else {
+			// two candidates... so we can't resolve
+			fmt.Printf("%d two candidates... not done yet\n", level)
+			// p, t := candidate.place()
+			// fmt.Printf("  candidate1 (%d/%d): %v\n", p, t, candidate)
+			// p, t = node.place()
+			// fmt.Printf("  candidate2 (%d/%d): %v\n", p, t, node)
+			return nil, false
+		}
+	}
+	if candidate != nil {
+		return candidate, true
+	}
+	panic("uh oh")
+}
+
+func (mn *MoveNode) nextUnscoredSibling(level int) *MoveNode {
+	if mn.nextSibling == nil && mn.scoredLevel != level {
+		panic("resolve didn't do it's job")
+	}
+	for node := mn; node != nil; node = node.nextSibling {
+		if node.pruned {
+			continue
+		}
+		if node.scoredLevel != level {
+			return node
+		}
+	}
+	fmt.Println("before no unscored siblings...")
+	p, t := mn.place()
+	fmt.Printf("%d/%d, %v\n", p, t, mn)
+	for node := mn.FirstSibling(); node != nil; node = node.nextSibling {
+
+		if node.pruned {
+			continue
+		}
+		if node.scoredLevel != level {
+			panic("bad")
+		}
+		p, t = node.place()
+		fmt.Printf("scored %d/%d: %v\n", p, t, node)
+		// p, t = node.place()
+		// fmt.Printf("scored %d/%d: %v\n", p, t, node)
+	}
+	panic("no unscored siblings")
+}
+
 // A node in the tree
 type MoveNode struct {
 	// These are moves to achieve this position from the parent.
@@ -43,8 +245,7 @@ type MoveNode struct {
 	prevSibling *MoveNode
 }
 
-func NewMoveNode(snakeCount int) *MoveNode {
-	moves := make([]snakeMove, 0, snakeCount)
+func NewMoveNode(snakeCount int, moves []snakeMove) *MoveNode {
 	scores := make([]float64, 0, snakeCount)
 	for i := 0; i < snakeCount; i++ {
 		scores = append(scores, 0.0)
@@ -318,6 +519,7 @@ func (node *MoveNode) String() string {
 		sb.WriteString(m.ShortString())
 		sb.WriteByte(' ')
 		sb.WriteString(fmt.Sprintf("%.1f", node.scores[m.snakeIndex]))
+		sb.WriteByte(' ')
 	}
 	prunedStr := "-"
 	if node.pruned {

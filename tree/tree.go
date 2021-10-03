@@ -87,7 +87,7 @@ func NewState(wireState *wire.GameState, depth int) *State {
 	// the min of 50 is mostly for test cases where this is not specified
 	timeout := max(50, int(wireState.Game.Timeout)-50)
 
-	root := NewMoveNode(len(snakes))
+	root := NewMoveNode(4, []snakeMove{{0, NoMove}, {1, NoMove}, {2, NoMove}, {3, NoMove}})
 	return &State{
 		Width:        wireState.Board.Width,
 		Height:       wireState.Board.Height,
@@ -262,8 +262,7 @@ func (s *State) createPossibleMoves() {
 		for _, m1 := range m1moves {
 			for _, m2 := range m2moves {
 				for _, m3 := range m3moves {
-					node := NewMoveNode(4)
-					node.moves = []snakeMove{m0, m1, m2, m3}
+					node := NewMoveNode(4, []snakeMove{m0, m1, m2, m3})
 					node.parent = s.node
 					if prev == nil {
 						s.node.child = node
@@ -538,118 +537,38 @@ func (s *State) findBestMove(start time.Time, verbose bool) (Move, bool, bool) {
 				eval_count += 1
 			}
 		} else { // If scored
-			nextSibling := s.node.nextSibling
-			if nextSibling != nil { // node is scored and next sibling
-				s.NextSibling()
-			} else { // node is scored and no next sibling
-				// eval set (backtrack over the siblings and get the group score)
-				// then go up to parent and score it
-				// scan over neighbors, taking the min of each group (grouped by myMove)
-				// take the max of the groups
 
-				lastChild := s.node
-				maxScore := LOWEST
+			// TODO: add back in alpha-beta pruning
 
-				bestMove := Dead // this is kind of the None state for moves
-				// Sometimes there is no good move if the opponent plays perfectly (and can
-				// predict the future), so in this case, we need a backup 'lucky' move to
-				// play instead. This comes up when there are losing H2H moves, but the
-				// other snake might go a different direction, so it's better to try it
-				// and hope for the best.
-				luckyMove := Up // Use this if bestMove is Dead
-				luckyMoveFound := false
-
-				for _, m1 := range []Move{Left, Right, Up, Down} {
-					minScore := HIGHEST
-					luckyScore := LOWEST
-					atLeastOne := false
-					node := lastChild
-					for node != nil {
-						if node.moves[s.MyIndex].move == m1 && !node.pruned {
-							atLeastOne = true
-							minScore = minf(minScore, node.scores[s.MyIndex])
-							luckyScore = maxf(luckyScore, node.scores[s.MyIndex])
-						}
-						node = node.prevSibling
-					}
-					if atLeastOne {
-						if minScore > maxScore {
-							bestMove = m1
-							// fmt.Printf("  found new best move: %v\n", m1)
-						}
-						if luckyScore > maxScore {
-							luckyMove = m1
-							luckyMoveFound = true
-							// fmt.Printf("  found new lucky move %v\n", m1)
-						}
-						maxScore = maxf(maxScore, minScore)
-					} else {
-						// fmt.Printf("  atLeastOne: %v for %v\n", atLeastOne, m1)
-					}
-				}
-
-				// before going up to the parent, sort the moves from best to
-				// worst so that next deepening level can do better some
-				// pruning
-				s.node.SortSiblings(s.MyIndex, bestMove)
-				s.node.ResetPrunedSiblings()
-
-				// go up to parent, apply score from children
+			nextNode, done := s.node.EvalSiblings(len(s.Snakes), s.deepeningLevel)
+			if !done {
+				// s.NextSibling() but jumping forward
 				s.UpLevel()
-				s.node.scores[s.MyIndex] = maxScore // TODO: update parent with other snake scores too
+				s.node = nextNode
+				s.currentDepth += 1
+				s.ApplyMove()
+			} else {
+				//
+				s.UpLevel()
+				s.node.scores = nextNode.scores
 				s.node.scoredLevel = s.deepeningLevel
-				// fmt.Printf("  Pushed a new score (%.1f) up to the parent\n", maxScore)
-
-				// make this a loop?
-				for {
-					// can we attempt to prune
-					if s.node.parent == nil || s.node.nextSibling == nil {
-						break
-					}
-					newNode, _ := s.node.NodeAfterPrune(s.MyIndex, s.deepeningLevel)
-					if newNode == s.node {
-						break
-					}
-					// fmt.Printf("successfully pruned! jumping  %v  ->  %v\n", s.node, newNode)
-					if newNode != nil {
-						// s.NextSibling() but jumping forward
-						s.UpLevel()
-						s.node = newNode
-						s.currentDepth += 1
-						s.ApplyMove()
-						break
-					}
-
-					// all the rest were pruned, so we can go up another level
-					var score float64
-					bestMove, luckyMove, score, _ = s.node.BestSoFar(s.MyIndex, s.deepeningLevel)
-					luckyMoveFound = luckyMove != NoMove
-					s.node.ResetPrunedSiblings()
-					s.UpLevel()
-					s.node.scores[s.MyIndex] = score // TODO: update the parent with all scores
-					s.node.scoredLevel = s.deepeningLevel
-				}
 
 				if s.node.parent == nil {
+					bestMove := nextNode.moves[s.MyIndex].move
 					if verbose {
 						fmt.Printf("Evaluated %d positions\n", eval_count)
 					}
 					if bestMove == Dead || bestMove == NoMove {
-						if luckyMoveFound {
-							if verbose {
-								fmt.Printf("No good move, let's hope '%v' works\n", luckyMove)
-							}
-							return luckyMove, false, false
-						} else {
-							if verbose {
-								fmt.Println("No good or lucky move found")
-							}
-							return Dead, false, true
+						if verbose {
+							fmt.Println("No good or lucky move found")
 						}
+						return Dead, false, true
 					}
 					return bestMove, false, false
 				}
+
 			}
+
 		}
 	}
 }
