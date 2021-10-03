@@ -381,18 +381,23 @@ func (b *Board) Eval(myIndex SnakeIndex) []float64 {
 		// mySpace - (otherSpace / number of opponents)
 		// -100,100
 
+		// TODO: only be concerned with the smallest of the other areas
+		// we want to trap one other snake, not make them all a little trapped
+		// to do this, subtract the area of the oppenent with the least area
 		myArea := 0.0
-		othersArea := 0.0
+		otherSmallestArea := HIGHEST
+		otherSmallestFound := false
 		for k, v := range results {
 			if k == index {
 				myArea = minf(float64(v.Area)/float64(myLength), 3)
 			} else {
-				othersArea += minf(float64(v.Area)/float64(b.lengths[k]), 3)
+				otherSmallestArea = minf(minf(float64(v.Area)/float64(b.lengths[k]), 3), otherSmallestArea)
+				otherSmallestFound = true
 			}
 		}
 		rawArea := myArea
-		if aliveCount > 0 {
-			rawArea = myArea - (othersArea / float64(aliveCount))
+		if otherSmallestFound {
+			rawArea = myArea - otherSmallestArea
 		}
 		areaScore := remap(float64(rawArea), -3, 3, -100, 100)
 		score += areaScore
@@ -403,7 +408,7 @@ func (b *Board) Eval(myIndex SnakeIndex) []float64 {
 		foodScore := rawFoodScore * 2.0
 		score += foodScore
 
-		// fmt.Printf("score: %.1f iDead: %.1f othersDead: %.1f health: %.1f food/score: %.1f/%.1f length: %.1f area me/others/raw/score: %.1f/%.1f/%.1f/%.1f\n", score, iDeadScore, othersDeadScore, healthScore, rawFoodScore, foodScore, longestScore, myArea, othersArea, rawArea, areaScore)
+		// fmt.Printf("%d score: %.1f iDead: %.1f othersDead: %.1f health: %.1f food/score: %.1f/%.1f length: %.1f area me/otherSmallest/raw/score: %.1f/%.1f/%.1f/%.1f\n", index, score, iDeadScore, othersDeadScore, healthScore, rawFoodScore, foodScore, longestScore, myArea, otherSmallestArea, rawArea, areaScore)
 
 		scores[index] = score
 	}
