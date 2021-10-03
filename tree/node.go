@@ -124,7 +124,7 @@ func (mn *MoveNode) pruneLowestSibling(myIndex, snakeCount, level int) bool {
 				}
 
 				// can't rule out another snakes move unless it's obviously worse
-				threshold := 50.0
+				threshold := 100.0
 				if diff > threshold {
 					// fmt.Printf("difference for %d between %s and %s: %.1f\n", index, lowestMove.ShortString(), m1.ShortString(), diff)
 					if lowest2 < lowest {

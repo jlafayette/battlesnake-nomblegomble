@@ -978,7 +978,9 @@ func TestMaybeDontMoveIntoCornerAndDie02(t *testing.T) {
 	}
 }
 
-func Test__NAME__(t *testing.T) {
+// don't need this long term, but useful for testing obviously bad pattern
+// of not counting roughly equal options that other snakes have
+func TestSanityCheck01(t *testing.T) {
 	state := wire.GameState{
 		Game: wire.Game{
 			ID: "b6af3e62-95fe-4b6a-8807-3de99a2e776f",
@@ -1060,6 +1062,76 @@ func Test__NAME__(t *testing.T) {
 	}
 	if move == Up {
 		t.Errorf("snake moved into wall, %v", move)
+	}
+}
+
+// Don't try for a H2H when there are obviously better options that don't
+// involve a a 50/50 chance of dying
+// 1-5 gave left (good), then 6+ gave up (bad)...
+// fixed by increasing the prune threshold from 50->100 (75 was enough, but 100
+// seems like a good value to try)
+func TestBadH2H01(t *testing.T) {
+	state := wire.GameState{
+		Game: wire.Game{
+			ID: "77746b26-22a2-4013-a3c8-2791c6da6522",
+			Ruleset: wire.Ruleset{
+				Name:    "royale",
+				Version: "v1.0.22",
+			},
+			Timeout: 500,
+		},
+		Turn: 161,
+		Board: wire.Board{
+			Height: 11,
+			Width:  11,
+			Food:   []wire.Coord{{0, 0}, {0, 6}, {8, 8}, {10, 6}},
+			Snakes: []wire.Battlesnake{
+				{
+					ID:      "gs_9vQ9WghMBmJt7fkhh4y686qF",
+					Name:    "nomblegomble",
+					Health:  97,
+					Head:    wire.Coord{1, 8},
+					Body:    []wire.Coord{{1, 8}, {1, 7}, {2, 7}, {2, 6}, {2, 5}, {2, 4}, {2, 3}, {3, 3}, {4, 3}, {5, 3}, {5, 4}, {4, 4}, {3, 4}, {3, 5}},
+					Length:  14,
+					Latency: "473",
+					Shout:   "7",
+				},
+				{
+					ID:      "gs_gXhCJgkDjpFqTMB9bTfvPfgb",
+					Name:    "≡ƒÆÇ≡ƒÆÇ≡ƒÆÇ≡ƒÆÇ≡ƒÆÇ",
+					Health:  95,
+					Head:    wire.Coord{2, 9},
+					Body:    []wire.Coord{{2, 9}, {3, 9}, {3, 8}, {4, 8}, {5, 8}, {5, 7}, {5, 6}, {5, 5}, {6, 5}, {7, 5}, {7, 6}, {7, 7}, {8, 7}, {9, 7}, {9, 8}, {9, 9}, {9, 10}},
+					Length:  17,
+					Latency: "72",
+					Shout:   "",
+				},
+			},
+			Hazards: []wire.Coord{{0, 0}, {0, 1}, {0, 2}, {0, 3}, {0, 4}, {0, 5}, {0, 6}, {0, 7}, {0, 8}, {0, 9}, {0, 10}, {1, 0}, {1, 1}, {1, 10}, {2, 0}, {2, 1}, {2, 10}, {3, 0}, {3, 1}, {3, 10}, {4, 0}, {4, 1}, {4, 10}, {5, 0}, {5, 1}, {5, 10}, {6, 0}, {6, 1}, {6, 10}, {7, 0}, {7, 1}, {7, 2}, {7, 3}, {7, 4}, {7, 5}, {7, 6}, {7, 7}, {7, 8}, {7, 9}, {7, 10}, {8, 0}, {8, 1}, {8, 2}, {8, 3}, {8, 4}, {8, 5}, {8, 6}, {8, 7}, {8, 8}, {8, 9}, {8, 10}, {9, 0}, {9, 1}, {9, 2}, {9, 3}, {9, 4}, {9, 5}, {9, 6}, {9, 7}, {9, 8}, {9, 9}, {9, 10}, {10, 0}, {10, 1}, {10, 2}, {10, 3}, {10, 4}, {10, 5}, {10, 6}, {10, 7}, {10, 8}, {10, 9}, {10, 10}},
+		},
+		You: wire.Battlesnake{
+			ID:      "gs_9vQ9WghMBmJt7fkhh4y686qF",
+			Name:    "nomblegomble",
+			Health:  97,
+			Head:    wire.Coord{1, 8},
+			Body:    []wire.Coord{{1, 8}, {1, 7}, {2, 7}, {2, 6}, {2, 5}, {2, 4}, {2, 3}, {3, 3}, {4, 3}, {5, 3}, {5, 4}, {4, 4}, {3, 4}, {3, 5}},
+			Length:  14,
+			Latency: "473",
+			Shout:   "7",
+		},
+	}
+
+	treeState := NewState(&state, 8)
+	move, _ := treeState.FindBestMove(true)
+
+	if move == Up {
+		t.Errorf("snake moved into H2H needlessly, %v", move)
+	}
+	if move == Down {
+		t.Errorf("snake moved into self, %v", move)
+	}
+	if move == Right {
+		t.Errorf("snake moved into H2H or too small a space, %v", move)
 	}
 }
 
