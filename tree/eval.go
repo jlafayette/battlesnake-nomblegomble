@@ -378,12 +378,10 @@ func (b *Board) Eval(myIndex SnakeIndex) []float64 {
 		score += longestScore
 
 		// how much space do we have relative to other snakes?
-		// mySpace - (otherSpace / number of opponents)
+		// mySpace - otherSmallest
 		// -100,100
-
-		// TODO: only be concerned with the smallest of the other areas
-		// we want to trap one other snake, not make them all a little trapped
-		// to do this, subtract the area of the oppenent with the least area
+		// Only be concerned with the smallest of the other areas. Better to
+		// trap one other snake than to reduce the average space of the others.
 		myArea := 0.0
 		otherSmallestArea := HIGHEST
 		otherSmallestFound := false
