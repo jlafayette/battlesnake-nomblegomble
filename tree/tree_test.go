@@ -1135,6 +1135,131 @@ func TestBadH2H01(t *testing.T) {
 	}
 }
 
+func Test__NAME__(t *testing.T) {
+	state := wire.GameState{
+		Game: wire.Game{
+			ID: "6f5c63a3-ab49-45e5-8751-b261e1ca6b71",
+			Ruleset: wire.Ruleset{
+				Name:    "standard",
+				Version: "v1.0.22",
+			},
+			Timeout: 500,
+		},
+		Turn: 2,
+		Board: wire.Board{
+			Height: 11,
+			Width:  11,
+			Food:   []wire.Coord{{10, 4}, {5, 5}},
+			Snakes: []wire.Battlesnake{
+				{
+					ID:      "gs_SFxtMhQthd39Q6fHMBSh7vk6",
+					Name:    "nomblegomble-dev",
+					Health:  98,
+					Head:    wire.Coord{9, 7},
+					Body:    []wire.Coord{{9, 7}, {9, 6}, {9, 5}},
+					Length:  3,
+					Latency: "52",
+					Shout:   "",
+				},
+				{
+					ID:      "gs_mb6V4ydFJSjTcKcfqqpgTWTP",
+					Name:    "Stabby McStabbertooth",
+					Health:  100,
+					Head:    wire.Coord{2, 6},
+					Body:    []wire.Coord{{2, 6}, {1, 6}, {1, 5}, {1, 5}},
+					Length:  4,
+					Latency: "36",
+					Shout:   "",
+				},
+				{
+					ID:      "gs_rRMt9kvpbKYy3HqxMvCkTFPb",
+					Name:    "Stabby McStabbertooth",
+					Health:  100,
+					Head:    wire.Coord{0, 2},
+					Body:    []wire.Coord{{0, 2}, {1, 2}, {1, 1}, {1, 1}},
+					Length:  4,
+					Latency: "52",
+					Shout:   "",
+				},
+				{
+					ID:      "gs_tdFX33gK6mwXFfdywSYxTV44",
+					Name:    "Stabby McStabbertooth",
+					Health:  100,
+					Head:    wire.Coord{8, 2},
+					Body:    []wire.Coord{{8, 2}, {9, 2}, {9, 1}, {9, 1}},
+					Length:  4,
+					Latency: "26",
+					Shout:   "",
+				},
+				{
+					ID:      "gs_TVfWbcf4thmQXhJ8VVVGkyJV",
+					Name:    "Stabby McStabbertooth",
+					Health:  100,
+					Head:    wire.Coord{2, 8},
+					Body:    []wire.Coord{{2, 8}, {1, 8}, {1, 9}, {1, 9}},
+					Length:  4,
+					Latency: "54",
+					Shout:   "",
+				},
+				{
+					ID:      "gs_XcfDWWMJdK4KPrJt7SQj73S3",
+					Name:    "Stabby McStabbertooth",
+					Health:  100,
+					Head:    wire.Coord{10, 8},
+					Body:    []wire.Coord{{10, 8}, {9, 8}, {9, 9}, {9, 9}},
+					Length:  4,
+					Latency: "54",
+					Shout:   "",
+				},
+				{
+					ID:      "gs_9xghdDSShDDxWygC8GbCDY4D",
+					Name:    "Stabby McStabbertooth",
+					Health:  100,
+					Head:    wire.Coord{4, 0},
+					Body:    []wire.Coord{{4, 0}, {5, 0}, {5, 1}, {5, 1}},
+					Length:  4,
+					Latency: "53",
+					Shout:   "",
+				},
+				{
+					ID:      "gs_VVGTx4h3gQtTSVxQHkVMrhfb",
+					Name:    "Stabby McStabbertooth",
+					Health:  100,
+					Head:    wire.Coord{4, 8},
+					Body:    []wire.Coord{{4, 8}, {5, 8}, {5, 9}, {5, 9}},
+					Length:  4,
+					Latency: "52",
+					Shout:   "",
+				},
+			},
+			Hazards: []wire.Coord{},
+		},
+		You: wire.Battlesnake{
+			ID:      "gs_SFxtMhQthd39Q6fHMBSh7vk6",
+			Name:    "nomblegomble-dev",
+			Health:  98,
+			Head:    wire.Coord{9, 7},
+			Body:    []wire.Coord{{9, 7}, {9, 6}, {9, 5}},
+			Length:  3,
+			Latency: "52",
+			Shout:   "",
+		},
+	}
+
+	treeState := NewState(&state, 1)
+	move, _ := treeState.FindBestMove(true)
+
+	if move == Up {
+		t.Errorf("snake moved into other snake, %v", move)
+	}
+	if move == Right {
+		t.Errorf("snake moved into bad h2h, %v", move)
+	}
+	if move == Down {
+		t.Errorf("snake moved into wall, %v", move)
+	}
+}
+
 // -- benchmarks
 
 var result Move
