@@ -57,7 +57,7 @@ type State struct {
 }
 
 func NewState(wireState *wire.GameState, depth int) *State {
-	wireState.Board.capSnakesTo4()
+	// wireState.Board.capSnakesTo4()
 	snakeCount := len(wireState.Board.Snakes)
 	snakes := make([]*Snake, 0, snakeCount)
 	for i, srcSnake := range wireState.Board.Snakes {

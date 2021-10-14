@@ -28,6 +28,25 @@ type Board struct {
 	Hazards []Coord `json:"hazards"`
 }
 
+func (b *Board) capTo4Snakes(you *Battlesnake) {
+	// currently the tree search can only handle 4 snakes (including you),
+	// so this function removes far away snakes until there are only 4
+	if len(b.Snakes) <= 4 {
+		return
+	}
+	// measure distance from your head to any segment of the other
+	// snakes body (ignore tail would be a nice optimization)
+	lengths := make(map[string]int, len(b.Snakes))
+	for _, snake := range b.Snakes {
+		if snake.ID == you.ID {
+			continue
+		}
+		head := you.Head
+
+	}
+
+}
+
 type Battlesnake struct {
 	ID      string  `json:"id"`
 	Name    string  `json:"name"`
