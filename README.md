@@ -6,20 +6,10 @@
 
 ## TODO List
 
-* Overall goal: maximin type lookahead
-* Visualize board (arrow keys to push pop)
-* Visualize board flood fill (be able to step through it)
-* Push and Pop positions (solve popping multiple and remembering)
-* Create tree with nodes for the lookahead solve (don't bother being efficient until it chokes)
-* Be able to step through it with visualize board? go over, go into (like like a debugger control)
-
-* Figure out how to switch on space-filling/escape properly
 * In space calculation, try to account for other snake not being able to block everything. It must
   make a desicion at some point, so if the h2h squares are too far apart, it can't cover the whole
   border.
-* Add debug view of grid spaces
 * Add more info to space report (food, number of tails, heads), see if this can help the scoring
-* Prefer moves that take away space from other snakes (esp in 1v1)
 
 ## Running Tests
 
