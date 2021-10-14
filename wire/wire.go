@@ -28,7 +28,7 @@ type Board struct {
 	Hazards []Coord `json:"hazards"`
 }
 
-func (b *Board) capTo4Snakes(you *Battlesnake) {
+func (b *Board) CapTo4Snakes(you Battlesnake) {
 	// currently the tree search can only handle 4 snakes (including you),
 	// so this function removes far away snakes until there are only 4
 	if len(b.Snakes) <= 4 {
@@ -36,15 +36,40 @@ func (b *Board) capTo4Snakes(you *Battlesnake) {
 	}
 	// measure distance from your head to any segment of the other
 	// snakes body (ignore tail would be a nice optimization)
-	lengths := make(map[string]int, len(b.Snakes))
+	lengths := make(map[string]int, len(b.Snakes)-1)
 	for _, snake := range b.Snakes {
 		if snake.ID == you.ID {
 			continue
 		}
 		head := you.Head
-
+		minDist := 999
+		for _, c := range snake.Body {
+			minDist = min(minDist, head.distance(c))
+		}
+		lengths[snake.ID] = minDist
 	}
-
+	// Remove the snake with greatest distance until there are 4
+	for {
+		if len(b.Snakes) <= 4 {
+			break
+		}
+		maxId := ""
+		maxDistance := 0
+		for k, v := range lengths {
+			if v > maxDistance {
+				maxId = k
+				maxDistance = v
+			}
+		}
+		indexToRemove := -1
+		for i, snake := range b.Snakes {
+			if snake.ID == maxId {
+				indexToRemove = i
+			}
+		}
+		b.Snakes = remove(b.Snakes, indexToRemove)
+		delete(lengths, maxId)
+	}
 }
 
 type Battlesnake struct {
@@ -79,4 +104,35 @@ type BattlesnakeInfoResponse struct {
 type BattlesnakeMoveResponse struct {
 	Move  string `json:"move"`
 	Shout string `json:"shout,omitempty"`
+}
+
+// Utils
+
+func remove(slice []Battlesnake, s int) []Battlesnake {
+	return append(slice[:s], slice[s+1:]...)
+}
+
+func (c1 Coord) distance(c2 Coord) int {
+	return abs(c1.X-c2.X) + abs(c1.Y-c2.Y)
+}
+
+func abs(x int) int {
+	if x < 0 {
+		return -x
+	}
+	return x
+}
+
+func min(a, b int) int {
+	if a < b {
+		return a
+	}
+	return b
+}
+
+func max(a, b int) int {
+	if a > b {
+		return a
+	}
+	return b
 }
