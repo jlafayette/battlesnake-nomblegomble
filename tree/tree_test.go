@@ -1135,7 +1135,7 @@ func TestBadH2H01(t *testing.T) {
 	}
 }
 
-func Test__NAME__(t *testing.T) {
+func TestCanHandle8Snakes(t *testing.T) {
 	state := wire.GameState{
 		Game: wire.Game{
 			ID: "6f5c63a3-ab49-45e5-8751-b261e1ca6b71",
