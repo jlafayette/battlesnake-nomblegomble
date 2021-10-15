@@ -6,18 +6,19 @@ import (
 )
 
 type Board struct {
-	Width        int
-	Height       int
-	snakeCount   int
-	Turn         Turn
-	Cells        []*Cell
-	lengths1     map[SnakeIndex]int          // original lengths
-	lengths      map[SnakeIndex]int          // current lengths
-	areas        map[SnakeIndex]float64      // this is a float so hazards can count less
-	foodTrackers map[SnakeIndex]*foodTracker // foods in area weighted by distance
-	ate          map[SnakeIndex]bool
-	dead         map[SnakeIndex]bool
-	health       map[SnakeIndex]int
+	Width               int
+	Height              int
+	snakeCount          int
+	hazardDamagePerTurn int
+	Turn                Turn
+	Cells               []*Cell
+	lengths1            map[SnakeIndex]int          // original lengths
+	lengths             map[SnakeIndex]int          // current lengths
+	areas               map[SnakeIndex]float64      // this is a float so hazards can count less
+	foodTrackers        map[SnakeIndex]*foodTracker // foods in area weighted by distance
+	ate                 map[SnakeIndex]bool
+	dead                map[SnakeIndex]bool
+	health              map[SnakeIndex]int
 }
 
 func (b *Board) getCell(x, y int) (*Cell, bool) {
@@ -31,7 +32,7 @@ func (b *Board) getCell(x, y int) (*Cell, bool) {
 	return b.Cells[index], true
 }
 
-func NewBoard(width, height int, snakes []*Snake, foods, hazards []Coord) *Board {
+func NewBoard(width, height int, snakes []*Snake, foods, hazards []Coord, hazardDamagePerTurn int) *Board {
 	w := width
 	h := height
 	snakeNumber := len(snakes)
@@ -128,7 +129,7 @@ func (b *Board) _checkNeighbor(x, y int, cell *Cell, nx, ny int) bool {
 	nCell, ok := b.getCell(nx, ny)
 	if ok && nCell.IsHead() {
 		id := nCell.SnakeId()
-		cell.NewHeadFrom(nCell, b.Turn)
+		cell.NewHeadFrom(nCell, b.Turn, b.hazardDamagePerTurn)
 		if cell.IsFood() {
 			b.ate[id] = true
 			b.foodTrackers[id].add(Coord{x, y}, b.Turn)
@@ -204,10 +205,6 @@ func (b *Board) Update() bool {
 			}
 		}
 	}
-
-	// Update H2H
-	// Because space is already awarded, this should take away space from the smaller snake
-	// or from both if they both die
 
 	// Resolve the turn for each cell
 	for x := 0; x < b.Width; x++ {

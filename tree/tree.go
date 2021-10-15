@@ -52,12 +52,18 @@ type State struct {
 	// Food (eaten, needs to be un-eaten when reversing)
 	Food []Coord
 
-	// Hazards (static for now)
-	Hazards []Coord
+	// Hazards
+	Hazards             []Coord
+	HazardDamagePerTurn int
 }
 
 func NewState(wireState *wire.GameState, depth int) *State {
 	wireState.Board.CapTo4Snakes(wireState.You)
+	// Test data doesn't have this value populated, so assume 15 as the default for royale
+	if wireState.Game.Ruleset.Name == "royale" && wireState.Game.Ruleset.Settings.HazardDamagePerTurn == 0 {
+		wireState.Game.Ruleset.Settings.HazardDamagePerTurn = 15
+	}
+
 	snakeCount := len(wireState.Board.Snakes)
 	if snakeCount > 4 {
 		panic("too many snakes!!")
@@ -85,7 +91,14 @@ func NewState(wireState *wire.GameState, depth int) *State {
 	for _, wireHazard := range wireState.Board.Hazards {
 		hazards = append(hazards, Coord{wireHazard.X, wireHazard.Y})
 	}
-	board := NewBoard(wireState.Board.Width, wireState.Board.Height, snakes, food, hazards)
+	board := NewBoard(
+		wireState.Board.Width,
+		wireState.Board.Height,
+		snakes,
+		food,
+		hazards,
+		int(wireState.Game.Ruleset.Settings.HazardDamagePerTurn),
+	)
 
 	// timeout should have 100ms buffer, but always be at least 50ms
 	// the min of 50 is mostly for test cases where this is not specified
@@ -93,19 +106,20 @@ func NewState(wireState *wire.GameState, depth int) *State {
 
 	root := NewMoveNode(4, []snakeMove{{0, NoMove}, {1, NoMove}, {2, NoMove}, {3, NoMove}})
 	return &State{
-		Width:        wireState.Board.Width,
-		Height:       wireState.Board.Height,
-		MyIndex:      myIndex,
-		InitialTurn:  wireState.Turn,
-		maxDepth:     depth,
-		currentDepth: 0,
-		timeout:      int64(timeout),
-		Root:         root,
-		node:         root,
-		evalBoard:    board,
-		Snakes:       snakes,
-		Food:         food,
-		Hazards:      hazards,
+		Width:               wireState.Board.Width,
+		Height:              wireState.Board.Height,
+		MyIndex:             myIndex,
+		InitialTurn:         wireState.Turn,
+		maxDepth:            depth,
+		currentDepth:        0,
+		timeout:             int64(timeout),
+		Root:                root,
+		node:                root,
+		evalBoard:           board,
+		Snakes:              snakes,
+		Food:                food,
+		Hazards:             hazards,
+		HazardDamagePerTurn: int(wireState.Game.Ruleset.Settings.HazardDamagePerTurn),
 	}
 }
 
@@ -326,7 +340,7 @@ func (s *State) ApplyMove() {
 		if snake.Dead {
 			// We need to call move even though the snake is dead
 			// so it's internal turn count stay accurate.
-			err := snake.Move(Dead, false, false, false)
+			err := snake.Move(Dead, false, false, false, s.HazardDamagePerTurn)
 			if err != nil {
 				fmt.Println(err.Error())
 			}
@@ -397,7 +411,7 @@ func (s *State) ApplyMove() {
 		head.die = die
 	}
 	for _, head := range newHeads {
-		err := head.snake.Move(head.move, head.food, head.die, head.hazard)
+		err := head.snake.Move(head.move, head.food, head.die, head.hazard, s.HazardDamagePerTurn)
 		if err != nil {
 			fmt.Println(err.Error())
 		}

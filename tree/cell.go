@@ -145,15 +145,15 @@ func (c *Cell) IsHazard() bool {
 }
 
 func (c *Cell) Area() float64 {
-	// Could penalize sauce area if needed
-	// if c.hazard {
-	// 	return 0.25
-	// }
+	// Apply sauce penalty to area score
+	if c.hazard {
+		return 0.5
+	}
 	return 1.0
 }
 
 // This is the way to move a space filling 'snake' to a new cell
-func (c *Cell) NewHeadFrom(nc *Cell, turn Turn) {
+func (c *Cell) NewHeadFrom(nc *Cell, turn Turn, hazardDamagePerTurn int) {
 	if c.contents == Head {
 		// resolve H2H
 		if c.snakeId == nc.snakeId {
@@ -180,7 +180,7 @@ func (c *Cell) NewHeadFrom(nc *Cell, turn Turn) {
 				c.length += 1
 			}
 			if c.IsHazard() {
-				c.headHealth -= 15
+				c.headHealth -= hazardDamagePerTurn
 			} else {
 				c.headHealth -= 1
 			}
@@ -193,7 +193,7 @@ func (c *Cell) NewHeadFrom(nc *Cell, turn Turn) {
 	c.length = nc.length
 	c.headHealth = nc.headHealth
 	if c.IsHazard() {
-		c.headHealth -= 15
+		c.headHealth -= hazardDamagePerTurn
 	} else {
 		c.headHealth -= 1
 	}
@@ -206,11 +206,6 @@ func (c *Cell) NewHeadFrom(nc *Cell, turn Turn) {
 
 func (c *Cell) NewTurn() {
 	if c.contents == Head {
-		if c.IsHazard() {
-			c.headHealth -= 15
-		} else {
-			c.headHealth -= 1
-		}
 		if c.headHealth <= 0 {
 			// snake has died
 			c.length = 0

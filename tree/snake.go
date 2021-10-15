@@ -64,7 +64,7 @@ func NewSnake(index, health int, coords []Coord, turn, depth int) *Snake {
 	}
 }
 
-func (s *Snake) Move(m Move, food, die, hazard bool) error {
+func (s *Snake) Move(m Move, food, die, hazard bool, hazardDamagePerTurn int) error {
 	// fmt.Printf("%d %d move: %v, food %v, die %v\n", s.Index, s.turn+1, m, food, die)
 
 	// Eating normally mutates the previous tail into a duplicate of the new tail,
@@ -112,7 +112,7 @@ func (s *Snake) Move(m Move, food, die, hazard bool) error {
 		s.ateLastTurn = false
 		s.HealthStack.Push(s.Health)
 		if hazard {
-			s.Health -= 15
+			s.Health -= hazardDamagePerTurn
 		} else {
 			s.Health -= 1
 		}
