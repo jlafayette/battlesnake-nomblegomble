@@ -679,7 +679,7 @@ func TestRespect03(t *testing.T) {
 		},
 	}
 
-	treeState := NewState(&state, 1)
+	treeState := NewState(&state, 2)
 	move, _ := treeState.FindBestMove(true)
 
 	if move == Left {
