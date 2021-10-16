@@ -436,11 +436,11 @@ func (s *State) ApplyMove() {
 		head.die = die
 	}
 	for _, head := range newHeads {
-		food := head.food
-		if s.Mode == Constrictor {
-			food = true
-		}
-		err := head.snake.Move(head.move, food, head.die, head.hazard, s.HazardDamagePerTurn)
+		// food := head.food
+		// if s.Mode == Constrictor {
+		// 	food = true
+		// }
+		err := head.snake.Move(head.move, head.food, head.die, head.hazard, s.HazardDamagePerTurn)
 		if err != nil {
 			fmt.Println(err.Error())
 		}

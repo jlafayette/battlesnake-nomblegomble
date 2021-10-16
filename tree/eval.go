@@ -134,7 +134,7 @@ func (b *Board) _checkNeighbor(x, y int, cell *Cell, nx, ny int) bool {
 	if ok && nCell.IsHead() {
 		id := nCell.SnakeId()
 		cell.NewHeadFrom(nCell, b.Turn, b.hazardDamagePerTurn)
-		if cell.IsFood() || b.gameMode == Constrictor {
+		if cell.IsFood() {
 			b.ate[id] = true
 			b.foodTrackers[id].add(Coord{x, y}, b.Turn)
 		}
@@ -191,7 +191,7 @@ func (b *Board) Update() bool {
 
 	// update lengths
 	for snakeid, ate := range b.ate {
-		if ate || b.gameMode == Constrictor {
+		if ate {
 			b.lengths[snakeid] += 1
 		}
 	}
@@ -352,9 +352,7 @@ func (b *Board) Eval(myIndex SnakeIndex) []float64 {
 			panic("no health?!")
 		}
 		healthScore := float64(health) * 2
-		if b.gameMode != Constrictor {
-			score += healthScore
-		}
+		score += healthScore
 
 		// what's our length relative to other snakes?
 		// 0, 50
@@ -378,9 +376,7 @@ func (b *Board) Eval(myIndex SnakeIndex) []float64 {
 			otherLongest = max(otherLongest, l)
 		}
 		longestScore := remap(float64(clamp(myLength-otherLongest, -10, 10)), -10, 10, -120, 120)
-		if b.gameMode != Constrictor {
-			score += longestScore
-		}
+		score += longestScore
 
 		// how much space do we have relative to other snakes?
 		// mySpace - otherSmallest
@@ -409,9 +405,7 @@ func (b *Board) Eval(myIndex SnakeIndex) []float64 {
 		// this is all calculated in the foodTracker struct for my snake
 		rawFoodScore := float64(results[index].Food)
 		foodScore := rawFoodScore * 2.0
-		if b.gameMode != Constrictor {
-			score += foodScore
-		}
+		score += foodScore
 
 		// fmt.Printf("%d score: %.1f iDead: %.1f othersDead: %.1f health: %.1f food/score: %.1f/%.1f length: %.1f area me/otherSmallest/raw/score: %.1f/%.1f/%.1f/%.1f\n", index, score, iDeadScore, othersDeadScore, healthScore, rawFoodScore, foodScore, longestScore, myArea, otherSmallestArea, rawArea, areaScore)
 
