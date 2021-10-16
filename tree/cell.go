@@ -145,10 +145,10 @@ func (c *Cell) IsHazard() bool {
 }
 
 func (c *Cell) Area() float64 {
-	// Apply sauce penalty to area score
-	if c.hazard {
-		return 0.5
-	}
+	// // Apply sauce penalty to area score
+	// if c.hazard {
+	// 	return 1.0
+	// }
 	return 1.0
 }
 

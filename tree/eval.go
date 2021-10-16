@@ -10,15 +10,17 @@ type Board struct {
 	Height              int
 	snakeCount          int
 	hazardDamagePerTurn int
-	Turn                Turn
-	Cells               []*Cell
-	lengths1            map[SnakeIndex]int          // original lengths
-	lengths             map[SnakeIndex]int          // current lengths
-	areas               map[SnakeIndex]float64      // this is a float so hazards can count less
-	foodTrackers        map[SnakeIndex]*foodTracker // foods in area weighted by distance
-	ate                 map[SnakeIndex]bool
-	dead                map[SnakeIndex]bool
-	health              map[SnakeIndex]int
+	gameMode            GameMode
+
+	Turn         Turn
+	Cells        []*Cell
+	lengths1     map[SnakeIndex]int          // original lengths
+	lengths      map[SnakeIndex]int          // current lengths
+	areas        map[SnakeIndex]float64      // this is a float so hazards can count less
+	foodTrackers map[SnakeIndex]*foodTracker // foods in area weighted by distance
+	ate          map[SnakeIndex]bool
+	dead         map[SnakeIndex]bool
+	health       map[SnakeIndex]int
 }
 
 func (b *Board) getCell(x, y int) (*Cell, bool) {
@@ -32,7 +34,7 @@ func (b *Board) getCell(x, y int) (*Cell, bool) {
 	return b.Cells[index], true
 }
 
-func NewBoard(width, height int, snakes []*Snake, foods, hazards []Coord, hazardDamagePerTurn int) *Board {
+func NewBoard(width, height int, gameMode GameMode, snakes []*Snake, foods, hazards []Coord, hazardDamagePerTurn int) *Board {
 	w := width
 	h := height
 	snakeNumber := len(snakes)
@@ -49,18 +51,20 @@ func NewBoard(width, height int, snakes []*Snake, foods, hazards []Coord, hazard
 	}
 
 	b := &Board{
-		Width:        w,
-		Height:       h,
-		snakeCount:   snakeNumber,
-		Turn:         0,
-		Cells:        cells,
-		lengths:      lengths,
-		lengths1:     lengths1,
-		areas:        areas,
-		foodTrackers: trackers,
-		ate:          ate,
-		dead:         dead,
-		health:       health,
+		Width:               w,
+		Height:              h,
+		snakeCount:          snakeNumber,
+		hazardDamagePerTurn: hazardDamagePerTurn,
+		gameMode:            gameMode,
+		Turn:                0,
+		Cells:               cells,
+		lengths:             lengths,
+		lengths1:            lengths1,
+		areas:               areas,
+		foodTrackers:        trackers,
+		ate:                 ate,
+		dead:                dead,
+		health:              health,
 	}
 	for x := 0; x < b.Width; x++ {
 		for y := 0; y < b.Height; y++ {
@@ -130,7 +134,7 @@ func (b *Board) _checkNeighbor(x, y int, cell *Cell, nx, ny int) bool {
 	if ok && nCell.IsHead() {
 		id := nCell.SnakeId()
 		cell.NewHeadFrom(nCell, b.Turn, b.hazardDamagePerTurn)
-		if cell.IsFood() {
+		if cell.IsFood() || b.gameMode == Constrictor {
 			b.ate[id] = true
 			b.foodTrackers[id].add(Coord{x, y}, b.Turn)
 		}
@@ -187,7 +191,7 @@ func (b *Board) Update() bool {
 
 	// update lengths
 	for snakeid, ate := range b.ate {
-		if ate {
+		if ate || b.gameMode == Constrictor {
 			b.lengths[snakeid] += 1
 		}
 	}
@@ -348,7 +352,9 @@ func (b *Board) Eval(myIndex SnakeIndex) []float64 {
 			panic("no health?!")
 		}
 		healthScore := float64(health) * 2
-		score += healthScore
+		if b.gameMode != Constrictor {
+			score += healthScore
+		}
 
 		// what's our length relative to other snakes?
 		// 0, 50
@@ -372,7 +378,9 @@ func (b *Board) Eval(myIndex SnakeIndex) []float64 {
 			otherLongest = max(otherLongest, l)
 		}
 		longestScore := remap(float64(clamp(myLength-otherLongest, -10, 10)), -10, 10, -120, 120)
-		score += longestScore
+		if b.gameMode != Constrictor {
+			score += longestScore
+		}
 
 		// how much space do we have relative to other snakes?
 		// mySpace - otherSmallest
@@ -401,7 +409,9 @@ func (b *Board) Eval(myIndex SnakeIndex) []float64 {
 		// this is all calculated in the foodTracker struct for my snake
 		rawFoodScore := float64(results[index].Food)
 		foodScore := rawFoodScore * 2.0
-		score += foodScore
+		if b.gameMode != Constrictor {
+			score += foodScore
+		}
 
 		// fmt.Printf("%d score: %.1f iDead: %.1f othersDead: %.1f health: %.1f food/score: %.1f/%.1f length: %.1f area me/otherSmallest/raw/score: %.1f/%.1f/%.1f/%.1f\n", index, score, iDeadScore, othersDeadScore, healthScore, rawFoodScore, foodScore, longestScore, myArea, otherSmallestArea, rawArea, areaScore)
 

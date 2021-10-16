@@ -7,6 +7,27 @@ import (
 	"github.com/jlafayette/battlesnake-go/wire"
 )
 
+type GameMode int
+
+const (
+	Standard GameMode = iota
+	Royale
+	Constrictor
+)
+
+func parseGameMode(modeStr string) GameMode {
+	switch modeStr {
+	case "standard":
+		return Standard
+	case "royale":
+		return Royale
+	case "constrictor":
+		return Constrictor
+	default:
+		return Standard
+	}
+}
+
 type snakeMove struct {
 	snakeIndex int
 	move       Move
@@ -26,6 +47,7 @@ func (s snakeMove) ShortString() string {
 type State struct {
 	Width  int
 	Height int
+	Mode   GameMode
 
 	MyIndex int
 
@@ -60,7 +82,8 @@ type State struct {
 func NewState(wireState *wire.GameState, depth int) *State {
 	wireState.Board.CapTo4Snakes(wireState.You)
 	// Test data doesn't have this value populated, so assume 15 as the default for royale
-	if wireState.Game.Ruleset.Name == "royale" && wireState.Game.Ruleset.Settings.HazardDamagePerTurn == 0 {
+	gameMode := parseGameMode(wireState.Game.Ruleset.Name)
+	if gameMode == Royale && wireState.Game.Ruleset.Settings.HazardDamagePerTurn == 0 {
 		wireState.Game.Ruleset.Settings.HazardDamagePerTurn = 15
 	}
 
@@ -94,6 +117,7 @@ func NewState(wireState *wire.GameState, depth int) *State {
 	board := NewBoard(
 		wireState.Board.Width,
 		wireState.Board.Height,
+		gameMode,
 		snakes,
 		food,
 		hazards,
@@ -109,6 +133,7 @@ func NewState(wireState *wire.GameState, depth int) *State {
 		Width:               wireState.Board.Width,
 		Height:              wireState.Board.Height,
 		MyIndex:             myIndex,
+		Mode:                gameMode,
 		InitialTurn:         wireState.Turn,
 		maxDepth:            depth,
 		currentDepth:        0,
@@ -411,7 +436,11 @@ func (s *State) ApplyMove() {
 		head.die = die
 	}
 	for _, head := range newHeads {
-		err := head.snake.Move(head.move, head.food, head.die, head.hazard, s.HazardDamagePerTurn)
+		food := head.food
+		if s.Mode == Constrictor {
+			food = true
+		}
+		err := head.snake.Move(head.move, food, head.die, head.hazard, s.HazardDamagePerTurn)
 		if err != nil {
 			fmt.Println(err.Error())
 		}
