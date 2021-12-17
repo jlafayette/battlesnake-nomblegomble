@@ -516,21 +516,18 @@ func (b *Board) Eval(myIndex SnakeIndex) []float64 {
 		// we also need a H2H death counter.
 		// so if safe move = 1 and H2H death = 1, score = 0
 		choiceT, ok := b.choiceTrackers[index]
+		myChoiceScore := 0.0
 		if ok {
-			// myLength
-			safe := choiceT.getSafe()
-			badH2h := choiceT.getBadH2h()
-
-			if safe >= 3 {
-				score += 50
-			} else if safe == 2 {
-				score += 25
-			} else if safe == 1 && badH2h >= 1 {
-				score += -25
-			} else {
-				score += 0
-			}
+			myChoiceScore = choiceT.score()
 		}
+		otherChoiceScore := 0.0
+		for i, t := range b.choiceTrackers {
+			if i == index {
+				continue
+			}
+			otherChoiceScore = maxf(otherChoiceScore, t.score())
+		}
+		score += myChoiceScore - otherChoiceScore
 
 		// Food
 		// this is all calculated in the foodTracker struct for my snake
