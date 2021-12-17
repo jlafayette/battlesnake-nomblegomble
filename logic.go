@@ -22,8 +22,8 @@ func info() wire.BattlesnakeInfoResponse {
 		APIVersion: "1",
 		Author:     "jlafayette",
 		Color:      "#0390fc", // "#6ad7e5",
-		Head:       "whale", // "beluga",
-		Tail:       "mystic-moon", // "bolt",
+		Head:       "beluga",
+		Tail:       "bolt",
 	}
 }
 
