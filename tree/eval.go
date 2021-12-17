@@ -477,7 +477,7 @@ func (b *Board) Eval(myIndex SnakeIndex) []float64 {
 			}
 			otherLongest = max(otherLongest, l)
 		}
-		longestScore := remap(float64(clamp(myLength-otherLongest, -10, 10)), -10, 10, -120, 120)
+		longestScore := remap(float64(clamp(myLength-otherLongest, -5, 5)), -5, 5, -50, 50)
 		score += longestScore
 
 		// how much space do we have relative to other snakes?
