@@ -122,7 +122,11 @@ func (c *Cell) SetSnake(snakeIndex SnakeIndex, bodyIndex BodyIndex, length, heal
 		c.length = length
 		c.headHealth = health
 	} else if isTail {
-		c.contents = Tail
+		if health == 100 {
+			c.contents = DoubleTail
+		} else {
+			c.contents = Tail
+		}
 	} else {
 		c.contents = Body
 	}

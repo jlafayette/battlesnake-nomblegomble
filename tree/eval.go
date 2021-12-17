@@ -12,15 +12,16 @@ type Board struct {
 	hazardDamagePerTurn int
 	gameMode            GameMode
 
-	Turn         Turn
-	Cells        []*Cell
-	lengths1     map[SnakeIndex]int          // original lengths
-	lengths      map[SnakeIndex]int          // current lengths
-	areas        map[SnakeIndex]float64      // this is a float so hazards can count less
-	foodTrackers map[SnakeIndex]*foodTracker // foods in area weighted by distance
-	ate          map[SnakeIndex]bool
-	dead         map[SnakeIndex]bool
-	health       map[SnakeIndex]int
+	Turn           Turn
+	Cells          []*Cell
+	lengths1       map[SnakeIndex]int            // original lengths
+	lengths        map[SnakeIndex]int            // current lengths
+	areas          map[SnakeIndex]float64        // this is a float so hazards can count less
+	foodTrackers   map[SnakeIndex]*foodTracker   // foods in area weighted by distance
+	choiceTrackers map[SnakeIndex]*choiceTracker // options for snake to move
+	ate            map[SnakeIndex]bool
+	dead           map[SnakeIndex]bool
+	health         map[SnakeIndex]int
 }
 
 func (b *Board) getCell(x, y int) (*Cell, bool) {
@@ -46,8 +47,13 @@ func NewBoard(width, height int, gameMode GameMode, snakes []*Snake, foods, haza
 	dead := make(map[SnakeIndex]bool, snakeNumber)
 	health := make(map[SnakeIndex]int, snakeNumber)
 	trackers := make(map[SnakeIndex]*foodTracker, snakeNumber)
+	choiceTrackers := make(map[SnakeIndex]*choiceTracker, snakeNumber)
+
 	for i := 0; i < snakeNumber; i++ {
 		trackers[SnakeIndex(i)] = newFoodTracker()
+	}
+	for i := 0; i < snakeNumber; i++ {
+		choiceTrackers[SnakeIndex(i)] = newChoiceTracker()
 	}
 
 	b := &Board{
@@ -62,6 +68,7 @@ func NewBoard(width, height int, gameMode GameMode, snakes []*Snake, foods, haza
 		lengths1:            lengths1,
 		areas:               areas,
 		foodTrackers:        trackers,
+		choiceTrackers:      choiceTrackers,
 		ate:                 ate,
 		dead:                dead,
 		health:              health,
@@ -90,6 +97,10 @@ func (b *Board) Load(snakes []*Snake, foods, hazards []Coord) {
 	// clear food tracker
 	for i := range b.foodTrackers {
 		b.foodTrackers[i].reset()
+	}
+	// clear choice trackers
+	for i := range b.choiceTrackers {
+		b.choiceTrackers[i].reset()
 	}
 	// clear cells
 	for _, cell := range b.Cells {
@@ -309,7 +320,98 @@ func PrintResults(r map[SnakeIndex]*EvalResult) {
 	}
 }
 
+func (b *Board) _choiceLength(x, y int) int {
+	cell, ok := b.getCell(x, y)
+	if !ok {
+		return 0
+	}
+	return b.lengths[cell.SnakeId()]
+}
+
+func (b *Board) _choiceNeighbor(myLen, x, y, originX, originY int) ChoiceOutcome {
+	n, ok := b.getCell(x, y)
+	// if neighbor is wall, snake body, then mork ChoiceDead
+	if !ok {
+		return ChoiceDead
+	}
+	if n.Blocked() {
+		return ChoiceDead
+	}
+	// if neighbor is empty, then check the other neighbors for another snake head
+	length := 0
+	nx := x - 1
+	ny := y
+	if !(nx == originX && ny == originY) {
+		length = max(length, b._choiceLength(nx, ny))
+	}
+	nx = x + 1
+	if !(nx == originX && ny == originY) {
+		length = max(length, b._choiceLength(nx, ny))
+	}
+	nx = x
+	ny = y + 1
+	if !(nx == originX && ny == originY) {
+		length = max(length, b._choiceLength(nx, ny))
+	}
+	ny = y - 1
+	if !(nx == originX && ny == originY) {
+		length = max(length, b._choiceLength(nx, ny))
+	}
+	// if no other snake head, then mark ChoiceSafe
+	if length == 0 {
+		return ChoiceSafe
+	}
+	// if other snake head, check lengths on the head and the other snake head
+	// if longer than other snake, ChoiceSafe
+	// if same length, ChoiceSafe ?
+	if myLen >= length {
+		return ChoiceSafe
+	}
+	// if shorter, ChoiceBadH2H
+	return ChoiceBadH2H
+}
+
+func (b *Board) calculateChoices() {
+	// need to update choice trackers with correct info
+	// iterate over coords
+	for y := b.Height - 1; y >= 0; y-- {
+		for x := 0; x < b.Width; x++ {
+			cell, ok := b.getCell(x, y)
+			if !ok {
+				continue
+			}
+			if !cell.IsHead() {
+				continue
+			}
+			// if head, check all the neighbors
+			// Check for nearby heads
+			index := cell.SnakeId()
+			t, ok := b.choiceTrackers[index]
+			if !ok {
+				continue
+			}
+			myLen, ok := b.lengths[index]
+			if !ok {
+				continue
+			}
+			outcome := b._choiceNeighbor(myLen, x-1, y, x, y)
+			t.add(Left, outcome)
+			outcome = b._choiceNeighbor(myLen, x+1, y, x, y)
+			t.add(Right, outcome)
+			outcome = b._choiceNeighbor(myLen, x, y+1, x, y)
+			t.add(Up, outcome)
+			outcome = b._choiceNeighbor(myLen, x, y-1, x, y)
+			t.add(Down, outcome)
+		}
+	}
+}
+
 func (b *Board) Eval(myIndex SnakeIndex) []float64 {
+
+	// this is a late edition hack
+	// needs to not mess up the state for b.fill()
+	b.calculateChoices()
+
 	scores := make([]float64, 4)
 	results := b.fill()
 
@@ -400,6 +502,35 @@ func (b *Board) Eval(myIndex SnakeIndex) []float64 {
 		}
 		areaScore := remap(float64(rawArea), -3, 3, -100, 100)
 		score += areaScore
+
+		// Choices
+		// How many directions can this snake go in?
+		// having more choices is better, to prevent positions where you have space
+		// all along the side of the board, but are trapped when you get to the
+		// corner.
+		// 3             = 50
+		// 2             = 25
+		// 1             = 10
+		// 1 + H2H death = 0
+		// to calculate this, we need a safe move counter for each snake
+		// we also need a H2H death counter.
+		// so if safe move = 1 and H2H death = 1, score = 0
+		choiceT, ok := b.choiceTrackers[index]
+		if ok {
+			// myLength
+			safe := choiceT.getSafe()
+			badH2h := choiceT.getBadH2h()
+
+			if safe >= 3 {
+				score += 50
+			} else if safe == 2 {
+				score += 25
+			} else if safe == 1 && badH2h >= 1 {
+				score += -25
+			} else {
+				score += 0
+			}
+		}
 
 		// Food
 		// this is all calculated in the foodTracker struct for my snake
