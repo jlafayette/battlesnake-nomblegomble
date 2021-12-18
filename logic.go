@@ -21,7 +21,7 @@ func info() wire.BattlesnakeInfoResponse {
 	return wire.BattlesnakeInfoResponse{
 		APIVersion: "1",
 		Author:     "jlafayette",
-		Color:      "#03d3fc", //  "#0390fc", // "#6ad7e5",
+		Color:      "#03d3fc",
 		Head:       "beluga",
 		Tail:       "bolt",
 	}
@@ -44,14 +44,10 @@ func end(state wire.GameState) {
 // where to move -- valid moves are "up", "down", "left", or "right".
 func move(state wire.GameState) wire.BattlesnakeMoveResponse {
 
-	// Depth of 20 is the upper limit, it will return when the timeout is
-	// reached most of the time.
-	depth := 20
-	// if state.Turn < 3 {
-	// 	// Thinking too hard on the first 2 turns seems to skip the starting
-	// 	// food sometimes...
-	// 	depth = 1
-	// }
+	// Depth of 3 is the upper limit. This is for the public version. In the
+	// Fall 2021 and Winter 2021 tournaments this was set to 20, but most of
+	// the time it returned because of running out of time at a depth of 5 or 6.
+	depth := 3
 	treeState := tree.NewState(&state, depth)
 	move, lvl := treeState.FindBestMove(true)
 

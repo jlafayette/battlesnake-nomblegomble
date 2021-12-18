@@ -127,6 +127,8 @@ func NewState(wireState *wire.GameState, depth int) *State {
 	// timeout should have 100ms buffer, but always be at least 50ms
 	// the min of 50 is mostly for test cases where this is not specified
 	timeout := max(50, int(wireState.Game.Timeout)-50)
+	// For the public version, don't use more than 100ms
+	timeout = min(timeout, 100)
 
 	root := NewMoveNode(4, []snakeMove{{0, NoMove}, {1, NoMove}, {2, NoMove}, {3, NoMove}})
 	return &State{
