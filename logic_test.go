@@ -2457,3 +2457,67 @@ func TestFood3(t *testing.T) {
 		t.Errorf("snake moved into self, %s", nextMove.Move)
 	}
 }
+
+func TestGetFoodWhenStarving(t *testing.T) {
+	state := wire.GameState{
+		Game: wire.Game{
+			ID: "d95a1a71-9ff7-4d45-9c18-4be22b7fe396",
+			Ruleset: wire.Ruleset{
+				Name:    "royale",
+				Version: "v1.0.23",
+			},
+			Timeout: 500,
+		},
+		Turn: 173,
+		Board: wire.Board{
+			Height: 11,
+			Width:  11,
+			Food:   []wire.Coord{{10, 0}, {0, 10}, {3, 10}, {0, 5}, {10, 3}, {9, 6}, {10, 7}, {9, 9}, {2, 8}},
+			Snakes: []wire.Battlesnake{
+				{
+					ID:      "gs_K9GKr6dgB7Fd8SbvxxkyKyPB",
+					Name:    "nomblegomble dev",
+					Health:  16,
+					Head:    wire.Coord{2, 9},
+					Body:    []wire.Coord{{2, 9}, {3, 9}, {4, 9}, {5, 9}, {6, 9}, {6, 8}, {5, 8}, {4, 8}, {4, 7}, {4, 6}, {3, 6}, {3, 7}, {2, 7}, {1, 7}, {0, 7}},
+					Length:  15,
+					Latency: "473",
+					Shout:   "6",
+				},
+				{
+					ID:      "gs_PqKKPgbktC7QCPyCyTJ7thRP",
+					Name:    "Nessegrev-gamma",
+					Health:  85,
+					Head:    wire.Coord{8, 7},
+					Body:    []wire.Coord{{8, 7}, {8, 8}, {7, 8}, {7, 7}, {7, 6}, {6, 6}, {6, 5}, {6, 4}, {5, 4}},
+					Length:  9,
+					Latency: "401",
+					Shout:   "",
+				},
+			},
+			Hazards: []wire.Coord{{0, 0}, {0, 1}, {0, 2}, {0, 3}, {0, 4}, {0, 5}, {0, 6}, {0, 7}, {0, 8}, {0, 9}, {0, 10}, {1, 0}, {1, 1}, {1, 9}, {1, 10}, {2, 0}, {2, 1}, {2, 9}, {2, 10}, {3, 0}, {3, 1}, {3, 9}, {3, 10}, {4, 0}, {4, 1}, {4, 9}, {4, 10}, {5, 0}, {5, 1}, {5, 9}, {5, 10}, {6, 0}, {6, 1}, {6, 9}, {6, 10}, {7, 0}, {7, 1}, {7, 9}, {7, 10}, {8, 0}, {8, 1}, {8, 9}, {8, 10}, {9, 0}, {9, 1}, {9, 9}, {9, 10}, {10, 0}, {10, 1}, {10, 2}, {10, 3}, {10, 4}, {10, 5}, {10, 6}, {10, 7}, {10, 8}, {10, 9}, {10, 10}},
+		},
+		You: wire.Battlesnake{
+			ID:      "gs_K9GKr6dgB7Fd8SbvxxkyKyPB",
+			Name:    "nomblegomble dev",
+			Health:  16,
+			Head:    wire.Coord{2, 9},
+			Body:    []wire.Coord{{2, 9}, {3, 9}, {4, 9}, {5, 9}, {6, 9}, {6, 8}, {5, 8}, {4, 8}, {4, 7}, {4, 6}, {3, 6}, {3, 7}, {2, 7}, {1, 7}, {0, 7}},
+			Length:  15,
+			Latency: "473",
+			Shout:   "6",
+		},
+	}
+
+	nextMove := move(state)
+
+	if nextMove.Move == "up" {
+		t.Errorf("snake moved away from nearby food, %s", nextMove.Move)
+	}
+	if nextMove.Move == "left" {
+		t.Errorf("snake moved away from nearby food, %s", nextMove.Move)
+	}
+	if nextMove.Move == "right" {
+		t.Errorf("snake moved into self, %s", nextMove.Move)
+	}
+}
