@@ -257,8 +257,8 @@ func (b *Board) fill() map[SnakeIndex]*EvalResult {
 	for !done {
 		// fmt.Println(b.String())
 		done = b.Update()
-		if (int(b.Turn) >= b.Width*b.Height) || (int(b.Turn) >= longest*2) {
-			// if int(b.Turn) >= b.Width*b.Height {
+		maxTurns := min(b.Width*b.Height, longest+3)
+		if (int(b.Turn) >= maxTurns) {
 			done = true
 		}
 	}
