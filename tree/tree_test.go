@@ -1,7 +1,6 @@
 package tree
 
 import (
-	"fmt"
 	"testing"
 
 	"github.com/jlafayette/battlesnake-go/wire"
@@ -194,7 +193,7 @@ func TestFood1(t *testing.T) {
 
 	treeState := NewState(&state, 1)
 	move, _ := treeState.FindBestMove(true)
-	fmt.Printf("got move: %v\n", move)
+	// fmt.Printf("got move: %v\n", move)
 
 	if move == Down {
 		t.Errorf("snake moved away from food, %v", move)
@@ -463,7 +462,7 @@ func TestH2H01(t *testing.T) {
 	// to fix this, add the 'lucky' move as a backup.
 	treeState := NewState(&state, 2)
 	move, _ := treeState.FindBestMove(true)
-	fmt.Printf("got move: %v\n", move)
+	// fmt.Printf("got move: %v\n", move)
 
 	if move == Dead {
 		t.Errorf("should never get '%v' as move", move)
