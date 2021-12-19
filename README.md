@@ -1,6 +1,6 @@
 # nomblegomble
 
-This is the source code for nomblegomble, a [Battlesnake](http://play.battlesnake.com?utm_source=github&utm_medium=readme&utm_campaign=go_starter&utm_content=homepage) written in Go
+Source code for nomblegomble, a [Battlesnake](http://play.battlesnake.com?utm_source=github&utm_medium=readme&utm_campaign=go_starter&utm_content=homepage) written in Go
 
 ## Technologies Used
 
@@ -25,20 +25,20 @@ REMOTE_USER="username"
 REMOTE_PASSWORD="password123"
 ```
 
-Create a python virtual environment:
+Create a python virtual environment and activate it:
 
 ```shell
 python3 -m venv venv
 source venv/bin/activate
 ```
 
-(On Windows activate using powerscript)
+(On Windows activate the virtual environment using powerscript)
 
 ```ps1
 .\venv\Script\Activate.ps1
 ```
 
-Install Python requirements:
+Install Python requirements to the virtual environment:
 
 ```shell
 pip install -r requirements.txt
