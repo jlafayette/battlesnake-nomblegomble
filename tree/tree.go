@@ -530,9 +530,9 @@ func (s *State) FindBestMove(verbose bool) (Move, int) {
 			return bestMove, s.deepeningLevel
 		}
 		bestMove = mv
-		fmt.Printf("got best move %v at level %d\n", mv, s.deepeningLevel)
+		// fmt.Printf("got best move %v at level %d\n", mv, s.deepeningLevel)
 		if s.deepeningLevel >= s.maxDepth {
-			fmt.Printf("got best move %v at max depth of %d\n", bestMove, s.maxDepth)
+			// fmt.Printf("got best move %v at max depth of %d\n", bestMove, s.maxDepth)
 			return bestMove, s.deepeningLevel
 		}
 		s.deepeningLevel += 1
@@ -547,7 +547,7 @@ func (s *State) findBestMove(start time.Time, verbose bool) (Move, bool, bool) {
 		// check for timeout here
 		elapsed := time.Since(start)
 		if elapsed.Milliseconds() > s.timeout {
-			fmt.Printf("timing out on level %d after %v (%d)\n", s.deepeningLevel, elapsed, eval_count)
+			// fmt.Printf("timing out on level %d after %v (%d)\n", s.deepeningLevel, elapsed, eval_count)
 			return Up, true, false
 		}
 
