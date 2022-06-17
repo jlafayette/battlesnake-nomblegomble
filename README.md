@@ -14,7 +14,7 @@ go test
 
 ## Deploying
 
-Create a server to deploy to with ssh with password enabled (currently using linode).
+Create a server to deploy to with ssh with password enabled (currently using Digital Ocean droplet).
 
 Create a `.env` file with these variables filled in for your server:
 
